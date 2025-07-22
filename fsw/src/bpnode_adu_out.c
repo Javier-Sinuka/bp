@@ -129,7 +129,8 @@ int32 BPNode_AduOut_TaskInit(uint32 *ChanId)
     /* Map this task's ID to a channel ID */
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        if (TaskId == BPNode_AppData.AduOutData[i].TaskId)
+        if (CFE_ResourceId_ToInteger(CFE_RESOURCEID_UNWRAP(TaskId)) ==
+            CFE_ResourceId_ToInteger(CFE_RESOURCEID_UNWRAP(BPNode_AppData.AduOutData[i].TaskId)))
         {
             *ChanId = i;
         }
