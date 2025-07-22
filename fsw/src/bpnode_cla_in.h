@@ -31,8 +31,10 @@
 */
 
 #include "cfe.h"
+/*
 #include "iodriver_base.h"
 #include "iodriver_packet_io.h"
+*/
 #include "bplib.h"
 #include "bpnode_platform_cfg.h"
 
@@ -62,8 +64,10 @@ typedef struct
     uint32          PerfId;
 
     /* IODriver usock_intf related */
+    /*
     CFE_PSP_IODriver_Direction_t Dir;
     CFE_PSP_IODriver_Location_t  PspLocation;
+    */
 
     /* CFE_SB_ReceiveBuffer related */
     CFE_SB_PipeId_t IngressPipe;

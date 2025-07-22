@@ -438,8 +438,11 @@ CFE_Status_t BPNode_AppInit(void)
                     BPNODE_MINOR_VERSION,
                     BPNODE_REVISION);
 
+    snprintf(VersionString, sizeof(VersionString), "BPNode for CAPSTONE 7.0.0");
+    /*
     CFE_Config_GetVersionString(VersionString, BPNODE_CFG_MAX_VERSION_STR_LEN, "BPNode",
                                 BPNODE_VERSION, BPNODE_BUILD_CODENAME, LastOfficialRelease);
+    */
 
     BPLib_EM_SendEvent(BPNODE_INIT_INF_EID, BPLib_EM_EventType_INFORMATION, "BPNode Initialized: %s",
                         VersionString);
