@@ -415,7 +415,8 @@ void BPNode_ClaOut_AppMain(void)
         /* Find a contact whose task ID matches the calling task */
         for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
         {
-            if (BPNode_AppData.ClaOutData[ContactId].TaskId == TaskId)
+            if (CFE_ResourceId_ToInteger(CFE_RESOURCEID_UNWRAP(BPNode_AppData.ClaOutData[ContactId].TaskId)) ==
+                CFE_ResourceId_ToInteger(CFE_RESOURCEID_UNWRAP(TaskId)))
             {
                 /* break to preserve ContactId */
                 break;

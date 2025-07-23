@@ -128,7 +128,8 @@ int32 BPNode_GenWorker_TaskInit(uint8 *WorkerId)
     /* Map this task's ID to a worker ID */
     for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
     {
-        if (TaskId == BPNode_AppData.GenWorkerData[i].TaskId)
+        if (CFE_ResourceId_ToInteger(CFE_RESOURCEID_UNWRAP(TaskId)) ==
+            CFE_ResourceId_ToInteger(CFE_RESOURCEID_UNWRAP(BPNode_AppData.GenWorkerData[i].TaskId)))
         {
             *WorkerId = i;
         }
