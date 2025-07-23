@@ -36,13 +36,20 @@
 
 #include "bpnode_interface_cfg.h"
 
+/*
 #define BPNODE_CLA_UDP_DRIVER
+*/
 
 #ifdef BPNODE_CLA_UDP_DRIVER
     #define BPNODE_CLA_PSP_DRIVER_NAME          "udpsock_intf"       /*IODriver udpsock_intf driver name*/
 #else
     #define BPNODE_CLA_PSP_DRIVER_NAME          "unsock_intf"       /*IODriver unsock_intf driver name*/
 #endif
+
+/**
+ * \brief Set this to remove references to newer OSAL/PSP APIs
+ */
+#define BPNODE_CLA_UDP_USING_OLD_OSAL
 
 /**
  * \brief Default EID Service Number to egress bundles over channel 0

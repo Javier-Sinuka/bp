@@ -36,7 +36,10 @@
 /* Receive bundles from network CL and forward ingress bundles to CLA  */
 int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
 {
+    #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+    #else
     CFE_PSP_IODriver_ReadPacketBuffer_t RdBuf;
+    #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
     int32                               Status;
     BPLib_Status_t                      BpStatus = BPLIB_TIMEOUT;
     CFE_MSG_Message_t*                  MsgPtr;
@@ -84,17 +87,44 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
     }
     else
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        #else
         RdBuf.BufferSize = BPNODE_CLA_PSP_INPUT_BUFFER_SIZE;
         RdBuf.BufferMem  = BPNode_AppData.ClaInData[ContId].PSP_Buffer;
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContId].PerfId);
 
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        Status = OS_SocketRecvFrom(BPNode_AppData.ClaInData[ContId].SocketID,
+                                    BPNode_AppData.ClaInData[ContId].PSP_Buffer,
+                                    BPNODE_CLA_PSP_INPUT_BUFFER_SIZE,
+                                    &BPNode_AppData.ClaInData[ContId].SocketAddress,
+                                    OS_CHECK);
+        #else
         Status = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContId].PspLocation,
                                             CFE_PSP_IODriver_PACKET_IO_READ,
                                             CFE_PSP_IODriver_VPARG(&RdBuf));
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
+
 
         BPLib_PL_PerfLogEntry(BPNode_AppData.ClaInData[ContId].PerfId);
 
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        if (Status > 0)
+        {
+            *BundleSize = Status;
+            BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContId].PerfId);
+
+            BpStatus = BPLib_CLA_Ingress(&BPNode_AppData.BplibInst,
+                                        ContId,
+                                        BPNode_AppData.ClaInData[ContId].PSP_Buffer,
+                                        *BundleSize,
+                                        0);
+
+            BPLib_PL_PerfLogEntry(BPNode_AppData.ClaInData[ContId].PerfId);
+        }
+        #else
         if (Status == CFE_PSP_SUCCESS && RdBuf.BufferSize != 0)
         { /* Ingress received bundle to bplib CLA */
             *BundleSize = RdBuf.BufferSize;
@@ -109,6 +139,7 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
 
             BPLib_PL_PerfLogEntry(BPNode_AppData.ClaInData[ContId].PerfId);
         }
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
         else if (Status != CFE_PSP_ERROR_TIMEOUT)
         {
             BPLib_EM_SendEvent(BPNODE_CLA_IN_IO_READ_ERR_EID,
@@ -260,9 +291,13 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
     }
     else
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        Status = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        #else
         /* Get PSP module ID for either the Unix or UDP socket driver */
         Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
                                                 &BPNode_AppData.ClaInData[ContactId].PspLocation.PspModuleId);
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (Status != CFE_PSP_SUCCESS)
         {
@@ -273,6 +308,8 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
         }
         else
         {
+            #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+            #else
             BPNode_AppData.ClaInData[ContactId].PspLocation.SubsystemId = 1 + (CFE_PSP_GetProcessorId() & 1);
 
             /* Set direction to input only */
@@ -287,6 +324,7 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
                                     ContactId,
                                     Status);
             }
+            #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
         }
     }
 
@@ -320,8 +358,10 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, int32 PortNum, const char* IpAddr)
 {
     BPLib_Status_t  Status;
+    #ifdef BPNODE_CLA_UDP_DRIVER
     int32           PspStatus;
     char            Str[100];
+    #endif /* BPNODE_CLA_UDP_DRIVER */
 
     Status = BPLIB_SUCCESS;
 
@@ -383,10 +423,14 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
     /* Nothing special needs to happen for an SB contact */
     if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        #else
         /* Set I/O to running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
                                                 CFE_PSP_IODriver_SET_RUNNING,
                                                 CFE_PSP_IODriver_U32ARG(true));
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (PspStatus != CFE_PSP_SUCCESS)
         {
@@ -412,10 +456,14 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
     /* Nothing special needs to happen for an SB contact */
     if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        #else
         /* Set I/O to stop running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
                                                 CFE_PSP_IODriver_SET_RUNNING,
                                                 CFE_PSP_IODriver_U32ARG(false));
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (PspStatus != CFE_PSP_SUCCESS)
         {

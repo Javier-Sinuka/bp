@@ -38,7 +38,10 @@
 /* Receive bundles from CLA and send egress bundles to network CL */
 int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
 {
+    #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+    #else
     CFE_PSP_IODriver_WritePacketBuffer_t WrBuf;
+    #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
     BPLib_Status_t                       Status;
 
     *MsgSize = 0;
@@ -84,6 +87,8 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
         }
         else
         {
+            #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+            #else
             WrBuf.OutputSize = *MsgSize;
             WrBuf.BufferMem  = BPNode_AppData.ClaOutData[ContId].OutBuffer.Payload;
 
@@ -96,6 +101,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
                                                     CFE_PSP_IODriver_VPARG(&WrBuf));
 
             BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].PerfId);
+            #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
         }
 
         CFE_MSG_SetSize(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader), 0);
@@ -204,9 +210,13 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
     /* Set performance ID */
     BPNode_AppData.ClaOutData[ContactId].PerfId = BPNODE_CLA_OUT_PERF_ID_BASE + ContactId;
 
+    #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+    Status = CFE_PSP_SUCCESS;
+    #else
     /* Get PSP module ID for either the Unix or UDP socket driver */
     Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
                                             &BPNode_AppData.ClaOutData[ContactId].PspLocation.PspModuleId);
+    #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
     if (Status != CFE_PSP_SUCCESS)
     {
@@ -217,12 +227,16 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
     }
     else
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        Status = CFE_PSP_SUCCESS;
+        #else
         BPNode_AppData.ClaOutData[ContactId].PspLocation.SubsystemId = 2 - (CFE_PSP_GetProcessorId() & 1);
 
         /* Set direction to output only */
         Status = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
                                             CFE_PSP_IODriver_SET_DIRECTION,
                                             CFE_PSP_IODriver_U32ARG(CFE_PSP_IODriver_Direction_OUTPUT_ONLY));
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (Status != CFE_PSP_SUCCESS)
         {
@@ -261,8 +275,10 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
 BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, int32 PortNum, char* IpAddr)
 {
     BPLib_Status_t  Status;
+    #ifdef BPNODE_CLA_UDP_DRIVER
     int32           PspStatus;
     char            Str[100];
+    #endif /* BPNODE_CLA_UDP_DRIVER */
 
     Status = BPLIB_SUCCESS;
 
@@ -323,10 +339,14 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 
     if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        #else
         /* Set I/O to running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
                                                 CFE_PSP_IODriver_SET_RUNNING,
                                                 CFE_PSP_IODriver_U32ARG(true));
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (PspStatus != CFE_PSP_SUCCESS)
         {
@@ -351,10 +371,14 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 
     if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
     {
+        #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+        PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        #else
         /* Set I/O to stop running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
                                                 CFE_PSP_IODriver_SET_RUNNING,
                                                 CFE_PSP_IODriver_U32ARG(false));
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (PspStatus != CFE_PSP_SUCCESS)
         {

@@ -73,11 +73,12 @@ typedef struct
     osal_id_t       ExitSemId;
     uint32          PerfId;
 
+    #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+    #else
     /* IODriver usock_intf related*/
-    /*
     CFE_PSP_IODriver_Direction_t Dir;
     CFE_PSP_IODriver_Location_t  PspLocation;
-    */
+    #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
     /* CLA Out bundle/packet */
     BPNode_ClaOut_Buffer_t OutBuffer;
