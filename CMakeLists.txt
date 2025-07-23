@@ -24,18 +24,18 @@ set(APP_SRC_FILES
 )
 
 set(APP_TABLE_FILES
-  fsw/tables/bpnode_adup_config_tbl.c
-  fsw/tables/bpnode_channel_config_tbl.c
-  fsw/tables/bpnode_contacts_tbl.c
-  fsw/tables/bpnode_crs_tbl.c
-  fsw/tables/bpnode_custodian_auth_policy_tbl.c
-  fsw/tables/bpnode_custody_auth_policy_tbl.c
-  fsw/tables/bpnode_mib_config_pn_tbl.c
-  fsw/tables/bpnode_mib_config_ps_tbl.c
-  fsw/tables/bpnode_reportto_eid_auth_policy_tbl.c
-  fsw/tables/bpnode_src_auth_policy_tbl.c
-  fsw/tables/bpnode_src_latency_policy_tbl.c
-  fsw/tables/bpnode_storage_tbl.c
+  fsw/tables/bpnode_adup.c
+  fsw/tables/bpnode_channel.c
+  fsw/tables/bpnode_contacts.c
+  fsw/tables/bpnode_crs.c
+  fsw/tables/bpnode_custodia.c
+  fsw/tables/bpnode_custody.c
+  fsw/tables/bpnode_mib_pn.c
+  fsw/tables/bpnode_mib_ps.c
+  fsw/tables/bpnode_reportto.c
+  fsw/tables/bpnode_src_auth.c
+  fsw/tables/bpnode_latency.c
+  fsw/tables/bpnode_storage.c
 )
 
 # Create the app module
