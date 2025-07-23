@@ -60,6 +60,41 @@ void BPNode_NotifSet(BPNode_Notif_t* Notif)
     OS_CondVarUnlock(Notif->CondVar);
 }
 
+/*
+ * @brief Gets an absolute time value relative to the current time
+ *
+ * This function adds the given interval, expressed in milliseconds, to the
+ * current clock and returns the result.
+ *
+ * @note This is intended to ease transitioning from a relative timeout value to
+ * and absolute timeout value.  The result can be passed to any function
+ * that accepts an absolute timeout, to mimic the behavior of a relative timeout.
+ *
+ * @param[in]  relative_msec A relative time interval, in milliseconds
+ *
+ * @returns Absolute time value after adding interval
+ */
+OS_time_t OS_TimeFromRelativeMilliseconds(int32 relative_msec)
+{
+    OS_time_t abs_time;
+
+    if (relative_msec == OS_CHECK)
+    {
+        abs_time = ((OS_time_t) {0});
+    }
+    else if (relative_msec > 0)
+    {
+        OS_GetLocalTime(&abs_time);
+        abs_time = OS_TimeAdd(abs_time, OS_TimeFromTotalMilliseconds(relative_msec));
+    }
+    else
+    {
+        abs_time = ((OS_time_t) {INT64_MAX});
+    }
+
+    return abs_time;
+}
+
 /* Wait until notif is incremented */
 int32 BPNode_NotifWait(BPNode_Notif_t* Notif, uint32 OldCount, int32 TimeoutMs)
 {
