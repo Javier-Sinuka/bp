@@ -249,6 +249,11 @@ CFE_Status_t BPNode_ClaInCreateTasks(void)
 CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 {
     CFE_Status_t Status;
+    #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
+    int32 OsalStatus;
+    uint16 DefaultListenPort;
+    #else
+    #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
     /* Set performance ID */
     BPNode_AppData.ClaInData[ContactId].PerfId = BPNODE_CLA_IN_PERF_ID_BASE + ContactId;
@@ -292,12 +297,54 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
     else
     {
         #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
-        Status = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        OsalStatus = OS_SocketOpen(&BPNode_AppData.ClaInData[ContactId].SocketID,
+                OS_SocketDomain_INET,
+                OS_SocketType_DATAGRAM);
+
+        if (OsalStatus != OS_SUCCESS)
+        {
+            CFE_EVS_SendEvent(BPNODE_CLA_IN_SOCKET_OPEN_ERR_EID, CFE_EVS_EventType_ERROR,
+                            "CLA In [%u]: create socket failed = %d",
+                            ContactId,
+                            (int)OsalStatus);
+            BPNode_AppData.ClaInData[ContactId].SocketConnected = false;
+            Status = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+        }
+        else
+        {
+            OS_SocketAddrInit(&BPNode_AppData.ClaInData[ContactId].SocketAddress, OS_SocketDomain_INET);
+            DefaultListenPort = 1300 + CFE_PSP_GetProcessorId() - 1;
+            OS_SocketAddrSetPort(&BPNode_AppData.ClaInData[ContactId].SocketAddress, DefaultListenPort);
+            //OS_SocketAddrFromString(&BPNode_AppData.ClaInData[ContactId].SocketAddress, "127.0.0.1");
+
+            OsalStatus = OS_SocketBind(BPNode_AppData.ClaInData[ContactId].SocketID,
+                                      &BPNode_AppData.ClaInData[ContactId].SocketAddress);
+
+            if (OsalStatus != OS_SUCCESS)
+            {
+                CFE_EVS_SendEvent(BPNODE_CLA_IN_SOCKET_BIND_ERR_EID, CFE_EVS_EventType_ERROR,
+                                "CLA In [%u]: bind socket failed = %d",
+                                ContactId,
+                                (int)OsalStatus);
+                BPNode_AppData.ClaInData[ContactId].SocketConnected = false;
+                Status = CFE_PSP_ERROR_NOT_IMPLEMENTED;
+            }
+            else
+            {
+                BPNode_AppData.ClaInData[ContactId].SocketConnected = true;
+                CFE_EVS_SendEvent(BPNODE_CLA_IN_SETUP_SUCCESS_INF_EID, CFE_EVS_EventType_INFORMATION,
+                                    "CLA In [%u]: listening on UDP port: %u",
+                                    ContactId,
+                                    (unsigned int)DefaultListenPort);
+                Status = CFE_PSP_SUCCESS;
+            }
+        }
+
+        
         #else
         /* Get PSP module ID for either the Unix or UDP socket driver */
         Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
                                                 &BPNode_AppData.ClaInData[ContactId].PspLocation.PspModuleId);
-        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
 
         if (Status != CFE_PSP_SUCCESS)
         {
@@ -308,8 +355,6 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
         }
         else
         {
-            #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
-            #else
             BPNode_AppData.ClaInData[ContactId].PspLocation.SubsystemId = 1 + (CFE_PSP_GetProcessorId() & 1);
 
             /* Set direction to input only */
@@ -324,8 +369,8 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
                                     ContactId,
                                     Status);
             }
-            #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
         }
+        #endif /* BPNODE_CLA_UDP_USING_OLD_OSAL */
     }
 
     if (Status == CFE_PSP_SUCCESS)

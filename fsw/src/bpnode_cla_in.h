@@ -67,6 +67,7 @@ typedef struct
     #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
     osal_id_t        SocketID;
     OS_SockAddr_t    SocketAddress;
+    bool             SocketConnected;
     #else
     /* IODriver usock_intf related */
     CFE_PSP_IODriver_Direction_t Dir;
