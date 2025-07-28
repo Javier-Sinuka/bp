@@ -33,7 +33,6 @@ BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId, BPLib_CLA_ContactsSet_t C
     BPLib_Status_t Status;
 
     /* Initialize CLA in */
-    // Status = BPNode_ClaIn_Setup(ContactId, ContactInfo.ClaInPort, ContactInfo.ClaInAddr);
     Status = BPNode_ClaIn_Setup(ContactId, ContactInfo);
 
     if (Status == BPLIB_SUCCESS)
