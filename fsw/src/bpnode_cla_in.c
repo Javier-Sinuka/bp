@@ -321,7 +321,7 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
     return Status;
 }
 
-BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, int32 PortNum, const char* IpAddr)
+BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
 {
     BPLib_Status_t  Status;
     int32           PspStatus;
@@ -330,11 +330,11 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, int32 PortNum, const char* I
     Status = BPLIB_SUCCESS;
 
     /* Nothing special needs to happen for an SB contact */
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    if (ContactInfo.CLAType != SBType)
     {
         #ifdef BPNODE_CLA_UDP_DRIVER
             /* Configure Port Number */
-            snprintf(Str, sizeof(Str), "port=%d", PortNum);
+            snprintf(Str, sizeof(Str), "port=%d", ContactInfo.ClaInPort);
             PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
                                                     CFE_PSP_IODriver_SET_CONFIGURATION,
                                                     CFE_PSP_IODriver_CONST_STR(Str));
@@ -352,7 +352,7 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, int32 PortNum, const char* I
             if (Status == BPLIB_SUCCESS)
             {
                 /* Configure IP Address */
-                snprintf(Str, sizeof(Str), "IpAddr=%s", IpAddr);
+                snprintf(Str, sizeof(Str), "IpAddr=%s", ContactInfo.ClaInAddr);
                 PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
                                                         CFE_PSP_IODriver_SET_CONFIGURATION,
                                                         CFE_PSP_IODriver_CONST_STR(Str));
@@ -368,7 +368,7 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, int32 PortNum, const char* I
                 }
                 else
                 {
-                    OS_printf("CLA In #%d receiving on %s:%d\n", ContactId, IpAddr, PortNum);
+                    OS_printf("CLA In #%d receiving on %s:%d\n", ContactId, ContactInfo.ClaInPort, ContactInfo.ClaInAddr);
                 }
             }
         #endif
