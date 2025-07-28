@@ -40,11 +40,13 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
     int32                               Status;
     BPLib_Status_t                      BpStatus = BPLIB_TIMEOUT;
     CFE_MSG_Message_t*                  MsgPtr;
+    BPLib_CLA_Type_t                    ClaType;
 
-    Status  = CFE_PSP_SUCCESS;
+    ClaType     = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType;
+    Status      = CFE_PSP_SUCCESS;
     *BundleSize = 0;
 
-    if (ContId == BPNODE_CLA_SB_CONTACT_ID)
+    if (ClaType == SBType)
     {
         BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContId].PerfId);
 
@@ -217,12 +219,16 @@ CFE_Status_t BPNode_ClaInCreateTasks(void)
 
 CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 {
-    CFE_Status_t Status;
+    CFE_Status_t     Status;
+    BPLib_CLA_Type_t ClaType;
+
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
 
     /* Set performance ID */
     BPNode_AppData.ClaInData[ContactId].PerfId = BPNODE_CLA_IN_PERF_ID_BASE + ContactId;
 
-    if (ContactId == BPNODE_CLA_SB_CONTACT_ID)
+    if (ClaType == SBType)
     {
         /* Create ingress pipe */
         Status = CFE_SB_CreatePipe(&(BPNode_AppData.ClaInData[ContactId].IngressPipe),
@@ -323,9 +329,9 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 
 BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
 {
-    BPLib_Status_t  Status;
-    int32           PspStatus;
-    char            Str[100];
+    BPLib_Status_t Status;
+    int32          PspStatus;
+    char           Str[100];
 
     Status = BPLIB_SUCCESS;
 
@@ -379,13 +385,15 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t Cont
 
 BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
 {
-    int32 PspStatus;
-    BPLib_Status_t Status;
+    int32            PspStatus;
+    BPLib_Status_t   Status;
+    BPLib_CLA_Type_t ClaType;
 
-    Status = BPLIB_SUCCESS;
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    Status  = BPLIB_SUCCESS;
 
     /* Nothing special needs to happen for an SB contact */
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    if (ClaType != SBType)
     {
         /* Set I/O to running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
@@ -408,13 +416,16 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
 
 BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
 {
-    BPLib_Status_t Status;
-    int32 PspStatus;
+    BPLib_Status_t   Status;
+    int32            PspStatus;
+    BPLib_CLA_Type_t ClaType;
 
-    Status = BPLIB_SUCCESS;
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    Status  = BPLIB_SUCCESS;
 
     /* Nothing special needs to happen for an SB contact */
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    if (ClaType != SBType)
     {
         /* Set I/O to stop running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,

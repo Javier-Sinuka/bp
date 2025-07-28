@@ -425,7 +425,8 @@ void Test_BPNode_ClaOut_ProcessBundleOutput_SB_Nominal(void)
     uint32 ContactId;
     size_t BundleSize;
 
-    ContactId = BPNODE_CLA_SB_CONTACT_ID;
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = SBType;
 
     UtAssert_UINT32_EQ(BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize), CFE_SUCCESS);
 

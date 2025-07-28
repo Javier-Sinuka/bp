@@ -40,7 +40,10 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
 {
     CFE_PSP_IODriver_WritePacketBuffer_t WrBuf;
     BPLib_Status_t                       Status;
+    BPLib_CLA_Type_t                     ClaType;
 
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType  = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType;
     *MsgSize = 0;
 
     /* Get next bundle from CLA */
@@ -66,7 +69,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     /* Send egress bundle onto CL */
     if (Status == BPLIB_SUCCESS)
     {
-        if (ContId == BPNODE_CLA_SB_CONTACT_ID)
+        if (ClaType == SBType)
         { /* Contact is SB-type */
             /* Set the MID for the outbound bundle */
             CFE_MSG_SetMsgId(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader),
@@ -318,12 +321,16 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t Con
 
 BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 {
-    int32 PspStatus;
-    BPLib_Status_t Status;
+    int32            PspStatus;
+    BPLib_Status_t   Status;
+    BPLib_CLA_Type_t ClaType;
+
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
 
     Status = BPLIB_SUCCESS;
 
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    if (ClaType != SBType)
     {
         /* Set I/O to running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
@@ -346,12 +353,15 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 
 BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 {
-    BPLib_Status_t Status;
-    int32 PspStatus;
+    BPLib_Status_t   Status;
+    int32            PspStatus;
+    BPLib_CLA_Type_t ClaType;
 
-    Status = BPLIB_SUCCESS;
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    Status  = BPLIB_SUCCESS;
 
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    if (ClaType != SBType)
     {
         /* Set I/O to stop running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
