@@ -368,7 +368,7 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t Cont
                 }
                 else
                 {
-                    OS_printf("CLA In #%d receiving on %s:%d\n", ContactId, ContactInfo.ClaInPort, ContactInfo.ClaInAddr);
+                    OS_printf("CLA In #%d receiving on %s:%d\n", ContactId, ContactInfo.ClaInAddr, ContactInfo.ClaInPort);
                 }
             }
         #endif
