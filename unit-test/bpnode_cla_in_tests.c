@@ -193,20 +193,32 @@ void Test_BPNode_ClaIn_TaskInit_SubscribeErr(void)
 void Test_BPNode_ClaIn_Setup_Nominal(void)
 {
 #ifdef BPNODE_CLA_UDP_DRIVER
+    BPLib_CLA_ContactsSet_t ContactInfo;
+
+    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
+    strcpy(ContactInfo.ClaInAddr, "0.0.0.0");
+    ContactInfo.ClaInPort = 0;
+
     /* Force called function to return values that will create a success return value */
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_IODriver_Command), CFE_PSP_SUCCESS);
 
     /* Call function under test and verify return status */
-    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(0, 0, "0.0.0.0"), BPLIB_SUCCESS);
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(0, ContactInfo), BPLIB_SUCCESS);
 #endif
 }
 
 void Test_BPNode_ClaIn_Setup_PortErr(void)
 {
 #ifdef BPNODE_CLA_UDP_DRIVER
+    BPLib_CLA_ContactsSet_t ContactInfo;
+
+    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
+    strcpy(ContactInfo.ClaInAddr, "0.0.0.0");
+    ContactInfo.ClaInPort = 0;
+
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_IODriver_Command), 1, CFE_PSP_ERROR);
 
-    UtAssert_INT32_EQ(BPNode_ClaIn_Setup(0, 0, "0.0.0.0"), BPLIB_CLA_IO_ERROR);
+    UtAssert_INT32_EQ(BPNode_ClaIn_Setup(0, ContactInfo), BPLIB_CLA_IO_ERROR);
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_CLA_IN_CFG_PORT_ERR_EID);
@@ -222,9 +234,15 @@ void Test_BPNode_ClaIn_Setup_PortErr(void)
 void Test_BPNode_ClaIn_Setup_IpErr(void)
 {
 #ifdef BPNODE_CLA_UDP_DRIVER
+    BPLib_CLA_ContactsSet_t ContactInfo;
+
+    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
+    strcpy(ContactInfo.ClaInAddr, "0.0.0.0");
+    ContactInfo.ClaInPort = 0;
+
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_IODriver_Command), 2, CFE_PSP_ERROR);
 
-    UtAssert_INT32_EQ(BPNode_ClaIn_Setup(0, 0, "0.0.0.0"), BPLIB_CLA_IO_ERROR);
+    UtAssert_INT32_EQ(BPNode_ClaIn_Setup(0, ContactInfo), BPLIB_CLA_IO_ERROR);
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_CLA_IN_CFG_IP_ERR_EID);

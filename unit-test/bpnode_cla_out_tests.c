@@ -472,10 +472,13 @@ void Test_BPNode_ClaOut_Setup_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32 ContId = 0;
-    int32 PortNum = 100;
-    const char *IpAddr = "127.0.0.1";
+    BPLib_CLA_ContactsSet_t ContactInfo;
 
-    Status = BPNode_ClaOut_Setup(ContId, PortNum, (char *) IpAddr);
+    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
+    strcpy(ContactInfo.ClaOutAddr, "127.0.0.1");
+    ContactInfo.ClaOutPort = 100;
+
+    Status = BPNode_ClaOut_Setup(ContId, ContactInfo);
     
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
