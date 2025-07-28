@@ -126,15 +126,13 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void);
 
 /**
   * \brief     Set up a CLA out task
-  * \param[in] ContactId   Index into the various contact info tracking arrays that
-  *                        corresponds to that contact's info
-  * \param[in] ContactInfo All the information required about the contact from
-  *                        the contacts configuration
+  * \param[in] ContactId Index into the various contact info tracking arrays that
+  *                      corresponds to that contact's info
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Successful execution
   * \retval    BPLIB_CLA_IO_ERROR: A I/O driver API call failed operation
   */
- BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo);
+ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId);
 
 /**
   * \brief     Start up a CLA Out task

@@ -263,13 +263,15 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
     return Status;
 }
 
-BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 {
-    BPLib_Status_t  Status;
-    int32           PspStatus;
-    char            Str[100];
+    BPLib_Status_t          Status;
+    int32                   PspStatus;
+    char                    Str[100];
+    BPLib_CLA_ContactsSet_t ContactInfo;
 
-    Status = BPLIB_SUCCESS;
+    Status      = BPLIB_SUCCESS;
+    ContactInfo = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
 
     if (ContactInfo.CLAType != SBType)
     {

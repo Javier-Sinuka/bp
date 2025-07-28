@@ -39,16 +39,13 @@
   *            sending and receiving bundles, the destination LTP engine ID (if LTP CL), and TCPCLP
   *            session (if TCPCLP for the given contact)
   * \note      As of right now, this function only sets up the port, IP address, and flow direction
-  * \param[in] ContactId (uint32) Index into the various contact info tracking arrays that corresponds
-  *                                 to that contact's info
-  * \param[in] ContactInfo (BPLib_CLA_ContactsSet_t) Entry from the Contacts Configuration. This variable
-  *                                                  holds all the information needed to configure the
-  *                                                  CLA tasks
+  * \param[in] ContactId Index into the various contact info tracking arrays that
+  *                      corresponds to that contact's info
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Successful execution
   * \retval    BPLIB_CLA_IO_ERROR: A I/O driver API call failed operation
   */
-BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo);
+BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId);
 
 /**
   * \brief     Start transferring bundles between underlying network and BI
