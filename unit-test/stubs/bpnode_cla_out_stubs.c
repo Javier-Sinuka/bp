@@ -74,12 +74,11 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
  * Generated stub function for BPNode_ClaOut_Setup()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 {
     UT_GenStub_SetupReturnBuffer(BPNode_ClaOut_Setup, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPNode_ClaOut_Setup, uint32, ContactId);
-    UT_GenStub_AddParam(BPNode_ClaOut_Setup, BPLib_CLA_ContactsSet_t, ContactInfo);
 
     UT_GenStub_Execute(BPNode_ClaOut_Setup, Basic, NULL);
 

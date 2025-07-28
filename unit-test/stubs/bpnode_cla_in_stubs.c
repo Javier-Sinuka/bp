@@ -74,12 +74,11 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
  * Generated stub function for BPNode_ClaIn_Setup()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId)
 {
     UT_GenStub_SetupReturnBuffer(BPNode_ClaIn_Setup, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPNode_ClaIn_Setup, uint32, ContactId);
-    UT_GenStub_AddParam(BPNode_ClaIn_Setup, BPLib_CLA_ContactsSet_t, ContactInfo);
 
     UT_GenStub_Execute(BPNode_ClaIn_Setup, Basic, NULL);
 
