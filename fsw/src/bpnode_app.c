@@ -251,6 +251,10 @@ CFE_Status_t BPNode_AppInit(void)
                 CFE_ES_WriteToSysLog("BPNode: Error Registering Events, RC = %d\n",
                                     BpStatus);
                 break;
+            case BPLIB_NC_TIME_INIT_ERR:
+                BPLib_EM_SendEvent(BPNODE_TIME_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error initializing BPLib Time Management, RC = %d",
+                                    BpStatus);
             case BPLIB_NC_INIT_ERR:
                 BPLib_EM_SendEvent(BPNODE_NC_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
                                     "Error initializing NC, RC = %d",
