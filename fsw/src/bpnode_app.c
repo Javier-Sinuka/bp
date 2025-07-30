@@ -171,13 +171,6 @@ CFE_Status_t BPNode_WakeupProcess(void)
     return Status;
 }
 
-CFE_Status_t BPNode_BPLib_Init(void)
-{
-    CFE_Status_t Status;
-    Status = CFE_SUCCESS;
-    return Status;
-}
-
 /* App initialization activities */
 CFE_Status_t BPNode_AppInit(void)
 {

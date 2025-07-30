@@ -118,14 +118,6 @@ extern BPNode_AppData_t BPNode_AppData;
 void BPNode_AppMain(void);
 
 /**
- * \brief Initialize all the BPLib modules in one location
- * \return Execution status
- * \retval CFE_SUCCESS: Successful initialization of BPLib modules
- * \retval TBD: TBD
- */
-CFE_Status_t BPNode_BPLib_Init(void);
-
-/**
  * \brief Initializes the BPNode application
  *
  *  \par Description
