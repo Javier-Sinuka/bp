@@ -219,6 +219,17 @@ CFE_Status_t BPNode_AppInit(void)
     /* Zero out the global data structure */
     CFE_PSP_MemSet(&BPNode_AppData, 0, sizeof(BPNode_AppData));
 
+    /* Call Table Proxy Init Function Here to load default configurations*/
+    BpStatus = BPA_TABLEP_TableInit();
+    if (BpStatus != CFE_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_TBL_ADDR_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Error getting configuration from Table Proxy, RC = 0x%08lX",
+                            (unsigned long)BpStatus);
+
+        return BpStatus;
+    }
+
     /* Initialize configurations and counters */
     BpStatus = BPLib_NC_Init(&BPNode_AppData.ConfigPtrs, &Callbacks, &BPNode_AppData.BplibInst, (uint16) BPNODE_MAX_UNSORTED_JOBS,
                              (void*) BPNode_AppData.pool_mem, (size_t) BPNODE_MEM_POOL_LEN);
@@ -261,17 +272,6 @@ CFE_Status_t BPNode_AppInit(void)
                                     BpStatus);
                 break;
         }
-
-        return BpStatus;
-    }
-
-    /* Call Table Proxy Init Function Here to load default configurations*/
-    BpStatus = BPA_TABLEP_TableInit();
-    if (BpStatus != CFE_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_TBL_ADDR_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error getting configuration from Table Proxy, RC = 0x%08lX",
-                            (unsigned long)BpStatus);
 
         return BpStatus;
     }
