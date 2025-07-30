@@ -137,7 +137,7 @@
 #define BPNODE_GEN_WRKR_REGISTER_ERR_EID        112
 #define BPNODE_GEN_WRKR_TASKRUN_ERR_EID         113
 
-#define BPNODE_NC_AS_INIT_ERR_EID               114
+#define BPNODE_NC_INIT_ERR_EID                  114
 #define BPNODE_DP_SEND_NODE_CNTRS_ERR_EID       115
 #define BPNODE_ADU_REM_CHAN_ERR_EID             116
 #define BPNODE_ADU_REM_STAT_ERR_EID             117
@@ -151,5 +151,7 @@
 
 #define BPNODE_INIT_SB_CONTACT_ERR_EID          127
 #define BPNODE_INIT_NOTIF_CR_ERR_EID            128
+
+#define BPNODE_AS_INIT_ERR_EID                  129
 
 #endif /* BPNODE_EVENTS_H */
