@@ -219,27 +219,44 @@ CFE_Status_t BPNode_AppInit(void)
     /* Zero out the global data structure */
     CFE_PSP_MemSet(&BPNode_AppData, 0, sizeof(BPNode_AppData));
 
-    /* Initialize the FWP before using BPLib functions */
-    BpStatus = BPLib_FWP_Init(&Callbacks);
+    /* Initialize configurations and counters */
+    BpStatus = BPLib_NC_Init(&BPNode_AppData.ConfigPtrs, &Callbacks, &BPNode_AppData.BplibInst, (uint16) BPNODE_MAX_UNSORTED_JOBS,
+                             (void*) BPNode_AppData.pool_mem, (size_t) BPNODE_MEM_POOL_LEN);
+
     if (BpStatus != BPLIB_SUCCESS)
     {
-        CFE_ES_WriteToSysLog("BPNode: Failure initializing function callbacks, RC = 0x%08lX\n",
-                                (unsigned long) BpStatus);
+        switch (BpStatus)
+        {
+            case BPLIB_NC_FWP_INIT_ERR:
+                CFE_ES_WriteToSysLog("Error initializing function callbacks, RC = %d\n",
+                                    (unsigned long) BpStatus);
 
-        /* Use CFE_EVS_SendEvent() rather than BPLib_EM_SendEvent() since callbacks weren't initialized */
-        CFE_EVS_SendEvent(BPNODE_FWP_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "BPNode: Failure initializing function callbacks, RC = 0x%08lX",
-                            (unsigned long) BpStatus);
-
-        return BpStatus;
-    }
-
-    /* Register with Event Services */
-    BpStatus = BPLib_EM_Init();
-    if (BpStatus != CFE_SUCCESS)
-    {
-        CFE_ES_WriteToSysLog("BPNode: Error Registering Events, RC = 0x%08lX\n",
-                                (unsigned long)BpStatus);
+                /* Use CFE_EVS_SendEvent() rather than BPLib_EM_SendEvent() since callbacks weren't initialized */
+                CFE_EVS_SendEvent(BPNODE_FWP_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error initializing function callbacks, RC = %d",
+                                    (unsigned long) BpStatus);
+                break;
+            case BPLIB_NC_EM_INIT_ERR:
+                CFE_ES_WriteToSysLog("BPNode: Error Registering Events, RC = %d\n",
+                                    (unsigned long)BpStatus);
+                break;
+            case BPLIB_NC_INIT_ERR:
+                BPLib_EM_SendEvent(BPNODE_NC_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error initializing NC, RC = %d", BpStatus);
+                break;
+            case BPLIB_NC_AS_INIT_ERR:
+                BPLib_EM_SendEvent(BPNODE_AS_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error initializing AS, RC = %d", BpStatus);
+                break;
+            case BPLIB_NC_QM_INIT_ERR:
+                BPLib_EM_SendEvent(BPNODE_QM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error initializing QM, RC = %d", BpStatus);
+                break;
+            case BPLIB_NC_MEM_INIT_ERR:
+                BPLib_EM_SendEvent(BPNODE_MEM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error initializing MEM, RC = %d", BpStatus);
+                break;
+        }
 
         return BpStatus;
     }
@@ -251,45 +268,6 @@ CFE_Status_t BPNode_AppInit(void)
         BPLib_EM_SendEvent(BPNODE_TBL_ADDR_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Error getting configuration from Table Proxy, RC = 0x%08lX",
                             (unsigned long)BpStatus);
-
-        return BpStatus;
-    }
-
-    BpStatus = BPLib_TIME_Init();
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_TIME_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing BPLib Time Management, RC = %d", BpStatus);
-
-        return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
-    }
-
-    /* Initialize configurations and counters */
-    BpStatus = BPLib_NC_Init(&BPNode_AppData.ConfigPtrs);
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_NC_AS_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing NC/AS, RC = %d", BpStatus);
-
-        return BpStatus;
-    }
-
-    /* Initialize MEM and QM */
-    BpStatus = BPLib_QM_QueueTableInit(&BPNode_AppData.BplibInst, BPNODE_MAX_UNSORTED_JOBS);
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_QM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing QM, RC = %d", BpStatus);
-
-        return BpStatus;
-    }
-
-    BpStatus = BPLib_MEM_PoolInit(&BPNode_AppData.BplibInst.pool, (void *)BPNode_AppData.pool_mem,
-        (size_t)BPNODE_MEM_POOL_LEN);
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_MEM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing MEM, RC = %d", BpStatus);
 
         return BpStatus;
     }
