@@ -229,32 +229,36 @@ CFE_Status_t BPNode_AppInit(void)
         {
             case BPLIB_NC_FWP_INIT_ERR:
                 CFE_ES_WriteToSysLog("Error initializing function callbacks, RC = %d\n",
-                                    (unsigned long) BpStatus);
+                                    BpStatus);
 
                 /* Use CFE_EVS_SendEvent() rather than BPLib_EM_SendEvent() since callbacks weren't initialized */
                 CFE_EVS_SendEvent(BPNODE_FWP_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
                                     "Error initializing function callbacks, RC = %d",
-                                    (unsigned long) BpStatus);
+                                    BpStatus);
                 break;
             case BPLIB_NC_EM_INIT_ERR:
                 CFE_ES_WriteToSysLog("BPNode: Error Registering Events, RC = %d\n",
-                                    (unsigned long)BpStatus);
+                                    BpStatus);
                 break;
             case BPLIB_NC_INIT_ERR:
                 BPLib_EM_SendEvent(BPNODE_NC_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error initializing NC, RC = %d", BpStatus);
+                                    "Error initializing NC, RC = %d",
+                                    BpStatus);
                 break;
             case BPLIB_NC_AS_INIT_ERR:
                 BPLib_EM_SendEvent(BPNODE_AS_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error initializing AS, RC = %d", BpStatus);
+                                    "Error initializing AS, RC = %d",
+                                    BpStatus);
                 break;
             case BPLIB_NC_QM_INIT_ERR:
                 BPLib_EM_SendEvent(BPNODE_QM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error initializing QM, RC = %d", BpStatus);
+                                    "Error initializing QM, RC = %d",
+                                    BpStatus);
                 break;
             case BPLIB_NC_MEM_INIT_ERR:
                 BPLib_EM_SendEvent(BPNODE_MEM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error initializing MEM, RC = %d", BpStatus);
+                                    "Error initializing MEM, RC = %d",
+                                    BpStatus);
                 break;
         }
 
