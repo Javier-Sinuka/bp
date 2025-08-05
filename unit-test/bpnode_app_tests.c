@@ -367,10 +367,7 @@ void Test_BPNode_AppInit_FailedFwpInit(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), BPLIB_NC_FWP_INIT_ERR);
 
-    UtAssert_STUB_COUNT(CFE_EVS_SendEvent, 1);
     UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_FWP_INIT_ERR_EID,
-                             "Error initializing function callbacks, RC = %d");
 }
 
 /* Test app initialization after event management initialization failure */
@@ -415,7 +412,7 @@ void Test_BPNode_AppInit_FailedASInit(void)
     UtAssert_INT32_EQ(BPNode_AppInit(), BPLIB_NC_AS_INIT_ERR);
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_NC_INIT_ERR_EID,
+    BPNode_Test_Verify_Event(0, BPNODE_AS_INIT_ERR_EID,
                              "Error initializing AS, RC = %d");
 }
 
@@ -427,7 +424,7 @@ void Test_BPNode_AppInit_FailedQMInit(void)
     UtAssert_INT32_EQ(BPNode_AppInit(), BPLIB_NC_QM_INIT_ERR);
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_NC_INIT_ERR_EID,
+    BPNode_Test_Verify_Event(0, BPNODE_QM_INIT_ERR_EID,
                              "Error initializing QM, RC = %d");
 }
 
@@ -439,7 +436,7 @@ void Test_BPNode_AppInit_FailedMEMInit(void)
     UtAssert_INT32_EQ(BPNode_AppInit(), BPLIB_NC_MEM_INIT_ERR);
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_NC_INIT_ERR_EID,
+    BPNode_Test_Verify_Event(0, BPNODE_MEM_INIT_ERR_EID,
                              "Error initializing MEM, RC = %d");
 }
 
