@@ -368,6 +368,7 @@ void Test_BPNode_AppInit_FailedFwpInit(void)
     UtAssert_INT32_EQ(BPNode_AppInit(), BPLIB_NC_FWP_INIT_ERR);
 
     UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
+    UtAssert_STUB_COUNT(CFE_EVS_SendEvent, 1);
 }
 
 /* Test app initialization after event management initialization failure */

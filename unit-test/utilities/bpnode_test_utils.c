@@ -57,7 +57,7 @@ BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
 BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
 BPLib_STOR_StorageTable_t   TestStorTbl;
 
-#define UT_MAX_CFE_SENDEVENT_DEPTH 10
+#define UT_MAX_CFE_SENDEVENT_DEPTH 80
 #define UT_MAX_TRANSLATE_DEPTH     13
 
 CFE_EVS_SendEvent_context_t context_CFE_EVS_SendEvent[UT_MAX_CFE_SENDEVENT_DEPTH];

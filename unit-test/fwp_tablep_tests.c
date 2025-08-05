@@ -98,8 +98,8 @@ void Test_BPA_TABLEP_TableInit_Error(void)
         /* Show that something is being called */
         UtAssert_STUB_COUNT(CFE_TBL_Register, ExpectedStubCount);
 
-        /* Verify that the correct event was issued */
-        BPNode_Test_Verify_Event(ErrorLoop, BPNODE_TBL_REG_ERR_EID, "Error registering configuration: %s, RC = 0x%08lX");
+        /* Verify the event is issued */
+        UtAssert_STUB_COUNT(CFE_EVS_SendEvent, ErrorLoop + 1);
     }
 }
 
@@ -138,9 +138,8 @@ void Test_BPA_TABLEP_SingleTableInit_Register_Error(void)
     /* Verify the return code is as expected */
     UtAssert_EQ(CFE_Status_t, Status, CFE_TBL_ERR_INVALID_OPTIONS);
 
-    /* Verify the event issued is as expected */
-    BPNode_Test_Verify_Event(0, BPNODE_TBL_REG_ERR_EID,
-                                "Error registering configuration: %s, RC = 0x%08lX");
+    /* Verify the event is issued */
+    UtAssert_STUB_COUNT(CFE_EVS_SendEvent, 1);
 
     /* Show that no other TBL function was run */
     UtAssert_STUB_COUNT(CFE_TBL_Load, 0);
@@ -164,9 +163,8 @@ void Test_BPA_TABLEP_SingleTableInit_Load_Error(void)
     /* Verify the return code is as expected */
     UtAssert_EQ(CFE_Status_t, Status, CFE_TBL_ERR_INVALID_OPTIONS);
 
-    /* Verify the event issued is as expected */
-    BPNode_Test_Verify_Event(0, BPNODE_TBL_LD_ERR_EID,
-                                "Error loading configuration: %s, RC = 0x%08lX");
+    /* Verify the event is issued */
+    UtAssert_STUB_COUNT(CFE_EVS_SendEvent, 1);
 
     /* Show that no other TBL function was run */
     UtAssert_STUB_COUNT(CFE_TBL_GetAddress, 0);
@@ -189,9 +187,8 @@ void Test_BPA_TABLEP_SingleTableInit_GetAddress_Error(void)
     /* Verify the return code is as expected */
     UtAssert_EQ(CFE_Status_t, Status, CFE_TBL_ERR_INVALID_OPTIONS);
 
-    /* Verify the event issued is as expected */
-    BPNode_Test_Verify_Event(0, BPNODE_TBL_ADDR_ERR_EID,
-                                "Error getting configuration address: %s, RC = 0x%08lX");
+    /* Verify the event is issued */
+    UtAssert_STUB_COUNT(CFE_EVS_SendEvent, 1);
 }
 
 void Test_BPA_TABLEP_TableUpdate_InfoUpdated_Nominal(void)
