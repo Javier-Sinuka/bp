@@ -230,11 +230,6 @@ CFE_Status_t BPNode_AppInit(void)
         {
             CFE_ES_WriteToSysLog("Error initializing BPLib, RC = %d\n",
                                     BpStatus);
-
-            /* Use CFE_EVS_SendEvent() rather than BPLib_EM_SendEvent() since events weren't initialized */
-            CFE_EVS_SendEvent(BPNODE_BPLIB_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "Error initializing BPLib, RC = %d",
-                                BpStatus);
         }
         else
         {
