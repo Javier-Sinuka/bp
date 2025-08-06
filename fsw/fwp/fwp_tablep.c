@@ -38,7 +38,7 @@
 /* ==================== */
 
 /* Initialize Table Proxy, load default configurations */
-CFE_Status_t BPA_TABLEP_TableInit(void)
+BPLib_Status_t BPA_TABLEP_TableInit(void)
 {
     CFE_Status_t Status;
 
@@ -176,7 +176,7 @@ CFE_Status_t BPA_TABLEP_TableInit(void)
         Status = CFE_SUCCESS;
     }
 
-    return Status;
+    return BPA_CFE_Status_Translate(Status);
 }
 
 CFE_Status_t BPA_TABLEP_SingleTableInit(const char* TableName, const char* TableFileName, size_t Size, CFE_TBL_CallbackFuncPtr_t TblValidationFuncPtr, void** TablePtr, CFE_TBL_Handle_t* TableHandle)
@@ -189,7 +189,7 @@ CFE_Status_t BPA_TABLEP_SingleTableInit(const char* TableName, const char* Table
 
     if (Status != CFE_SUCCESS)
     {
-        CFE_EVS_SendEvent(BPNODE_TBL_REG_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPNODE_TBL_REG_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Error registering configuration: %s, RC = 0x%08lX", TableName, (unsigned long)Status);
     }
     else
@@ -199,7 +199,7 @@ CFE_Status_t BPA_TABLEP_SingleTableInit(const char* TableName, const char* Table
 
         if (Status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(BPNODE_TBL_LD_ERR_EID, BPLib_EM_EventType_ERROR,
+            BPLib_EM_SendEvent(BPNODE_TBL_LD_ERR_EID, BPLib_EM_EventType_ERROR,
                                 "Error loading configuration: %s, RC = 0x%08lX", TableFileName, (unsigned long)Status);
         }
         else
@@ -209,7 +209,7 @@ CFE_Status_t BPA_TABLEP_SingleTableInit(const char* TableName, const char* Table
 
             if (Status != CFE_TBL_INFO_UPDATED && Status != CFE_SUCCESS)
             {
-                CFE_EVS_SendEvent(BPNODE_TBL_ADDR_ERR_EID, BPLib_EM_EventType_ERROR,
+                BPLib_EM_SendEvent(BPNODE_TBL_ADDR_ERR_EID, BPLib_EM_EventType_ERROR,
                                     "Error getting configuration address: %s, RC = 0x%08lX", TableName, (unsigned long)Status);
             }
         }
