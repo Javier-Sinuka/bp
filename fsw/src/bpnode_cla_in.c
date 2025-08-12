@@ -63,7 +63,7 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
             if (Status == CFE_PSP_SUCCESS && RdBuf.BufferSize != 0)
             { /* Ingress received bundle to bplib CLA */
                 *BundleSize = RdBuf.BufferSize;
-                
+
                 BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContId].PerfId);
 
                 BpStatus = BPLib_CLA_Ingress(&BPNode_AppData.BplibInst,
@@ -306,7 +306,7 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
                     Status = CFE_PSP_SUCCESS;
                 }
             }
-        
+
             break;
         case BPLib_LTP_CLA:
             break;
@@ -587,7 +587,7 @@ void BPNode_ClaIn_AppMain(void)
                 {
                     /* Attempt to take the wakeup semaphore */
                     BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContactId].PerfId);
-                    OsStatus = BPNode_NotifWait(&BPNode_AppData.ChildStartWorkNotif, 
+                    OsStatus = BPNode_NotifWait(&BPNode_AppData.ChildStartWorkNotif,
                                                         RunCount, BPNODE_WAKEUP_WAIT_MSEC);
                     BPLib_PL_PerfLogEntry(BPNode_AppData.ClaInData[ContactId].PerfId);
 
@@ -608,7 +608,7 @@ void BPNode_ClaIn_AppMain(void)
                                 {
                                     BytesIngressed += BundleSize;
                                 }
-                            } while (Status != BPLIB_TIMEOUT && ((BytesIngressed * BPNODE_BITS_PER_BYTE) < 
+                            } while (Status != BPLIB_TIMEOUT && ((BytesIngressed * BPNODE_BITS_PER_BYTE) <
                                      BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].IngressBitsPerCycle));
                         }
                     }
