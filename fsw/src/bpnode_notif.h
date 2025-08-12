@@ -44,4 +44,6 @@ uint32 BPNode_NotifGetCount(BPNode_Notif_t* Notif);
 
 int32 BPNode_NotifWait(BPNode_Notif_t* Notif, uint32 OldCount, int32 TimeoutMs);
 
+int32 BPNode_NotifWaitExact(BPNode_Notif_t* Notif, uint32 ValueExpected, int32 TimeoutMs);
+
 #endif /* BPNODE_NOTIF_H */

@@ -90,3 +90,36 @@ int32 BPNode_NotifWait(BPNode_Notif_t* Notif, uint32 OldCount, int32 TimeoutMs)
 
     return OsStatus;
 }
+
+
+
+/* Wait until notif is exactly the value provided */
+int32 BPNode_NotifWaitExact(BPNode_Notif_t* Notif, uint32 ValueExpected, int32 TimeoutMs)
+{
+    OS_time_t AbsWaitTime;
+    int32 OsStatus = OS_SUCCESS;
+
+    /* Perform wait on the Notif availability */
+    AbsWaitTime = OS_TimeFromRelativeMilliseconds(TimeoutMs);
+    OS_CondVarLock(Notif->CondVar);
+    while (Notif->Count != ValueExpected)
+    {
+        OsStatus = OS_CondVarTimedWait(Notif->CondVar, &AbsWaitTime);
+        if (OsStatus == OS_SUCCESS)
+        {
+            /* No break here since each child task should wake parent task up */
+        }
+        else if (OsStatus == OS_ERROR_TIMEOUT)
+        {
+            break;
+        }
+        else
+        {
+            /* Case is separate in case event message needed */
+            break;
+        }
+    }
+    OS_CondVarUnlock(Notif->CondVar);
+
+    return OsStatus;
+}

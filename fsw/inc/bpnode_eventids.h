@@ -142,7 +142,9 @@
 #define BPNODE_ADU_OUT_PI_OUT_ERR_EID           124
 #define BPNODE_NC_CFG_UPDATE_ERR_EID            126
 
-#define BPNODE_INIT_SB_CONTACT_ERR_EID          127
-#define BPNODE_INIT_NOTIF_CR_ERR_EID            128
+#define BPNODE_INIT_WORK_NOTIF_ERR_EID          127
+#define BPNODE_INIT_INIT_NOTIF_ERR_EID          128
+#define BPNODE_INIT_EXIT_NOTIF_ERR_EID          129
+#define BPNODE_INIT_NOTIF_ERR_EID               130
 
 #endif /* BPNODE_EVENTS_H */

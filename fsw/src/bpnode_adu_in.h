@@ -38,11 +38,9 @@
 ** Macro Definitions
 */
 
-#define BPNODE_ADU_IN_SEM_BASE_NAME        "BPN_ADU_IN"      /** \brief Semaphore base name */
 #define BPNODE_ADU_IN_BASE_NAME            "BPNODE.ADU_IN"   /** \brief Task base name */
-#define BPNODE_ADU_PIPE_DEPTH              (32u)             /** \brief ADU pipe depth */
 #define BPNODE_ADU_IN_PIPE_BASE_NAME       "BPNODE_ADU_PIPE" /** \brief ADU pipe base name */
-#define BPNODE_ADU_IN_SEM_INIT_WAIT_MSEC   (2000u)           /** \brief Wait time for init semaphore take, in milliseconds */
+#define BPNODE_ADU_PIPE_DEPTH              (32u)             /** \brief ADU pipe depth */
 
 /*
 ** Type Definitions
@@ -54,13 +52,13 @@
 typedef struct
 {
     BPNode_TaskData_t TaskData;
-    CFE_SB_PipeId_t AduPipe;
-    bool            ClearPipe;
-    bool            AduUnwrapping;
-    uint32          MaxBundlePayloadSize;
-    uint32          NumRecvFromMsgIds;
-    CFE_SB_MsgId_t  RecvFromMsgIds[BPNODE_MAX_CHAN_SUBSCRIPTION];
-    uint32          MsgLims[BPNODE_MAX_CHAN_SUBSCRIPTION];
+    CFE_SB_PipeId_t   AduPipe;
+    bool              ClearPipe;
+    bool              AduUnwrapping;
+    uint32            MaxBundlePayloadSize;
+    uint32            NumRecvFromMsgIds;
+    CFE_SB_MsgId_t    RecvFromMsgIds[BPNODE_MAX_CHAN_SUBSCRIPTION];
+    uint32            MsgLims[BPNODE_MAX_CHAN_SUBSCRIPTION];
 } BPNode_AduInData_t;
 
 

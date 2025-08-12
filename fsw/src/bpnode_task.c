@@ -24,7 +24,7 @@
 /* Generic child task initialization function */
 CFE_Status_t BPNode_TaskInit(BPNode_TaskData_t *TaskData)
 {
-    CFE_Status_t    Status;
+    CFE_Status_t Status;
 
     /* Start performance log */
     BPLib_PL_PerfLogEntry(TaskData->PerfId);
@@ -33,12 +33,13 @@ CFE_Status_t BPNode_TaskInit(BPNode_TaskData_t *TaskData)
 
     if (Status == CFE_SUCCESS)
     {
-        // TODO notify main task of init
+        /* Notify main task that this task has initialized */
+        BPNode_NotifSet(&BPNode_AppData.ChildTaskInitNotif);
         
         TaskData->RunStatus = CFE_ES_RunStatus_APP_RUN;
+
         BPLib_EM_SendEvent(BPNODE_TASK_INIT_INF_EID, BPLib_EM_EventType_INFORMATION,
-                      "[%s #%d]: Child Task Initialized.", TaskData->Type, TaskData->TaskId);
-        
+                      "[%s #%d]: Child Task Initialized.", TaskData->Type, TaskData->TaskId);        
     }
 
     return Status;
@@ -58,7 +59,8 @@ void BPNode_TaskExit(BPNode_TaskData_t *TaskData)
     /* Exit the perf log */
     BPLib_PL_PerfLogExit(TaskData->PerfId);
 
-    // TODO exit stuff
+    /* Notify main task that this task has exited */
+    BPNode_NotifSet(&BPNode_AppData.ChildTaskExitNotif);
 
     /* Stop execution */
     CFE_ES_ExitChildTask();
@@ -106,7 +108,7 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
     //     }
     // }
 
-    // for (i = 0; i < BPNODE_NUM_JOBS_PER_CYCLE; i++)
+    // for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
     // {
     //     if (CfeTaskId == BPNode_AppData.GenWorkerData[i].TaskData.CfeTaskId)
     //     {
