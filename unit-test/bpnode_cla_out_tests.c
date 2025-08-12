@@ -343,7 +343,7 @@ void Test_BPNode_ClaOut_AppMain_ContactIdErr(void)
 {
     /* Test setup */
     UT_SetDeferredRetcode(UT_KEY(CFE_ES_GetTaskID), 1, CFE_ES_ERR_RESOURCEID_NOT_VALID);
-    
+
     BPNode_ClaOut_AppMain();
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_CLA_OUT_UNK_EXIT_CRIT_EID);
@@ -425,7 +425,8 @@ void Test_BPNode_ClaOut_ProcessBundleOutput_SB_Nominal(void)
     uint32 ContactId;
     size_t BundleSize;
 
-    ContactId = BPNODE_CLA_SB_CONTACT_ID;
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
 
     UtAssert_UINT32_EQ(BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize), CFE_SUCCESS);
 
@@ -463,7 +464,7 @@ void Test_BPNode_ClaOut_ProcessBundleOutput_CLATimeout(void)
 {
     uint32 ContactId = 0;
     size_t BundleSize;
-    
+
     UT_SetDeferredRetcode(UT_KEY(BPLib_CLA_Egress), 1, BPLIB_CLA_TIMEOUT);
     UtAssert_INT32_EQ(BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize), BPLIB_CLA_TIMEOUT);
 }
@@ -472,11 +473,12 @@ void Test_BPNode_ClaOut_Setup_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32 ContId = 0;
-    int32 PortNum = 100;
-    const char *IpAddr = "127.0.0.1";
 
-    Status = BPNode_ClaOut_Setup(ContId, PortNum, (char *) IpAddr);
-    
+    strcpy(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].ClaOutAddr, "127.0.0.1");
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].ClaOutPort = 100;
+
+    Status = BPNode_ClaOut_Setup(ContId);
+
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
@@ -487,7 +489,7 @@ void Test_BPNode_ClaOut_Start_Nominal(void)
     uint32 ContId = 0;
 
     Status = BPNode_ClaOut_Start(ContId);
-    
+
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
@@ -498,7 +500,7 @@ void Test_BPNode_ClaOut_Stop_Nominal(void)
     uint32 ContId = 0;
 
     Status = BPNode_ClaOut_Stop(ContId);
-    
+
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }

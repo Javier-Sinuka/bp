@@ -48,7 +48,7 @@ void Test_BPA_CLAP_ContactSetup_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPNode_ClaOut_Setup), BPLIB_SUCCESS);
 
     /* Run the function under test */
-    Status = BPA_CLAP_ContactSetup(0, ContactInfo);
+    Status = BPA_CLAP_ContactSetup(0);
 
     /* Verify that the function ran successfully */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
@@ -72,7 +72,7 @@ void Test_BPA_CLAP_ContactSetup_ClaInError(void)
     UT_SetDefaultReturnValue(UT_KEY(BPNode_ClaOut_Setup), BPLIB_SUCCESS);
 
     /* Run the function under test */
-    Status = BPA_CLAP_ContactSetup(0, ContactInfo);
+    Status = BPA_CLAP_ContactSetup(0);
 
     /* Verify that the function ran successfully */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_IO_ERROR);
@@ -97,7 +97,7 @@ void Test_BPA_CLAP_ContactSetup_ClaOutError(void)
     UT_SetDefaultReturnValue(UT_KEY(BPNode_ClaOut_Setup), BPLIB_CLA_IO_ERROR);
 
     /* Run the function under test */
-    Status = BPA_CLAP_ContactSetup(0, ContactInfo);
+    Status = BPA_CLAP_ContactSetup(0);
 
     /* Verify that the function ran successfully */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_IO_ERROR);

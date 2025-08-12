@@ -40,7 +40,10 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
 {
     CFE_PSP_IODriver_WritePacketBuffer_t WrBuf;
     BPLib_Status_t                       Status;
+    BPLib_CLA_Type_t                     ClaType;
 
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType  = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType;
     *MsgSize = 0;
 
     /* Get next bundle from CLA */
@@ -66,36 +69,47 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     /* Send egress bundle onto CL */
     if (Status == BPLIB_SUCCESS)
     {
-        if (ContId == BPNODE_CLA_SB_CONTACT_ID)
-        { /* Contact is SB-type */
-            /* Set the MID for the outbound bundle */
-            CFE_MSG_SetMsgId(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader),
-                                CFE_SB_ValueToMsgId(BPNODE_CLA_OUT_BUNDLE_MID));
-
-            /* Set the size of the message */
-            CFE_MSG_SetSize(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader),
-                            *MsgSize + sizeof(CFE_MSG_TelemetryHeader_t));
-
-            /* Timestamp message before transmitting */
-            CFE_SB_TimeStampMsg(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader));
-
-            /* Send the wrapped bundle onto the Software Bus */
-            CFE_SB_TransmitMsg(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader), true);
-        }
-        else
+        switch (ClaType)
         {
-            WrBuf.OutputSize = *MsgSize;
-            WrBuf.BufferMem  = BPNode_AppData.ClaOutData[ContId].OutBuffer.Payload;
+            case BPLib_UDP_CLA:
+                WrBuf.OutputSize = *MsgSize;
+                WrBuf.BufferMem  = BPNode_AppData.ClaOutData[ContId].OutBuffer.Payload;
 
-            BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContId].PerfId);
+                BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContId].PerfId);
 
-            /* This does not check return code here, it is "best effort" at this stage.
-            * bplib should retry based on custody signals if this does not work. */
-            (void) CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContId].PspLocation,
-                                                    CFE_PSP_IODriver_PACKET_IO_WRITE,
-                                                    CFE_PSP_IODriver_VPARG(&WrBuf));
+                /* This does not check return code here, it is "best effort" at this stage.
+                * bplib should retry based on custody signals if this does not work. */
+                (void) CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContId].PspLocation,
+                                                        CFE_PSP_IODriver_PACKET_IO_WRITE,
+                                                        CFE_PSP_IODriver_VPARG(&WrBuf));
 
-            BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].PerfId);
+                BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].PerfId);
+
+                break;
+            case BPLib_SB_CLA:
+                /* Set the MID for the outbound bundle */
+                CFE_MSG_SetMsgId(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader),
+                                    CFE_SB_ValueToMsgId(BPNODE_CLA_OUT_BUNDLE_MID));
+
+                /* Set the size of the message */
+                CFE_MSG_SetSize(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader),
+                                *MsgSize + sizeof(CFE_MSG_TelemetryHeader_t));
+
+                /* Timestamp message before transmitting */
+                CFE_SB_TimeStampMsg(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader));
+
+                /* Send the wrapped bundle onto the Software Bus */
+                CFE_SB_TransmitMsg(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader), true);
+
+                break;
+            case BPLib_LTP_CLA:
+                break;
+            case BPLib_EPP_CLA:
+                break;
+            case BPLib_TCP_CLA:
+                break;
+            default:
+                break;
         }
 
         CFE_MSG_SetSize(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader), 0);
@@ -260,57 +274,72 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
     return Status;
 }
 
-BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, int32 PortNum, char* IpAddr)
+BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 {
-    BPLib_Status_t  Status;
-    int32           PspStatus;
-    char            Str[100];
+    BPLib_Status_t           Status;
+    int32                    PspStatus;
+    char                     Str[100];
+    BPLib_CLA_ContactsSet_t* ContactInfo;
 
-    Status = BPLIB_SUCCESS;
+    Status      = BPLIB_SUCCESS;
+    ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    switch (ContactInfo->CLAType)
     {
-        #ifdef BPNODE_CLA_UDP_DRIVER
-            /* Configure Port Number */
-            snprintf(Str, sizeof(Str), "port=%d", PortNum);
+        case BPLib_UDP_CLA:
+            #ifdef BPNODE_CLA_UDP_DRIVER
+                /* Configure Port Number */
+                snprintf(Str, sizeof(Str), "port=%d", ContactInfo->ClaOutPort);
 
-            PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
-                                                    CFE_PSP_IODriver_SET_CONFIGURATION,
-                                                    CFE_PSP_IODriver_CONST_STR(Str));
-
-            if (PspStatus != CFE_PSP_SUCCESS)
-            {
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_PORT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Couldn't configure port number for CLA Out #%d. Error = %d",
-                                    ContactId,
-                                    PspStatus);
-
-                Status = BPLIB_CLA_IO_ERROR;
-            }
-
-            if (Status == BPLIB_SUCCESS)
-            {
-                /* Configure IP Address */
-                snprintf(Str, sizeof(Str), "IpAddr=%s", IpAddr);
                 PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
                                                         CFE_PSP_IODriver_SET_CONFIGURATION,
                                                         CFE_PSP_IODriver_CONST_STR(Str));
 
                 if (PspStatus != CFE_PSP_SUCCESS)
                 {
-                    BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_IP_ERR_EID, BPLib_EM_EventType_ERROR,
-                                        "Couldn't configure IP address for CLA Out #%d. Error = %d",
+                    BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_PORT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                        "Couldn't configure port number for CLA Out #%d. Error = %d",
                                         ContactId,
                                         PspStatus);
 
                     Status = BPLIB_CLA_IO_ERROR;
                 }
-                else
+
+                if (Status == BPLIB_SUCCESS)
                 {
-                    OS_printf("CLA Out #%d sending on %s:%d\n", ContactId, IpAddr, PortNum);
+                    /* Configure IP Address */
+                    snprintf(Str, sizeof(Str), "IpAddr=%s", ContactInfo->ClaOutAddr);
+                    PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
+                                                            CFE_PSP_IODriver_SET_CONFIGURATION,
+                                                            CFE_PSP_IODriver_CONST_STR(Str));
+
+                    if (PspStatus != CFE_PSP_SUCCESS)
+                    {
+                        BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_IP_ERR_EID, BPLib_EM_EventType_ERROR,
+                                            "Couldn't configure IP address for CLA Out #%d. Error = %d",
+                                            ContactId,
+                                            PspStatus);
+
+                        Status = BPLIB_CLA_IO_ERROR;
+                    }
+                    else
+                    {
+                        OS_printf("CLA Out #%d sending on %s:%d\n", ContactId, ContactInfo->ClaOutAddr, ContactInfo->ClaOutPort);
+                    }
                 }
-            }
-        #endif
+            #endif
+
+            break;
+        case BPLib_SB_CLA:
+            break;
+        case BPLib_LTP_CLA:
+            break;
+        case BPLib_EPP_CLA:
+            break;
+        case BPLib_TCP_CLA:
+            break;
+        default:
+            break;
     }
 
     return Status;
@@ -318,27 +347,44 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, int32 PortNum, char* IpAddr
 
 BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 {
-    int32 PspStatus;
-    BPLib_Status_t Status;
+    int32            PspStatus;
+    BPLib_Status_t   Status;
+    BPLib_CLA_Type_t ClaType;
+
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
 
     Status = BPLIB_SUCCESS;
 
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    switch (ClaType)
     {
-        /* Set I/O to running */
-        PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
-                                                CFE_PSP_IODriver_SET_RUNNING,
-                                                CFE_PSP_IODriver_U32ARG(true));
+        case BPLib_UDP_CLA:
+            /* Set I/O to running */
+            PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
+                                                    CFE_PSP_IODriver_SET_RUNNING,
+                                                    CFE_PSP_IODriver_U32ARG(true));
 
-        if (PspStatus != CFE_PSP_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "Couldn't set I/O state for CLA Out #%d to running. Error = %d",
-                                ContactId,
-                                PspStatus);
+            if (PspStatus != CFE_PSP_SUCCESS)
+            {
+                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Couldn't set I/O state for CLA Out #%d to running. Error = %d",
+                                    ContactId,
+                                    PspStatus);
 
-            Status = BPLIB_CLA_IO_ERROR;
-        }
+                Status = BPLIB_CLA_IO_ERROR;
+            }
+
+            break;
+        case BPLib_SB_CLA:
+            break;
+        case BPLib_LTP_CLA:
+            break;
+        case BPLib_EPP_CLA:
+            break;
+        case BPLib_TCP_CLA:
+            break;
+        default:
+            break;
     }
 
     return Status;
@@ -346,28 +392,43 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 
 BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 {
-    BPLib_Status_t Status;
-    int32 PspStatus;
+    BPLib_Status_t   Status;
+    int32            PspStatus;
+    BPLib_CLA_Type_t ClaType;
 
-    Status = BPLIB_SUCCESS;
+    /* Shorten the variable name for the CLA type of the contact */
+    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    Status  = BPLIB_SUCCESS;
 
-    if (ContactId != BPNODE_CLA_SB_CONTACT_ID)
+    switch (ClaType)
     {
-        /* Set I/O to stop running */
-        PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
-                                                CFE_PSP_IODriver_SET_RUNNING,
-                                                CFE_PSP_IODriver_U32ARG(false));
+        case BPLib_UDP_CLA:
+            /* Set I/O to stop running */
+            PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
+                                                    CFE_PSP_IODriver_SET_RUNNING,
+                                                    CFE_PSP_IODriver_U32ARG(false));
 
-        if (PspStatus != CFE_PSP_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Couldn't set I/O state to stop for CLA Out #%d. Error = %d",
-                                ContactId,
-                                PspStatus);
+            if (PspStatus != CFE_PSP_SUCCESS)
+            {
+                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Couldn't set I/O state to stop for CLA Out #%d. Error = %d",
+                                    ContactId,
+                                    PspStatus);
 
-            Status = BPLIB_CLA_IO_ERROR;
-        }
+                Status = BPLIB_CLA_IO_ERROR;
+            }
+            break;
+        case BPLib_SB_CLA:
+            break;
+        case BPLib_LTP_CLA:
+            break;
+        case BPLib_EPP_CLA:
+            break;
+        case BPLib_TCP_CLA:
+            break;
+        default:
+            break;
     }
 
     return Status;
@@ -380,6 +441,24 @@ void BPNode_ClaOut_Teardown(uint32 ContactId)
     ** Free all CLA resources
     ** Discard output queue
     ** Delete custody timers
+    */
+
+    /*
+    switch (CLAType)
+    {
+        case BPLib_UDP_CLA:
+            break;
+        case BPLib_SB_CLA:
+            break;
+        case BPLib_LTP_CLA:
+            break;
+        case BPLib_EPP_CLA:
+            break;
+        case BPLib_TCP_CLA:
+            break;
+        default:
+            break;
+    }
     */
 
     return;
