@@ -30,15 +30,14 @@
 /* Includes */
 /* ======== */
 
-#include "cfe_error.h"
+#include "cfe.h"
 #include "bpnode_msg.h"
 #include "bpnode_msgids.h"
 #include "bpnode_version.h"
 #include "bpnode_tbl.h"
-#include "bpnode_utils.h"
 
 #include "bplib.h"
-#include "bplib_eventids.h"
+
 
 /* =================== */
 /* Function Prototypes */

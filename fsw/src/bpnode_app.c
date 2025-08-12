@@ -28,7 +28,6 @@
 */
 
 #include "bpnode_app.h"
-#include "bpnode_utils.h"
 #include "bpnode_eventids.h"
 #include "bpnode_tbl.h"
 #include "bpnode_version.h"
@@ -423,7 +422,7 @@ void BPNode_AppExit(void)
         (void) BPLib_PI_RemoveApplication(&BPNode_AppData.BplibInst, ChanId);
 
         BPNode_AppData.AduOutData[ChanId].RunStatus = CFE_ES_RunStatus_APP_EXIT;
-        BPNode_AppData.AduInData[ChanId].RunStatus = CFE_ES_RunStatus_APP_EXIT;
+        BPNode_AppData.AduInData[ChanId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
 
     /* Signal to CLA child tasks to exit */
@@ -447,7 +446,7 @@ void BPNode_AppExit(void)
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
         BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-        (void) OS_BinSemTimedWait(BPNode_AppData.AduInData[ChanId].ExitSemId, BPNODE_ADU_IN_SEM_EXIT_WAIT_MSEC);
+//        (void) OS_BinSemTimedWait(BPNode_AppData.AduInData[ChanId].ExitSemId, BPNODE_ADU_IN_SEM_EXIT_WAIT_MSEC);
         (void) OS_BinSemTimedWait(BPNode_AppData.AduOutData[ChanId].ExitSemId, BPNODE_ADU_OUT_SEM_EXIT_WAIT_MSEC);
         BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
     }

@@ -32,6 +32,7 @@
 
 #include "cfe.h"
 #include "fwp_adup.h"
+#include "bpnode_task.h"
 
 /*
 ** Macro Definitions
@@ -52,11 +53,7 @@
 */
 typedef struct
 {
-    CFE_ES_TaskId_t TaskId;
-    osal_id_t       InitSemId;
-    osal_id_t       ExitSemId;
-    uint32          PerfId;
-    uint32          RunStatus;
+    BPNode_TaskData_t TaskData;
     CFE_SB_PipeId_t AduPipe;
     bool            ClearPipe;
     bool            AduUnwrapping;
@@ -85,7 +82,7 @@ typedef struct
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-int32 BPNode_AduInCreateTasks(void);
+CFE_Status_t BPNode_AduInCreateTasks(void);
 
 /**
  * \brief Initialize provided ADU In task
@@ -96,13 +93,13 @@ int32 BPNode_AduInCreateTasks(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
- *  \param[in] ChanId Pointer to channel ID to set
+ *  \param[in] ChanId Channel ID
  *
  *  \return Validation status
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-int32 BPNode_AduIn_TaskInit(uint32 *ChanId);
+CFE_Status_t BPNode_AduIn_TaskInit(uint32 ChanId);
 
 /**
  * \brief ADU In Main Task
@@ -112,21 +109,9 @@ int32 BPNode_AduIn_TaskInit(uint32 *ChanId);
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
+ * 
+ *  \param[in] ChanId Channel ID
  */
-void BPNode_AduIn_AppMain(void);
-
-/**
- * \brief Exit provided ADU In task
- *
- *  \par Description
- *       Exit ADU In task gracefully
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \param[in] ChanId Channel ID for this task
- */
-void BPNode_AduIn_TaskExit(uint32 ChanId);
-
+void BPNode_AduIn_TaskMain(uint32 ChanId);
 
 #endif /* BPNODE_ADU_IN_H */
