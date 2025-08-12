@@ -265,19 +265,19 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
 
 BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 {
-    BPLib_Status_t          Status;
-    int32                   PspStatus;
-    char                    Str[100];
-    BPLib_CLA_ContactsSet_t ContactInfo;
+    BPLib_Status_t           Status;
+    int32                    PspStatus;
+    char                     Str[100];
+    BPLib_CLA_ContactsSet_t* ContactInfo;
 
     Status      = BPLIB_SUCCESS;
-    ContactInfo = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
+    ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
-    if (ContactInfo.CLAType != BPLib_SB_CLA)
+    if (ContactInfo->CLAType != BPLib_SB_CLA)
     {
         #ifdef BPNODE_CLA_UDP_DRIVER
             /* Configure Port Number */
-            snprintf(Str, sizeof(Str), "port=%d", ContactInfo.ClaOutPort);
+            snprintf(Str, sizeof(Str), "port=%d", ContactInfo->ClaOutPort);
 
             PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
                                                     CFE_PSP_IODriver_SET_CONFIGURATION,
@@ -296,7 +296,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
             if (Status == BPLIB_SUCCESS)
             {
                 /* Configure IP Address */
-                snprintf(Str, sizeof(Str), "IpAddr=%s", ContactInfo.ClaOutAddr);
+                snprintf(Str, sizeof(Str), "IpAddr=%s", ContactInfo->ClaOutAddr);
                 PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
                                                         CFE_PSP_IODriver_SET_CONFIGURATION,
                                                         CFE_PSP_IODriver_CONST_STR(Str));
@@ -312,7 +312,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
                 }
                 else
                 {
-                    OS_printf("CLA Out #%d sending on %s:%d\n", ContactId, ContactInfo.ClaOutAddr, ContactInfo.ClaOutPort);
+                    OS_printf("CLA Out #%d sending on %s:%d\n", ContactId, ContactInfo->ClaOutAddr, ContactInfo->ClaOutPort);
                 }
             }
         #endif
