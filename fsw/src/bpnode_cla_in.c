@@ -329,20 +329,20 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 
 BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId)
 {
-    BPLib_Status_t          Status;
-    int32                   PspStatus;
-    char                    Str[100];
-    BPLib_CLA_ContactsSet_t ContactInfo;
+    BPLib_Status_t           Status;
+    int32                    PspStatus;
+    char                     Str[100];
+    BPLib_CLA_ContactsSet_t* ContactInfo;
 
     Status      = BPLIB_SUCCESS;
-    ContactInfo = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
+    ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
     /* Nothing special needs to happen for an SB contact */
-    if (ContactInfo.CLAType != SBType)
+    if (ContactInfo->CLAType != SBType)
     {
         #ifdef BPNODE_CLA_UDP_DRIVER
             /* Configure Port Number */
-            snprintf(Str, sizeof(Str), "port=%d", ContactInfo.ClaInPort);
+            snprintf(Str, sizeof(Str), "port=%d", ContactInfo->ClaInPort);
             PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
                                                     CFE_PSP_IODriver_SET_CONFIGURATION,
                                                     CFE_PSP_IODriver_CONST_STR(Str));
@@ -360,7 +360,7 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId)
             if (Status == BPLIB_SUCCESS)
             {
                 /* Configure IP Address */
-                snprintf(Str, sizeof(Str), "IpAddr=%s", ContactInfo.ClaInAddr);
+                snprintf(Str, sizeof(Str), "IpAddr=%s", ContactInfo->ClaInAddr);
                 PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
                                                         CFE_PSP_IODriver_SET_CONFIGURATION,
                                                         CFE_PSP_IODriver_CONST_STR(Str));
