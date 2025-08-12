@@ -184,112 +184,59 @@ CFE_Status_t BPNode_AppInit(void)
 
     BPLib_FWP_ProxyCallbacks_t Callbacks = {
         /* Time Proxy */
-        .BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime,
-        .BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch,
-        .BPA_TIMEP_GetHostClockState = BPA_TIMEP_GetHostClockState,
-        .BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime,
+        .BPA_TIMEP_GetMonotonicTime          = BPA_TIMEP_GetMonotonicTime,
+        .BPA_TIMEP_GetHostEpoch              = BPA_TIMEP_GetHostEpoch,
+        .BPA_TIMEP_GetHostClockState         = BPA_TIMEP_GetHostClockState,
+        .BPA_TIMEP_GetHostTime               = BPA_TIMEP_GetHostTime,
         /* Perf Log Proxy */
-        .BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry,
-        .BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit,
+        .BPA_PERFLOGP_Entry                  = BPA_PERFLOGP_Entry,
+        .BPA_PERFLOGP_Exit                   = BPA_PERFLOGP_Exit,
         /* Table Proxy */
-        .BPA_TABLEP_TableUpdate       = BPA_TABLEP_TableUpdate,
+        .BPA_TABLEP_TableInit                = BPA_TABLEP_TableInit,
+        .BPA_TABLEP_TableUpdate              = BPA_TABLEP_TableUpdate,
         /* Event Proxy */
-        .BPA_EVP_Init = BPA_EVP_Init,
-        .BPA_EVP_SendEvent = BPA_EVP_SendEvent,
+        .BPA_EVP_Init                        = BPA_EVP_Init,
+        .BPA_EVP_SendEvent                   = BPA_EVP_SendEvent,
         /* ADU Proxy */
-        .BPA_ADUP_AddApplication = BPA_ADUP_AddApplication,
-        .BPA_ADUP_StartApplication = BPA_ADUP_StartApplication,
-        .BPA_ADUP_StopApplication = BPA_ADUP_StopApplication,
-        .BPA_ADUP_RemoveApplication = BPA_ADUP_RemoveApplication,
+        .BPA_ADUP_AddApplication             = BPA_ADUP_AddApplication,
+        .BPA_ADUP_StartApplication           = BPA_ADUP_StartApplication,
+        .BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication,
+        .BPA_ADUP_RemoveApplication          = BPA_ADUP_RemoveApplication,
         /* Telemetry Proxy */
-        .BPA_TLMP_SendNodeMibConfigPkt = BPA_TLMP_SendNodeMibConfigPkt,
-        .BPA_TLMP_SendPerSourceMibConfigPkt = BPA_TLMP_SendPerSourceMibConfigPkt,
-        .BPA_TLMP_SendNodeMibCounterPkt = BPA_TLMP_SendNodeMibCounterPkt,
+        .BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt,
+        .BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt,
+        .BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt,
         .BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt,
-        .BPA_TLMP_SendNodeMibReportsPkt = BPA_TLMP_SendNodeMibReportsPkt,
-        .BPA_TLMP_SendChannelContactPkt = BPA_TLMP_SendChannelContactPkt,
-        .BPA_TLMP_SendStoragePkt = BPA_TLMP_SendStoragePkt,
+        .BPA_TLMP_SendNodeMibReportsPkt      = BPA_TLMP_SendNodeMibReportsPkt,
+        .BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt,
+        .BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt,
         /* CLA Proxy */
-        .BPA_CLAP_ContactSetup    = BPA_CLAP_ContactSetup,
-        .BPA_CLAP_ContactStart    = BPA_CLAP_ContactStart,
-        .BPA_CLAP_ContactStop     = BPA_CLAP_ContactStop,
-        .BPA_CLAP_ContactTeardown = BPA_CLAP_ContactTeardown,
+        .BPA_CLAP_ContactSetup               = BPA_CLAP_ContactSetup,
+        .BPA_CLAP_ContactStart               = BPA_CLAP_ContactStart,
+        .BPA_CLAP_ContactStop                = BPA_CLAP_ContactStop,
+        .BPA_CLAP_ContactTeardown            = BPA_CLAP_ContactTeardown,
     };
 
     /* Zero out the global data structure */
     CFE_PSP_MemSet(&BPNode_AppData, 0, sizeof(BPNode_AppData));
 
-    /* Initialize the FWP before using BPLib functions */
-    BpStatus = BPLib_FWP_Init(&Callbacks);
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        CFE_ES_WriteToSysLog("BPNode: Failure initializing function callbacks, RC = 0x%08lX\n",
-                                (unsigned long) BpStatus);
-
-        /* Use CFE_EVS_SendEvent() rather than BPLib_EM_SendEvent() since callbacks weren't initialized */
-        CFE_EVS_SendEvent(BPNODE_FWP_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "BPNode: Failure initializing function callbacks, RC = 0x%08lX",
-                            (unsigned long) BpStatus);
-
-        return BpStatus;
-    }
-
-    /* Register with Event Services */
-    BpStatus = BPLib_EM_Init();
-    if (BpStatus != CFE_SUCCESS)
-    {
-        CFE_ES_WriteToSysLog("BPNode: Error Registering Events, RC = 0x%08lX\n",
-                                (unsigned long)BpStatus);
-
-        return BpStatus;
-    }
-
-    /* Call Table Proxy Init Function Here to load default configurations*/
-    BpStatus = BPA_TABLEP_TableInit();
-    if (BpStatus != CFE_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_TBL_ADDR_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error getting configuration from Table Proxy, RC = 0x%08lX",
-                            (unsigned long)BpStatus);
-
-        return BpStatus;
-    }
-
-    BpStatus = BPLib_TIME_Init();
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_TIME_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing BPLib Time Management, RC = %d", BpStatus);
-
-        return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
-    }
-
     /* Initialize configurations and counters */
-    BpStatus = BPLib_NC_Init(&BPNode_AppData.ConfigPtrs);
+    BpStatus = BPLib_NC_Init(&BPNode_AppData.ConfigPtrs, &Callbacks, &BPNode_AppData.BplibInst, (uint16) BPNODE_MAX_UNSORTED_JOBS,
+                             (void*) BPNode_AppData.pool_mem, (size_t) BPNODE_MEM_POOL_LEN);
+
     if (BpStatus != BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_NC_AS_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing NC/AS, RC = %d", BpStatus);
-
-        return BpStatus;
-    }
-
-    /* Initialize MEM and QM */
-    BpStatus = BPLib_QM_QueueTableInit(&BPNode_AppData.BplibInst, BPNODE_MAX_UNSORTED_JOBS);
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_QM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing QM, RC = %d", BpStatus);
-
-        return BpStatus;
-    }
-
-    BpStatus = BPLib_MEM_PoolInit(&BPNode_AppData.BplibInst.pool, (void *)BPNode_AppData.pool_mem,
-        (size_t)BPNODE_MEM_POOL_LEN);
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_MEM_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error initializing MEM, RC = %d", BpStatus);
+        if (BpStatus == BPLIB_NC_FWP_INIT_ERR || BpStatus == BPLIB_NC_EM_INIT_ERR)
+        {
+            CFE_ES_WriteToSysLog("Error initializing BPLib, RC = %d\n",
+                                    BpStatus);
+        }
+        else
+        {
+            BPLib_EM_SendEvent(BPNODE_BPLIB_INIT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                "Error initializing BPLib, RC = %d",
+                                BpStatus);
+        }
 
         return BpStatus;
     }
