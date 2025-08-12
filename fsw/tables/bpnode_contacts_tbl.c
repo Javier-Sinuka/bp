@@ -53,16 +53,16 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                         .MinService   = 2
                     }
                 },
-                .CLAType             = UDPType,     /*CLA Type, BPLib_CLA_Type_t */
+                .CLAType             = BPLib_UDP_CLA, /*CLA Type, BPLib_CLA_Type_t */
                 .ClaInAddr           = "0.0.0.0",
-                .ClaOutAddr          = "127.0.0.1", /* CL ip address */
-                .ClaInPort           = 4501,        /* Port Number, int32 */
+                .ClaOutAddr          = "127.0.0.1",   /* CL ip address */
+                .ClaInPort           = 4501,          /* Port Number, int32 */
                 .ClaOutPort          = 4551,
-                .RetransmitTimeout   = 102,         /* Bundle reforwarding timeout in seconds, uint32 */
-                .CSTimeTrigger       = 103,         /* Custody Signal time trigger in seconds, uint32 */
-                .CSSizeTrigger       = 10,          /* Custody signal size trigger in bytes, size_t */
-                .IngressBitsPerCycle = 20000000,    /* Ingress rate, 20 Mb per cycle */
-                .EgressBitsPerCycle  = 20000000     /* Egress rate, 20 Mb per cycle */
+                .RetransmitTimeout   = 102,           /* Bundle reforwarding timeout in seconds, uint32 */
+                .CSTimeTrigger       = 103,           /* Custody Signal time trigger in seconds, uint32 */
+                .CSSizeTrigger       = 10,            /* Custody signal size trigger in bytes, size_t */
+                .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
+                .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
             },
             { /* SB CLA contact */
                 .DestEIDs = {
@@ -77,7 +77,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                         .MinService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_1
                     }
                 },
-                .CLAType                = SBType,
+                .CLAType                = BPLib_SB_CLA,
                 .ClaInAddr              = "",
                 .ClaOutAddr             = "",
                 .ClaInPort              = 0,

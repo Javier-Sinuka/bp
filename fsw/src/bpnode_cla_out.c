@@ -69,7 +69,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     /* Send egress bundle onto CL */
     if (Status == BPLIB_SUCCESS)
     {
-        if (ClaType == SBType)
+        if (ClaType == BPLib_SB_CLA)
         { /* Contact is SB-type */
             /* Set the MID for the outbound bundle */
             CFE_MSG_SetMsgId(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader),
@@ -273,7 +273,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
     Status      = BPLIB_SUCCESS;
     ContactInfo = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
 
-    if (ContactInfo.CLAType != SBType)
+    if (ContactInfo.CLAType != BPLib_SB_CLA)
     {
         #ifdef BPNODE_CLA_UDP_DRIVER
             /* Configure Port Number */
@@ -332,7 +332,7 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 
     Status = BPLIB_SUCCESS;
 
-    if (ClaType != SBType)
+    if (ClaType != BPLib_SB_CLA)
     {
         /* Set I/O to running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
@@ -363,7 +363,7 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
     ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
     Status  = BPLIB_SUCCESS;
 
-    if (ClaType != SBType)
+    if (ClaType != BPLib_SB_CLA)
     {
         /* Set I/O to stop running */
         PspStatus = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,

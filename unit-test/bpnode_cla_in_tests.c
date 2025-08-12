@@ -174,7 +174,7 @@ void Test_BPNode_ClaIn_TaskInit_CreatePipeErr(void)
 
     UT_SetDefaultReturnValue(UT_KEY(CFE_SB_CreatePipe), CFE_SB_BAD_ARGUMENT);
 
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = SBType;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = BPLib_SB_CLA;
     UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_SB_BAD_ARGUMENT);
 
     UtAssert_STUB_COUNT(OS_BinSemGive, 0);
@@ -188,7 +188,7 @@ void Test_BPNode_ClaIn_TaskInit_SubscribeErr(void)
 
     UT_SetDefaultReturnValue(UT_KEY(CFE_SB_Subscribe), CFE_SB_MAX_MSGS_MET);
 
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = SBType;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
     UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactId), CFE_SB_MAX_MSGS_MET);
 
     UtAssert_STUB_COUNT(OS_BinSemGive, 0);
@@ -523,7 +523,7 @@ void Test_BPNode_ClaIn_ProcessBundleInput_NominalSB(void)
     BufPtr    = &Buf;
     ContactId = 0;
     MsgSize   = 42;
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = SBType;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
 
     UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &MsgSize, sizeof(size_t), false);
     UT_SetDataBuffer(UT_KEY(CFE_SB_ReceiveBuffer), &BufPtr, sizeof(BufPtr), false);
@@ -542,7 +542,7 @@ void Test_BPNode_ClaIn_ProcessBundleInput_ReceiveBufferErr(void)
 
     MsgSize   = 42;
     ContactId = 0;
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = SBType;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
 
     UT_SetDefaultReturnValue(UT_KEY(CFE_SB_ReceiveBuffer), CFE_SB_BAD_ARGUMENT);
     UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &MsgSize, sizeof(size_t), false);
@@ -561,7 +561,7 @@ void Test_BPNode_ClaIn_ProcessBundleInput_ReceiveBufferTimeout(void)
 
     ContactId = 0;
     MsgSize   = 42;
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = SBType;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
 
     UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &MsgSize, sizeof(size_t), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_SB_ReceiveBuffer), CFE_SB_TIME_OUT);
@@ -593,7 +593,7 @@ void Test_BPNode_ClaIn_ProcessBundleInput_SB_MsgSizeZero(void)
     BufPtr    = &Buf;
     ContactId = 0;
     MsgSize   = 0;
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = SBType;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
 
     UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &MsgSize, sizeof(size_t), false);
     UT_SetDataBuffer(UT_KEY(CFE_SB_ReceiveBuffer), &BufPtr, sizeof(BufPtr), false);
