@@ -95,7 +95,7 @@ CFE_Status_t BPNode_AduIn_TaskInit(uint32 ChanId)
 /* Wakeup operations for ADU In task(s) */
 void BPNode_AduIn_TaskMain(uint32 ChanId)
 {
-    CFE_Status_t Status;
+    CFE_Status_t Status = CFE_SUCCESS;
     CFE_SB_Buffer_t *BufPtr = NULL;
     BPLib_NC_ApplicationState_t AppState;
     size_t AduSize;

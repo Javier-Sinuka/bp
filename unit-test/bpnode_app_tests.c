@@ -471,7 +471,7 @@ void Test_BPNode_AppExit_Nominal(void)
     uint8 NumAduTasks;
     uint8 NumClaTasks;
 
-    NumAduTasks = BPLIB_MAX_NUM_CHANNELS * 2; /* ADU In and Out tasks */
+    NumAduTasks = BPLIB_MAX_NUM_CHANNELS; /* ADU Out tasks */
     NumClaTasks = BPLIB_MAX_NUM_CONTACTS * 2; /* CLA In and Out tasks */
 
     BPNode_AppExit();
@@ -479,7 +479,7 @@ void Test_BPNode_AppExit_Nominal(void)
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         UtAssert_UINT32_EQ(BPNode_AppData.AduOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-        UtAssert_UINT32_EQ(BPNode_AppData.AduInData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.AduInData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
     }
 
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)

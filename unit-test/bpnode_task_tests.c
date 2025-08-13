@@ -20,7 +20,7 @@
 
 /**
  * \file
- *  Unit tests for bpnode_utils.c
+ *  Unit tests for bpnode_task.c
  */
 
 /*
@@ -34,17 +34,10 @@
 ** Function Definitions
 */
 
-/* Test nominal table validation */
-void Test_BPNode_TblValidationFunc_Nominal(void)
-{
-    /* Nominal case (0) should succeed */
-    UtAssert_INT32_EQ(BPNode_TblValidationFunc(NULL), CFE_SUCCESS);
-}
 
 
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
 {
-    ADD_TEST(Test_BPNode_TblValidationFunc_Nominal);
-
+  
 }
