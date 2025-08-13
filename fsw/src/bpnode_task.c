@@ -90,10 +90,10 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
         {
             TaskData = &(BPNode_AppData.AduInData[i].TaskData);
         }
-        // else if (CfeTaskId == BPNode_AppData.AduOutData[i].TaskData.CfeTaskId)
-        // {
-        //     TaskData = &(BPNode_AppData.AduOutData[i].TaskData);
-        // }
+        else if (CfeTaskId == BPNode_AppData.AduOutData[i].TaskData.CfeTaskId)
+        {
+            TaskData = &(BPNode_AppData.AduOutData[i].TaskData);
+        }
     }
 
     // for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
@@ -108,13 +108,13 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
     //     }
     // }
 
-    // for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
-    // {
-    //     if (CfeTaskId == BPNode_AppData.GenWorkerData[i].TaskData.CfeTaskId)
-    //     {
-    //         TaskData = &(BPNode_AppData.GenWorkerData[i].TaskData);
-    //     }        
-    // }
+    for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
+    {
+        if (CfeTaskId == BPNode_AppData.GenWorkerData[i].TaskData.CfeTaskId)
+        {
+            TaskData = &(BPNode_AppData.GenWorkerData[i].TaskData);
+        }        
+    }
 
     return TaskData;
 }

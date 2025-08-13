@@ -38,7 +38,7 @@
 /* Create ADU In tasks */
 CFE_Status_t BPNode_AduInCreateTasks(void)
 {
-    CFE_Status_t Status;
+    CFE_Status_t Status = CFE_SUCCESS;
     uint32       ChanId;
     uint16       TaskPriority;
     char         Name[OS_MAX_API_NAME];

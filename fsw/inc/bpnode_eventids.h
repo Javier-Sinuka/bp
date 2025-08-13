@@ -60,18 +60,13 @@
 #define BPNODE_ADU_IN_CREATE_ERR_EID            29
 #define BPNODE_ADU_IN_TOO_BIG_ERR_EID           30
 
-#define BPNODE_ADU_OUT_INIT_SEM_ERR_EID         40
-#define BPNODE_ADU_OUT_NOTIF_ERR_EID            41
-#define BPNODE_ADU_OUT_EXIT_SEM_ERR_EID         42
-#define BPNODE_ADU_OUT_CREATE_ERR_EID           43
-#define BPNODE_ADU_OUT_RUN_ERR_EID              44
-#define BPNODE_ADU_OUT_INIT_SEM_TK_ERR_EID      45
-#define BPNODE_ADU_OUT_INIT_INF_EID             46
-#define BPNODE_ADU_OUT_EXIT_CRIT_EID            47
-#define BPNODE_ADU_OUT_NO_ID_ERR_EID            48
-#define BPNODE_ADU_OUT_INV_ID_ERR_EID           49
-#define BPNODE_ADU_OUT_UNK_EXIT_CRIT_EID        50
-// #define BPNODE_UNKNOWN_EID                   51
+#define BPNODE_ADU_OUT_INIT_INF_EID             31
+#define BPNODE_ADU_OUT_NOTIF_ERR_EID            32
+#define BPNODE_ADU_OUT_EXIT_CRT_EID             33
+#define BPNODE_ADU_OUT_INIT_PTR_CRT_EID         34
+#define BPNODE_ADU_OUT_MAIN_PTR_CRT_EID         35
+#define BPNODE_ADU_OUT_CREATE_ERR_EID           36
+
 #define BPNODE_TIME_WKP_ERR_EID                 52
 
 #define BPNODE_CLA_IN_FIND_NAME_ERR_EID         61
@@ -111,17 +106,20 @@
 #define BPNODE_CLA_OUT_INV_ID_ERR_EID           98
 #define BPNODE_CLA_OUT_UNK_EXIT_CRIT_EID        100
 
+#define BPNODE_GEN_WRKR_INIT_INF_EID            106
+#define BPNODE_GEN_WRKR_EXIT_CRT_EID            107
+#define BPNODE_GEN_WRKR_NOTIF_ERR_EID           111
+#define BPNODE_GEN_WRKR_INIT_PTR_CRT_EID        112
+#define BPNODE_GEN_WRKR_MAIN_PTR_CRT_EID        123
+
 #define BPNODE_GEN_WRKR_SEM_CR_ERR_EID          101
 #define BPNODE_GEN_WRKR_EXIT_SEM_ERR_EID        102
 #define BPNODE_GEN_WRKR_CREATE_ERR_EID          103
 #define BPNODE_GEN_WRKR_RUN_ERR_EID             104
 #define BPNODE_GEN_WRKR_SEM_INIT_ERR_EID        105
-#define BPNODE_GEN_WRKR_INIT_INF_EID            106
-#define BPNODE_GEN_WRKR_EXIT_CRIT_EID           107
 #define BPNODE_GEN_WRKR_NO_ID_ERR_EID           108
 #define BPNODE_GEN_WRKR_INV_ID_ERR_EID          109
 #define BPNODE_GEN_WRKR_UNK_EXIT_CRIT_EID       110
-#define BPNODE_GEN_WRKR_NOTIF_ERR_EID           111
 #define BPNODE_GEN_WRKR_REGISTER_ERR_EID        112
 #define BPNODE_GEN_WRKR_TASKRUN_ERR_EID         113
 // #define BPNODE_UNKNOWN_EID                   114
