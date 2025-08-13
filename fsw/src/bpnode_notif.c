@@ -20,17 +20,20 @@
 #include "bpnode_notif.h"
 #include "osapi.h"
 
+/* Initialize notification */
 int32 BPNode_NotifInit(BPNode_Notif_t* Notif, const char* NotifName)
 {
     Notif->Count = 0;
     return OS_CondVarCreate(&Notif->CondVar, NotifName, 0);
 }
 
+/* Destroy notification */
 void BPNode_NotifDestroy(BPNode_Notif_t* Notif)
 {
     OS_CondVarDelete(Notif->CondVar);
 }
 
+/* Get notification count */
 uint32 BPNode_NotifGetCount(BPNode_Notif_t* Notif)
 {
     uint32 Count;
@@ -46,7 +49,7 @@ uint32 BPNode_NotifGetCount(BPNode_Notif_t* Notif)
     return Count;
 }
 
-
+/* Set notification by incrementing its count */
 void BPNode_NotifSet(BPNode_Notif_t* Notif)
 {
     if (Notif == NULL)
@@ -90,8 +93,6 @@ int32 BPNode_NotifWait(BPNode_Notif_t* Notif, uint32 OldCount, int32 TimeoutMs)
 
     return OsStatus;
 }
-
-
 
 /* Wait until notif is exactly the value provided */
 int32 BPNode_NotifWaitExact(BPNode_Notif_t* Notif, uint32 ValueExpected, int32 TimeoutMs)

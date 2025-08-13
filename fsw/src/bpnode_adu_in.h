@@ -70,7 +70,7 @@ typedef struct
  * \brief Create ADU In Task(s)
  *
  *  \par Description
- *       Initialize init semaphore, then create the child task(s)
+ *       Initialize the task data and spawn all ADU In child task(s)
  *
  *  \par Assumptions, External Events, and Notes:
  *       - Note: This is the only function in this file called by the main task, all other
@@ -86,7 +86,8 @@ CFE_Status_t BPNode_AduInCreateTasks(void);
  * \brief Initialize provided ADU In task
  *
  *  \par Description
- *       Initialize provided ADU In task
+ *       Initialize provided ADU In task. This function is called as a function pointer from
+ *       BPNode_TaskInit
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
@@ -103,7 +104,8 @@ CFE_Status_t BPNode_AduIn_TaskInit(uint32 ChanId);
  * \brief ADU In Main Task
  *
  *  \par Description
- *       ADU In task main loop. Extract ADUs from bundles and deliver to destination app.
+ *       ADU In main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
  *
  *  \par Assumptions, External Events, and Notes:
  *       None

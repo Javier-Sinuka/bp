@@ -40,13 +40,14 @@ void Test_BPNode_TaskInit_Nominal(void)
     BPNode_TaskData_t TaskData;
 
     TaskData.TaskInitFunc = BPNode_AduIn_TaskInit;
+    TaskData.InitEid = BPNODE_ADU_IN_INIT_INF_EID;
 
     UtAssert_INT32_EQ(BPNode_TaskInit(&TaskData), CFE_SUCCESS);
 
     UtAssert_STUB_COUNT(BPLib_PL_PerfLogEntry, 1);
     UtAssert_STUB_COUNT(BPNode_NotifSet, 1);
     UtAssert_UINT32_EQ(TaskData.RunStatus, CFE_ES_RunStatus_APP_RUN);
-    BPNode_Test_Verify_Event(0, BPNODE_TASK_INIT_INF_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_INIT_INF_EID, 
                                 "[%s #%d]: Child Task Initialized.");
 }
 
@@ -73,9 +74,11 @@ void Test_BPNode_TaskExit_Nominal(void)
 {
     BPNode_TaskData_t TaskData;
 
+    TaskData.ExitEid = BPNODE_ADU_IN_EXIT_CRT_EID;
+
     UtAssert_VOIDCALL(BPNode_TaskExit(&TaskData));
 
-    BPNode_Test_Verify_Event(0, BPNODE_TASK_EXIT_CRIT_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_EXIT_CRT_EID, 
                                 "[%s #%d]: Terminating Task. RunStatus = %d.");    
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
@@ -257,7 +260,8 @@ void Test_BPNode_TaskMain_NotifErr(void)
     BPNode_AppData.AduInData[ChanId].TaskData.CfeTaskId = CfeTaskId;
     BPNode_AppData.AduInData[ChanId].TaskData.TaskInitFunc = BPNode_AduIn_TaskInit;
     BPNode_AppData.AduInData[ChanId].TaskData.TaskMainFunc = BPNode_AduIn_TaskMain;
-
+    BPNode_AppData.AduInData[ChanId].TaskData.NotifErrEid = BPNODE_ADU_IN_NOTIF_ERR_EID;
+    
     UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &CfeTaskId, sizeof(CfeTaskId), false);
     UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);     /* Run once */
     UT_SetDefaultReturnValue(UT_KEY(BPNode_NotifWait), OS_ERROR);
@@ -267,7 +271,7 @@ void Test_BPNode_TaskMain_NotifErr(void)
     UtAssert_STUB_COUNT(BPNode_NotifWait, 1);
     UtAssert_STUB_COUNT(BPNode_AduIn_TaskMain, 0);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 3);
-    BPNode_Test_Verify_Event(1, BPNODE_TASK_NOTIF_ERR_EID, 
+    BPNode_Test_Verify_Event(1, BPNODE_ADU_IN_NOTIF_ERR_EID, 
                                 "[%s #%d]: Error pending on notification, RC = %d");      
 }
 

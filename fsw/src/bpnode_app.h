@@ -94,8 +94,8 @@ typedef struct
     BPNode_ClaOutData_t    ClaOutData[BPLIB_MAX_NUM_CONTACTS];       /** \brief Global data for CLA Out tasks */
     BPNode_GenWorkerData_t GenWorkerData[BPNODE_NUM_GEN_WRKR_TASKS]; /** \brief Global data for Generic Worker tasks */
     BPNode_Notif_t         ChildStartWorkNotif;                      /** \brief Shared notification for starting child task work */
-    BPNode_Notif_t         ChildTaskInitNotif;
-    BPNode_Notif_t         ChildTaskExitNotif;
+    BPNode_Notif_t         ChildTaskInitNotif;                       /** \brief Shared notification for verifying child task initialization */
+    BPNode_Notif_t         ChildTaskExitNotif;                       /** \brief Shared notification for verifying child task shutdown */
 
     /* BPLib Instance State */
     BPLib_Instance_t            BplibInst;

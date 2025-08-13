@@ -38,7 +38,7 @@ CFE_Status_t BPNode_TaskInit(BPNode_TaskData_t *TaskData)
         
         TaskData->RunStatus = CFE_ES_RunStatus_APP_RUN;
 
-        BPLib_EM_SendEvent(BPNODE_TASK_INIT_INF_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(TaskData->InitEid, BPLib_EM_EventType_INFORMATION,
                       "[%s #%d]: Child Task Initialized.", TaskData->Type, TaskData->TaskId);        
     }
 
@@ -48,7 +48,7 @@ CFE_Status_t BPNode_TaskInit(BPNode_TaskData_t *TaskData)
 /* Exit child task */
 void BPNode_TaskExit(BPNode_TaskData_t *TaskData)
 {
-    BPLib_EM_SendEvent(BPNODE_TASK_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,
+    BPLib_EM_SendEvent(TaskData->ExitEid, BPLib_EM_EventType_CRITICAL,
                       "[%s #%d]: Terminating Task. RunStatus = %d.",
                       TaskData->Type, TaskData->TaskId, TaskData->RunStatus);
 
@@ -168,7 +168,7 @@ void BPNode_TaskMain(void)
         }
         else if (Status != OS_ERROR_TIMEOUT)
         {
-            BPLib_EM_SendEvent(BPNODE_TASK_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+            BPLib_EM_SendEvent(TaskData->NotifErrEid, BPLib_EM_EventType_ERROR,
                                 "[%s #%d]: Error pending on notification, RC = %d",
                                 TaskData->Type, TaskData->TaskId, Status);
         }

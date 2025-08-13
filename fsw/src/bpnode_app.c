@@ -175,7 +175,7 @@ CFE_Status_t BPNode_AppInit(void)
 {
     CFE_Status_t Status;
     BPLib_Status_t BpStatus;
-    int32 NotifStatus;
+    int32 OsStatus;
     char VersionString[BPNODE_CFG_MAX_VERSION_STR_LEN];
     char LastOfficialRelease[BPNODE_CFG_MAX_VERSION_STR_LEN];
     uint8 i;
@@ -294,34 +294,34 @@ CFE_Status_t BPNode_AppInit(void)
 
     /* Create Child Task Notifications */
 
-    NotifStatus = BPNode_NotifInit(&BPNode_AppData.ChildStartWorkNotif, 
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildStartWorkNotif, 
                                     BPNODE_CHILD_STRTWORKNOTIF_NAME);
-    if (NotifStatus != OS_SUCCESS)
+    if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_WORK_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating start work notification, RC = 0x%08lX",
+                    "Error creating child task start work notification, RC = 0x%08lX",
                     (unsigned long)Status);
-        return NotifStatus;
+        return OsStatus;
     }
 
-    NotifStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskInitNotif, 
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskInitNotif, 
                                     BPNODE_CHILD_INIT_NOTIF_NAME);
-    if (NotifStatus != OS_SUCCESS)
+    if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
                     "Error creating child task init notification, RC = 0x%08lX",
                     (unsigned long)Status);
-        return NotifStatus;
+        return OsStatus;
     }
 
-    NotifStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskExitNotif, 
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskExitNotif, 
                                     BPNODE_CHILD_EXIT_NOTIF_NAME);
-    if (NotifStatus != OS_SUCCESS)
+    if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_EXIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
                     "Error creating child task exit notification, RC = 0x%08lX",
                     (unsigned long)Status);
-        return NotifStatus;
+        return OsStatus;
     }
 
     /* Create ADU In child tasks */
@@ -371,27 +371,27 @@ CFE_Status_t BPNode_AppInit(void)
 
     NumChildTasks = BPLIB_MAX_NUM_CHANNELS;
     //NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
-    NotifStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
                                          BPNODE_CHILD_INIT_WAIT_MSEC);
-    if (NotifStatus != OS_SUCCESS)
+    if (OsStatus != OS_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, CFE_EVS_EventType_ERROR,
+        BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Only %d child tasks detected, expected %d. Error = 0x%08X.", 
                             NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskInitNotif),
                             Status);
 
-        return Status;
+        return OsStatus;
     }
 
     /* Register delete handler for graceful app shutdowns */
-    Status = OS_TaskInstallDeleteHandler(&BPNode_AppExit);
-    if (Status != OS_SUCCESS)
+    OsStatus = OS_TaskInstallDeleteHandler(&BPNode_AppExit);
+    if (OsStatus != OS_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_DEL_HANDLER_ERR_EID, CFE_EVS_EventType_ERROR,
-                            "Failed to install delete handler. Error = 0x%08X", Status);
+        BPLib_EM_SendEvent(BPNODE_DEL_HANDLER_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Failed to install delete handler. Error = 0x%08X", OsStatus);
 
-        return Status;
+        return OsStatus;
     }
 
     /* Add and start all applications set to be loaded at startup */
@@ -441,7 +441,7 @@ void BPNode_AppExit(void)
     uint32 ContactId;
     uint32 WorkerId;
     uint32 NumChildTasks;
-    int32  NotifStatus;
+    int32  OsStatus;
 
     BPLib_EM_SendEvent(BPNODE_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,
                         "App terminating, error = %d", BPNode_AppData.RunStatus);
@@ -486,16 +486,16 @@ void BPNode_AppExit(void)
     NumChildTasks = BPLIB_MAX_NUM_CHANNELS;
     //NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
      BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-    NotifStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
                                          BPNODE_CHILD_EXIT_WAIT_MSEC);
     BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
-    if (NotifStatus != OS_SUCCESS)
+    if (OsStatus != OS_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, CFE_EVS_EventType_ERROR,
+        BPLib_EM_SendEvent(BPNODE_EXIT_NOTIF_CRT_EID, BPLib_EM_EventType_CRITICAL,
                             "Only %d child tasks have exited, expected %d. Error = 0x%08X.", 
                             NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
-                            NotifStatus);
+                            OsStatus);
     }
 
     /* Wait on the ADU task exit semaphores */

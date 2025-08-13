@@ -45,32 +45,20 @@
 #define BPNODE_BPLIB_INIT_ERR_EID               16
 #define BPNODE_EXIT_CRIT_EID                    17
 #define BPNODE_AUTO_ADD_APP_INF_EID             18
-#define BPNODE_ADU_START_SUB_DBG_EID            23
-#define BPNODE_ADU_STOP_UNSUB_DBG_EID           26
+#define BPNODE_ADU_START_SUB_DBG_EID            19
+#define BPNODE_ADU_STOP_UNSUB_DBG_EID           20
 
-// General task event IDs
-// TODO fix values
+#define BPNODE_TASK_NO_ID_ERR_EID               21
+#define BPNODE_TASK_UNK_EXIT_CRIT_EID           22
 
-#define BPNODE_TASK_INV_ID_ERR_EID              27
-#define BPNODE_TASK_INIT_INF_EID                28
-#define BPNODE_TASK_UNK_EXIT_CRIT_EID           29
-#define BPNODE_TASK_NOTIF_ERR_EID               30
-#define BPNODE_TASK_EXIT_CRIT_EID               31
-#define BPNODE_TASK_NO_ID_ERR_EID               32
-
-#define BPNODE_ADU_IN_TOO_BIG_ERR_EID           27
-#define BPNODE_ADU_IN_INIT_SEM_ERR_EID          28
-#define BPNODE_ADU_IN_NOTIF_ERR_EID             29
-#define BPNODE_ADU_IN_EXIT_SEM_ERR_EID          30
-#define BPNODE_ADU_IN_CREATE_ERR_EID            31
-#define BPNODE_ADU_IN_RUN_ERR_EID               32
-#define BPNODE_ADU_IN_INIT_SEM_TK_ERR_EID       33
-#define BPNODE_ADU_IN_INIT_INF_EID              34
-#define BPNODE_ADU_IN_EXIT_CRIT_EID             35
-#define BPNODE_ADU_IN_NO_ID_ERR_EID             36
-#define BPNODE_ADU_IN_INV_ID_ERR_EID            37
-#define BPNODE_ADU_IN_CR_PIPE_ERR_EID           38
-#define BPNODE_ADU_IN_UNK_EXIT_CRIT_EID         39
+#define BPNODE_ADU_IN_INIT_INF_EID              23
+#define BPNODE_ADU_IN_EXIT_CRT_EID              24
+#define BPNODE_ADU_IN_NOTIF_ERR_EID             25
+#define BPNODE_ADU_IN_INIT_PTR_CRT_EID          26
+#define BPNODE_ADU_IN_MAIN_PTR_CRT_EID          27
+#define BPNODE_ADU_IN_CR_PIPE_ERR_EID           28
+#define BPNODE_ADU_IN_CREATE_ERR_EID            29
+#define BPNODE_ADU_IN_TOO_BIG_ERR_EID           30
 
 #define BPNODE_ADU_OUT_INIT_SEM_ERR_EID         40
 #define BPNODE_ADU_OUT_NOTIF_ERR_EID            41
@@ -147,5 +135,6 @@
 #define BPNODE_INIT_INIT_NOTIF_ERR_EID          128
 #define BPNODE_INIT_EXIT_NOTIF_ERR_EID          129
 #define BPNODE_INIT_NOTIF_ERR_EID               130
+#define BPNODE_EXIT_NOTIF_CRT_EID               131
 
 #endif /* BPNODE_EVENTS_H */

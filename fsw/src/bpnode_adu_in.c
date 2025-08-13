@@ -41,25 +41,28 @@ CFE_Status_t BPNode_AduInCreateTasks(void)
     CFE_Status_t Status;
     uint32       ChanId;
     uint16       TaskPriority;
+    char         Name[OS_MAX_API_NAME];
 
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
         /* Set up task data for the child task */
         BPNode_AppData.AduInData[ChanId].TaskData.TaskId = ChanId;
         BPNode_AppData.AduInData[ChanId].TaskData.PerfId = BPNODE_ADU_IN_PERF_ID_BASE + ChanId;
+        BPNode_AppData.AduInData[ChanId].TaskData.InitEid = BPNODE_ADU_IN_INIT_INF_EID;
+        BPNode_AppData.AduInData[ChanId].TaskData.NotifErrEid = BPNODE_ADU_IN_NOTIF_ERR_EID;
+        BPNode_AppData.AduInData[ChanId].TaskData.ExitEid = BPNODE_ADU_IN_EXIT_CRT_EID;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskInitFunc = BPNode_AduIn_TaskInit;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskMainFunc = BPNode_AduIn_TaskMain;
         
-        snprintf(BPNode_AppData.AduInData[ChanId].TaskData.Name, OS_MAX_API_NAME, 
-                    "%s_%d", BPNODE_ADU_IN_BASE_NAME, ChanId);
+        snprintf(Name, OS_MAX_API_NAME, "%s_%d", BPNODE_ADU_IN_BASE_NAME, ChanId);
         strncpy(BPNode_AppData.AduInData[ChanId].TaskData.Type, "ADU In", OS_MAX_API_NAME);
         
         TaskPriority = BPNODE_ADU_IN_PRIORITY_BASE + ChanId;
 
         /* Spawn ADU In child task */
         Status = CFE_ES_CreateChildTask(&BPNode_AppData.AduInData[ChanId].TaskData.CfeTaskId, 
-                            BPNode_AppData.AduInData[ChanId].TaskData.Name, BPNode_TaskMain, 
-                            0, BPNODE_ADU_IN_STACK_SIZE, TaskPriority, 0);
+                            Name, BPNode_TaskMain, 0, BPNODE_ADU_IN_STACK_SIZE, 
+                            TaskPriority, 0);
         if (Status != CFE_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_ADU_IN_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
@@ -77,6 +80,15 @@ CFE_Status_t BPNode_AduIn_TaskInit(uint32 ChanId)
 {
     CFE_Status_t Status;
     char         NameBuff[OS_MAX_API_NAME];
+
+    /* This should never happen, indicates something is wrong with the function pointers */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPNODE_ADU_IN_INIT_PTR_CRT_EID, BPLib_EM_EventType_CRITICAL,
+                        "Invalid channel ID %d passed into BPNode_AduIn_TaskInit function pointer.",
+                        ChanId);
+        return CFE_STATUS_RANGE_ERROR;
+    }
 
     /* Create ADU ingest pipe */
     snprintf(NameBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_ADU_IN_PIPE_BASE_NAME, ChanId);
@@ -97,12 +109,18 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
 {
     CFE_Status_t Status = CFE_SUCCESS;
     CFE_SB_Buffer_t *BufPtr = NULL;
-    BPLib_NC_ApplicationState_t AppState;
     size_t AduSize;
     size_t BytesIngressed;
 
-    AppState = BPLib_NC_GetAppState(ChanId);
-    if (AppState == BPLIB_NC_APP_STATE_STARTED)
+    /* This should never happen, indicates something is wrong with the function pointers */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPNODE_ADU_IN_MAIN_PTR_CRT_EID, BPLib_EM_EventType_CRITICAL,
+                        "Invalid channel ID %d passed into BPNode_AduIn_TaskMain function pointer.",
+                        ChanId);
+    }
+    /* Check if channel is started */
+    else if (BPLib_NC_GetAppState(ChanId) == BPLIB_NC_APP_STATE_STARTED)
     {
         BytesIngressed = 0;
 
@@ -124,7 +142,7 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
 
                 /* Even if bplib rejects the ADU, this ADU's size gets counted */
                 BytesIngressed += AduSize;
-            }                    
+            }
         } while (Status == CFE_SUCCESS && ((BytesIngressed * BPNODE_BITS_PER_BYTE) < 
                     BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle));
     }
