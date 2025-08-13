@@ -525,6 +525,8 @@ void BPNode_AppExit(void)
 
     /* Cleanup Notification */
     BPNode_NotifDestroy(&BPNode_AppData.ChildStartWorkNotif);
+    BPNode_NotifDestroy(&BPNode_AppData.ChildTaskInitNotif);
+    BPNode_NotifDestroy(&BPNode_AppData.ChildTaskExitNotif);
 
     /* Cleanup QM and MEM */
     BPLib_QM_QueueTableDestroy(&BPNode_AppData.BplibInst);
