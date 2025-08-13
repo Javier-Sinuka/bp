@@ -35,7 +35,7 @@
 #include "iodriver_packet_io.h"
 #include "bplib.h"
 #include "bpnode_platform_cfg.h"
-
+#include "bpnode_task.h"
 
 /*
 ** Macro Definitions
@@ -74,6 +74,42 @@ typedef struct
 */
 
 /**
+ * \brief     Create all CLA In tasks
+ * \return    Execution status
+ * \retval    CFE_SUCCESS: Successful execution
+ * \retval    CFE errors from CFE_ES_CreateChildTask
+ */
+CFE_Status_t BPNode_ClaInCreateTasks(void);
+
+/**
+ * \brief     Initialize a CLA In task
+ * 
+ *  \par      Description
+ *            Initialize provided CLA In task. This function is called as a function 
+ *            pointer from BPNode_TaskInit
+ * 
+ * \param[in] ContactId (uint32) Index into the various contact info tracking
+ *                                 arrays that corresponds to that contact's info
+ * \return    Execution status
+ * \retval    CFE_SUCCESS: Successful execution
+ * \retval    PSP errors from CFE_PSP_IODriver_FindByName
+ * \retval    PSP errors from CFE_PSP_IODriver_Command
+ */
+CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId);
+
+/**
+ * \brief CLA In Main Task
+ *
+ *  \par Description
+ *       CLA In main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ */
+void BPNode_ClaIn_TaskMain(uint32 ContactId);
+
+/**
  * \brief Process Bundle Input from CLA
  *
  *  \par Description
@@ -90,28 +126,6 @@ typedef struct
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  */
 int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize);
-
-/**
-  * \brief     Create all CLA In tasks
-  * \return    Execution status
-  * \retval    CFE_SUCCESS: Successful execution
-  * \retval    OS errors from OS_BinSemCreate
-  * \retval    OS errors from OS_BinSemTimedWait
-  * \retval    CFE errors from CFE_ES_CreateChildTask
-  */
-CFE_Status_t BPNode_ClaInCreateTasks(void);
-
-/**
-  * \brief     Initialize a CLA In task
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \return    Execution status
-  * \retval    CFE_SUCCESS: Successful execution
-  * \retval    PSP errors from CFE_PSP_IODriver_FindByName
-  * \retval    PSP errors from CFE_PSP_IODriver_Command
-  * \retval    OS errors from OS_BinSemGive
-  */
-CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId);
 
 /**
   * \brief     Set up a CLA In task
@@ -153,17 +167,5 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId);
   * \return    void
   */
 void BPNode_ClaIn_Teardown(uint32 ContactId);
-
-/**
- * \brief CLA In Main Task
- *
- *  \par Description
- *       CLA In task main loop. Receive bundles from CLs and pass them to Bundle Interface.
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- */
-void BPNode_ClaIn_TaskMain(uint32 ContactId);
-
 
 #endif /* BPNODE_CLA_IN_H */

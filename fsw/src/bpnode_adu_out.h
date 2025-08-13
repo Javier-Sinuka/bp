@@ -31,7 +31,7 @@
 */
 
 #include "cfe.h"
-
+#include "bpnode_task.h"
 
 /*
 ** Macro Definitions
@@ -75,7 +75,7 @@ typedef struct
  * \brief Create ADU Out Task(s)
  *
  *  \par Description
- *       Initialize init semaphore, then create the child task(s)
+ *       Initialize the task data and spawn all ADU Out child task(s)
  *
  *  \par Assumptions, External Events, and Notes:
  *       - Note: This is the only function in this file called by the main task, all other
@@ -91,7 +91,8 @@ CFE_Status_t BPNode_AduOutCreateTasks(void);
  * \brief Initialize provided ADU Out task
  *
  *  \par Description
- *       Initialize provided ADU Out task
+ *       Initialize provided ADU Out task. This function is called as a function pointer
+ *       from BPNode_TaskInit
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
@@ -108,7 +109,8 @@ CFE_Status_t BPNode_AduOut_TaskInit(uint32 ChanId);
  * \brief ADU Out Main Task
  *
  *  \par Description
- *       ADU Out task main loop. Extract ADUs from bundles and deliver to destination app.
+ *       ADU Out main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
  *
  *  \par Assumptions, External Events, and Notes:
  *       None

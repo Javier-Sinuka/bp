@@ -36,7 +36,7 @@
 #include "iodriver_packet_io.h"
 #include "bplib.h"
 #include "bpnode_platform_cfg.h"
-
+#include "bpnode_task.h"
 
 /*
 ** Macro Definitions
@@ -80,24 +80,24 @@ typedef struct
 */
 
 /**
-  * \brief     Create all CLA Out tasks
+  * \brief     Create all CLA Out task(s)
   * \return    Execution status
   * \retval    CFE_SUCCESS: Successful execution
-  * \retval    OS errors from OS_BinSemCreate
-  * \retval    OS errors from OS_BinSemTimedWait
   * \retval    CFE errors from CFE_ES_CreateChildTask
   */
 CFE_Status_t BPNode_ClaOutCreateTasks(void);
 
 /**
  * \brief     Initialize a CLA Out task
+ * \par       Description
+ *            Initialize provided CLA Out task. This function is called as a function pointer from
+ *            BPNode_TaskInit
  * \param[in] ContactId (uint32) Index into the various contact info tracking
  *                                 arrays that corresponds to that contact's info
  * \return    Execution status
  * \retval    CFE_SUCCESS: Successful execution
  * \retval    PSP errors from CFE_PSP_IODriver_FindByName
  * \retval    PSP errors from CFE_PSP_IODriver_Command
- * \retval    OS errors from OS_BinSemGive
  */
 CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId);
 
@@ -105,7 +105,8 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId);
  * \brief CLA Out Main Task
  *
  *  \par Description
- *       CLA Out task main loop. Pull bundle from BI queue and send to CL through UNIX socket.
+ *       CLA Out main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
