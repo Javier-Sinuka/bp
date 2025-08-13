@@ -78,8 +78,8 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
     Status = CFE_ES_GetTaskID(&CfeTaskId);
     if (Status != CFE_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_ADU_IN_NO_ID_ERR_EID, BPLib_EM_EventType_ERROR,
-                          "[Child task #?]: Failed to get task ID. Error = %d", Status);
+        BPLib_EM_SendEvent(BPNODE_TASK_NO_ID_ERR_EID, BPLib_EM_EventType_ERROR,
+                          "[Child task #?]: Failed to get task ID. Error = %d.", Status);
         return NULL;
     }
 
@@ -128,7 +128,7 @@ void BPNode_TaskMain(void)
 
     /* Get the relevant task data for this calling task */
     TaskData = BPNode_GetTaskData();
-    if (TaskData == NULL)
+    if (TaskData == NULL || TaskData->TaskInitFunc == NULL || TaskData->TaskMainFunc == NULL)
     {
         /* Task data could not be determined, immediately shut down */
         BPLib_EM_SendEvent(BPNODE_TASK_UNK_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,

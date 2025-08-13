@@ -56,6 +56,7 @@
 #define BPNODE_TASK_UNK_EXIT_CRIT_EID           29
 #define BPNODE_TASK_NOTIF_ERR_EID               30
 #define BPNODE_TASK_EXIT_CRIT_EID               31
+#define BPNODE_TASK_NO_ID_ERR_EID               32
 
 #define BPNODE_ADU_IN_TOO_BIG_ERR_EID           27
 #define BPNODE_ADU_IN_INIT_SEM_ERR_EID          28
