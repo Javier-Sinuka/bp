@@ -96,17 +96,17 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
         }
     }
 
-    // for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
-    // {
-    //     if (CfeTaskId == BPNode_AppData.ClaInData[i].TaskData.CfeTaskId)
-    //     {
-    //         TaskData = &(BPNode_AppData.ClaInData[i].TaskData);
-    //     }
-    //     else if (CfeTaskId == BPNode_AppData.ClaOutData[i].TaskData.CfeTaskId)
-    //     {
-    //         TaskData = &(BPNode_AppData.ClaOutData[i].TaskData);
-    //     }
-    // }
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    {
+        if (CfeTaskId == BPNode_AppData.ClaInData[i].TaskData.CfeTaskId)
+        {
+            TaskData = &(BPNode_AppData.ClaInData[i].TaskData);
+        }
+        else if (CfeTaskId == BPNode_AppData.ClaOutData[i].TaskData.CfeTaskId)
+        {
+            TaskData = &(BPNode_AppData.ClaOutData[i].TaskData);
+        }
+    }
 
     for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
     {

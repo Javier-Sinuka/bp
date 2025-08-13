@@ -32,36 +32,13 @@
  * Generated stub function for BPNode_AduOutCreateTasks()
  * ----------------------------------------------------
  */
-int32 BPNode_AduOutCreateTasks(void)
+CFE_Status_t BPNode_AduOutCreateTasks(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPNode_AduOutCreateTasks, int32);
+    UT_GenStub_SetupReturnBuffer(BPNode_AduOutCreateTasks, CFE_Status_t);
 
     UT_GenStub_Execute(BPNode_AduOutCreateTasks, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPNode_AduOutCreateTasks, int32);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPNode_AduOut_AppMain()
- * ----------------------------------------------------
- */
-void BPNode_AduOut_AppMain(void)
-{
-
-    UT_GenStub_Execute(BPNode_AduOut_AppMain, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPNode_AduOut_TaskExit()
- * ----------------------------------------------------
- */
-void BPNode_AduOut_TaskExit(uint32 ChanId)
-{
-    UT_GenStub_AddParam(BPNode_AduOut_TaskExit, uint32, ChanId);
-
-    UT_GenStub_Execute(BPNode_AduOut_TaskExit, Basic, NULL);
+    return UT_GenStub_GetReturnValue(BPNode_AduOutCreateTasks, CFE_Status_t);
 }
 
 /*
@@ -69,13 +46,25 @@ void BPNode_AduOut_TaskExit(uint32 ChanId)
  * Generated stub function for BPNode_AduOut_TaskInit()
  * ----------------------------------------------------
  */
-int32 BPNode_AduOut_TaskInit(uint32 *ChanId)
+CFE_Status_t BPNode_AduOut_TaskInit(uint32 ChanId)
 {
-    UT_GenStub_SetupReturnBuffer(BPNode_AduOut_TaskInit, int32);
+    UT_GenStub_SetupReturnBuffer(BPNode_AduOut_TaskInit, CFE_Status_t);
 
-    UT_GenStub_AddParam(BPNode_AduOut_TaskInit, uint32 *, ChanId);
+    UT_GenStub_AddParam(BPNode_AduOut_TaskInit, uint32, ChanId);
 
     UT_GenStub_Execute(BPNode_AduOut_TaskInit, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPNode_AduOut_TaskInit, int32);
+    return UT_GenStub_GetReturnValue(BPNode_AduOut_TaskInit, CFE_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPNode_AduOut_TaskMain()
+ * ----------------------------------------------------
+ */
+void BPNode_AduOut_TaskMain(uint32 ChanId)
+{
+    UT_GenStub_AddParam(BPNode_AduOut_TaskMain, uint32, ChanId);
+
+    UT_GenStub_Execute(BPNode_AduOut_TaskMain, Basic, NULL);
 }

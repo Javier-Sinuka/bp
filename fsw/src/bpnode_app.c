@@ -369,8 +369,7 @@ CFE_Status_t BPNode_AppInit(void)
         return Status;
     }
 
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
-    //NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
+    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
     OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
                                          BPNODE_CHILD_INIT_WAIT_MSEC);
     if (OsStatus != OS_SUCCESS)
@@ -471,8 +470,8 @@ void BPNode_AppExit(void)
         (void) BPLib_CLA_ContactStop(ContactId);
         (void) BPLib_CLA_ContactTeardown(&BPNode_AppData.BplibInst, ContactId);
 
-        BPNode_AppData.ClaOutData[ContactId].RunStatus = CFE_ES_RunStatus_APP_EXIT;
-        BPNode_AppData.ClaInData[ContactId].RunStatus = CFE_ES_RunStatus_APP_EXIT;        
+        BPNode_AppData.ClaOutData[ContactId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
+        BPNode_AppData.ClaInData[ContactId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;        
     }
 
     /* Signal to generic worker tasks to exit */
@@ -481,10 +480,9 @@ void BPNode_AppExit(void)
         BPNode_AppData.GenWorkerData[WorkerId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
 
-    // Verify that all child tasks have shut down
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
-    //NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
-     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
+    /* Verify that all child tasks have shut down */
+    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
+    BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
     OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
                                          BPNODE_CHILD_EXIT_WAIT_MSEC);
     BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
@@ -495,15 +493,6 @@ void BPNode_AppExit(void)
                             NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
                             OsStatus);
-    }
-
-    /* Wait on the CLA task exit semaphores */
-    for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
-    {
-        BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-        (void) OS_BinSemTimedWait(BPNode_AppData.ClaInData[ContactId].ExitSemId, BPNODE_CLA_IN_SEM_EXIT_WAIT_MSEC);
-        (void) OS_BinSemTimedWait(BPNode_AppData.ClaOutData[ContactId].ExitSemId, BPNODE_CLA_OUT_SEM_EXIT_WAIT_MSEC);
-        BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
     }
 
     /* Cleanup Notification */

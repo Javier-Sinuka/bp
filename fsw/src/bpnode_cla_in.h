@@ -41,10 +41,8 @@
 ** Macro Definitions
 */
 
-#define BPNODE_CLA_IN_SEM_BASE_NAME          "BPN_CLA_IN"           /** \brief Initialization semaphore base name */
 #define BPNODE_CLA_IN_BASE_NAME              "BPNODE.CLA_IN"        /** \brief Task base name */
 #define BPNODE_CLA_PSP_INPUT_BUFFER_SIZE     (BPLIB_MAX_BUNDLE_LEN) /** \brief IODriver buffer size*/
-#define BPNODE_CLA_IN_SEM_INIT_WAIT_MSEC     (2000u)                /** \brief Wait time for init semaphore take, in milliseconds */
 #define BPNODE_CLA_INGRESS_PIPE_DEPTH        (32u)                  /** \brief CLA In SB pipe depth */
 
 /*
@@ -56,11 +54,7 @@
 */
 typedef struct
 {
-    CFE_ES_TaskId_t TaskId;
-    osal_id_t       InitSemId;
-    osal_id_t       ExitSemId;
-    uint32          PerfId;
-    uint32          RunStatus;
+    BPNode_TaskData_t TaskData;
 
     /* IODriver usock_intf related */
     CFE_PSP_IODriver_Direction_t Dir;
@@ -169,18 +163,7 @@ void BPNode_ClaIn_Teardown(uint32 ContactId);
  *  \par Assumptions, External Events, and Notes:
  *       None
  */
-void BPNode_ClaIn_AppMain(void);
+void BPNode_ClaIn_TaskMain(uint32 ContactId);
 
-/** \brief Exit provided CLA In task
- *
- *  \par Description
- *       Exit CLA In task gracefully
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \param[in] ContactId Contacts ID for this task
- */
-void BPNode_ClaIn_TaskExit(uint32 ContactId);
 
 #endif /* BPNODE_CLA_IN_H */
