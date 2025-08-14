@@ -108,6 +108,19 @@ void Test_BPNode_ClaIn_TaskInit_CreatePipeErr(void)
                                 "[CLA In #%d]: Error creating CLA In task SB pipe, RC = 0x%08lX");
 }
 
+/* Test BPNode_ClaIn_TaskInit when the contact ID is invalid */
+void Test_BPNode_ClaIn_TaskInit_IdErr(void)
+{
+    uint32 ContactId = BPLIB_MAX_NUM_CONTACTS;
+
+    UtAssert_INT32_EQ(BPNode_ClaIn_TaskInit(ContactId), CFE_STATUS_RANGE_ERROR);
+
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_INIT_PTR_CRT_EID, 
+                                "Invalid contact ID %d passed into BPNode_ClaIn_TaskInit function pointer.");
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_STUB_COUNT(CFE_PSP_IODriver_FindByName, 0);
+}
+
 void Test_BPNode_ClaIn_TaskInit_SubscribeErr(void)
 {
     uint32 ContactId = 0;
@@ -121,13 +134,80 @@ void Test_BPNode_ClaIn_TaskInit_SubscribeErr(void)
                                 "[CLA In #%d]: Error subscribing to CLA In task messages, RC = 0x%08lX");
 }
 
-void Test_BPNode_ClaIn_Setup_Nominal(void)
+/* Test BPNode_ClaIn_TaskInit on nominal UDP case */
+void Test_BPNode_ClaIn_TaskInit_UdpNom(void)
+{
+    uint32 ContactNum = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = BPLib_UDP_CLA;
+    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_PSP_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test BPNode_ClaIn_TaskInit on nominal SB case */
+void Test_BPNode_ClaIn_TaskInit_SbNom(void)
+{
+    uint32 ContactNum = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = BPLib_SB_CLA;
+    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_PSP_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test BPNode_ClaIn_TaskInit on nominal LTP case */
+void Test_BPNode_ClaIn_TaskInit_LtpNom(void)
+{
+    uint32 ContactNum = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = BPLib_LTP_CLA;
+    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_PSP_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test BPNode_ClaIn_TaskInit on nominal EPP case */
+void Test_BPNode_ClaIn_TaskInit_EppNom(void)
+{
+    uint32 ContactNum = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = BPLib_EPP_CLA;
+    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_PSP_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test BPNode_ClaIn_TaskInit on nominal TCPCL case */
+void Test_BPNode_ClaIn_TaskInit_TcpNom(void)
+{
+    uint32 ContactNum = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = BPLib_TCP_CLA;
+    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_PSP_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test BPNode_ClaIn_TaskInit on default case */
+void Test_BPNode_ClaIn_TaskInit_Default(void)
+{
+    uint32 ContactNum = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactNum].CLAType = 0xff;
+    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactNum), CFE_PSP_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Setup_UdpNom(void)
 {
 #ifdef BPNODE_CLA_UDP_DRIVER
     uint32 ContactId = 0;
 
     strcpy(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].ClaInAddr, "0.0.0.0");
     BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].ClaInPort = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_UDP_CLA;
 
     /* Force called function to return values that will create a success return value */
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_IODriver_Command), CFE_PSP_SUCCESS);
@@ -135,6 +215,51 @@ void Test_BPNode_ClaIn_Setup_Nominal(void)
     /* Call function under test and verify return status */
     UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
 #endif
+}
+
+void Test_BPNode_ClaIn_Setup_SbNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
+}
+
+void Test_BPNode_ClaIn_Setup_LtpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_LTP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
+}
+
+void Test_BPNode_ClaIn_Setup_EppNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_EPP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
+}
+
+void Test_BPNode_ClaIn_Setup_TcpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_TCP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
+}
+
+void Test_BPNode_ClaIn_Setup_Default(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = 0xff;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
 }
 
 void Test_BPNode_ClaIn_Setup_PortErr(void)
@@ -204,6 +329,19 @@ void Test_BPNode_ClaIn_TaskMain_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
+/* Test BPNode_ClaIn_TaskMain when the contact ID is invalid */
+void Test_BPNode_ClaIn_TaskMain_IdErr(void)
+{
+    uint32 ContactId = BPLIB_MAX_NUM_CONTACTS;
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
+
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_MAIN_PTR_CRT_EID, 
+                                "Invalid contact ID %d passed into BPNode_ClaIn_TaskMain function pointer.");
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_STUB_COUNT(BPLib_CLA_GetContactRunState, 0);
+}
+
 /* Test BPNode_ClaIn_TaskMain when ingress service is disabled */
 void Test_BPNode_ClaIn_TaskMain_NoIngress(void)
 {
@@ -220,6 +358,25 @@ void Test_BPNode_ClaIn_TaskMain_NoIngress(void)
 
     UtAssert_STUB_COUNT(BPLib_CLA_GetContactRunState, 1);
     UtAssert_STUB_COUNT(BPNode_ClaIn_ProcessBundleInput, 0);
+}
+
+/* Test BPNode_ClaIn_TaskMain when getting the contact state fails */
+void Test_BPNode_ClaIn_TaskMain_StateErr(void)
+{
+    uint32                      ContactId;
+    BPLib_CLA_ContactRunState_t RunState;
+
+    ContactId = 0;
+    RunState = BPLIB_CLA_STARTED;
+
+    /* Test setup */
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_ERROR);
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 0);    
 }
 
 void Test_BPNode_ClaIn_TaskMain_FailedProcBundle(void)
@@ -284,17 +441,21 @@ void Test_BPNode_ClaIn_TaskMain_MaxLimit(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
-void Test_BPNode_ClaIn_ProcessBundleInput_NominalUDP(void)
+void Test_BPNode_ClaIn_ProcessBundleInput_UdpNom(void)
 {
     uint8 ContactId;
     size_t BundleSize;
 
     /* UDP case */
     ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_UDP_CLA;
+
     UtAssert_UINT32_EQ(BPNode_ClaIn_ProcessBundleInput(ContactId, &BundleSize), CFE_SUCCESS);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
-void Test_BPNode_ClaIn_ProcessBundleInput_NominalSB(void)
+void Test_BPNode_ClaIn_ProcessBundleInput_SbNom(void)
 {
     uint8  ContactId;
     size_t MsgSize;
@@ -315,6 +476,58 @@ void Test_BPNode_ClaIn_ProcessBundleInput_NominalSB(void)
 
     /* Verify that the function ran as expected */
     UtAssert_STUB_COUNT(BPLib_CLA_Ingress, 1);
+}
+
+void Test_BPNode_ClaIn_ProcessBundleInput_LtpNom(void)
+{
+    uint8 ContactId;
+    size_t BundleSize;
+
+    /* LTP case */
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_LTP_CLA;
+
+    UtAssert_UINT32_EQ(BPNode_ClaIn_ProcessBundleInput(ContactId, &BundleSize), BPLIB_TIMEOUT);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_ProcessBundleInput_EppNom(void)
+{
+    uint8 ContactId;
+    size_t BundleSize;
+
+    /* EPP case */
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_EPP_CLA;
+
+    UtAssert_UINT32_EQ(BPNode_ClaIn_ProcessBundleInput(ContactId, &BundleSize), BPLIB_TIMEOUT);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_ProcessBundleInput_TcpNom(void)
+{
+    uint8 ContactId;
+    size_t BundleSize;
+
+    /* TCP case */
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_TCP_CLA;
+
+    UtAssert_UINT32_EQ(BPNode_ClaIn_ProcessBundleInput(ContactId, &BundleSize), BPLIB_TIMEOUT);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_ProcessBundleInput_Default(void)
+{
+    uint8 ContactId;
+    size_t BundleSize;
+
+    /* TCP case */
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = 0xff;
+
+    UtAssert_UINT32_EQ(BPNode_ClaIn_ProcessBundleInput(ContactId, &BundleSize), BPLIB_TIMEOUT);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
 void Test_BPNode_ClaIn_ProcessBundleInput_ReceiveBufferErr(void)
@@ -422,28 +635,172 @@ void Test_BPNode_ClaIn_ProcessBundleInput_CLA_IngressTimeout(void)
     UtAssert_STUB_COUNT(BPLib_CLA_Ingress, 1);
 }
 
-
-void Test_BPNode_ClaIn_Start_Nominal(void)
+void Test_BPNode_ClaIn_Start_UdpNom(void)
 {
     BPLib_Status_t Status;
-    uint32 ContId = 0;
+    uint32 ContactId = 0;
 
-    Status = BPNode_ClaIn_Start(ContId);
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_UDP_CLA;
+
+    Status = BPNode_ClaIn_Start(ContactId);
     
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
-void Test_BPNode_ClaIn_Stop_Nominal(void)
+void Test_BPNode_ClaIn_Start_PspErr(void)
 {
-    BPLib_Status_t Status;
     uint32 ContId = 0;
 
-    Status = BPNode_ClaIn_Stop(ContId);
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType = BPLib_UDP_CLA;
+
+    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_IODriver_Command), 1, CFE_PSP_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_ClaIn_Start(ContId), BPLIB_CLA_IO_ERROR);
+
+    UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 1);
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_CFG_SET_RUN_ERR_EID, 
+                            "Couldn't set I/O state for CLA In #%d to running. Error = %d");
+}
+
+void Test_BPNode_ClaIn_Start_SbNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Start(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Start_LtpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_LTP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Start(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Start_EppNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_EPP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Start(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Start_TcpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_TCP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Start(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+
+void Test_BPNode_ClaIn_Start_Default(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = 0xff;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Start(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Stop_UdpNom(void)
+{
+    BPLib_Status_t Status;
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_UDP_CLA;
+
+    Status = BPNode_ClaIn_Stop(ContactId);
     
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
+
+void Test_BPNode_ClaIn_Stop_PspErr(void)
+{
+    uint32 ContId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType = BPLib_UDP_CLA;
+
+    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_IODriver_Command), 1, CFE_PSP_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_ClaIn_Stop(ContId), BPLIB_CLA_IO_ERROR);
+
+    UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 1);
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_CFG_STOP_ERR_EID, 
+                            "Couldn't set I/O state to stop for CLA In #%d. Error = %d");
+}
+
+void Test_BPNode_ClaIn_Stop_SbNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Stop(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Stop_LtpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_LTP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Stop(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Stop_EppNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_EPP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Stop(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Stop_TcpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_TCP_CLA;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Stop(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Stop_Default(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = 0xff;
+
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Stop(ContactId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPNode_ClaIn_Teardown_UdpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_UDP_CLA;
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_Teardown(ContactId));
+}
+
 
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
@@ -455,23 +812,55 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_DirErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_CreatePipeErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_SubscribeErr);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_IdErr);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_UdpNom);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_LtpNom);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_EppNom);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_TcpNom);
+    ADD_TEST(Test_BPNode_ClaIn_TaskInit_Default);
 
-    ADD_TEST(Test_BPNode_ClaIn_Setup_Nominal);
+    ADD_TEST(Test_BPNode_ClaIn_Setup_UdpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Setup_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_Setup_LtpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Setup_EppNom);
+    ADD_TEST(Test_BPNode_ClaIn_Setup_TcpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Setup_Default);
     ADD_TEST(Test_BPNode_ClaIn_Setup_PortErr);
     ADD_TEST(Test_BPNode_ClaIn_Setup_IpErr);
 
-    ADD_TEST(Test_BPNode_ClaIn_Start_Nominal);
+    ADD_TEST(Test_BPNode_ClaIn_Start_UdpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Start_PspErr);
+    ADD_TEST(Test_BPNode_ClaIn_Start_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_Start_LtpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Start_EppNom);
+    ADD_TEST(Test_BPNode_ClaIn_Start_TcpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Start_Default);
 
-    ADD_TEST(Test_BPNode_ClaIn_Stop_Nominal);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_UdpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_PspErr);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_LtpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_EppNom);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_TcpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_Default);
+
+    ADD_TEST(Test_BPNode_ClaIn_Teardown_UdpNom);
 
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_Nominal);
+    ADD_TEST(Test_BPNode_ClaIn_TaskMain_IdErr);
+    ADD_TEST(Test_BPNode_ClaIn_TaskMain_StateErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_NoIngress);
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_FailedProcBundle);
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_OneBundle);
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_MaxLimit);
 
-    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_NominalUDP);
-    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_NominalSB);
+    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_UdpNom);
+    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_LtpNom);
+    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_EppNom);
+    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_TcpNom);
+    ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_Default);
     ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_ReceiveBufferErr);
     ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_ReceiveBufferTimeout);
     ADD_TEST(Test_BPNode_ClaIn_ProcessBundleInput_FailedIODCommand);

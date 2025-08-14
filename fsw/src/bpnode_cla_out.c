@@ -129,7 +129,7 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
     {
         BPLib_EM_SendEvent(BPNODE_CLA_OUT_MAIN_PTR_CRT_EID, BPLib_EM_EventType_CRITICAL,
-                        "Invalid contact ID %d passed into BPNode_ClaIn_TaskMain function pointer.",
+                        "Invalid contact ID %d passed into BPNode_ClaOut_TaskMain function pointer.",
                         ContactId);
         return;
     }
@@ -137,7 +137,7 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     Status = BPLib_CLA_GetContactRunState(ContactId, &RunState);
 
     /* Ingress bundles only when the contact has been started */
-    if (RunState == BPLIB_CLA_STARTED && Status == BPLIB_SUCCESS)
+    if (Status == BPLIB_SUCCESS && RunState == BPLIB_CLA_STARTED)
     {
         BytesEgressed = 0;
 
@@ -147,10 +147,13 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
             if (Status == BPLIB_SUCCESS)
             {
                 BytesEgressed += BundleSize;
-            }                                
+            }
+
+            printf("bytesegressed=%ld\n", BytesEgressed);
         } while (Status == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) < 
             BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle));
     }
+
     return;
 }
 
@@ -231,8 +234,6 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
             default:
                 break;
         }
-
-        CFE_MSG_SetSize(CFE_MSG_PTR(BPNode_AppData.ClaOutData[ContId].OutBuffer.TelemetryHeader), 0);
     }
 
     return Status;
@@ -374,7 +375,7 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 
             if (PspStatus != CFE_PSP_SUCCESS)
             {
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID,
+                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_STOP_ERR_EID,
                                     BPLib_EM_EventType_ERROR,
                                     "Couldn't set I/O state to stop for CLA Out #%d. Error = %d",
                                     ContactId,

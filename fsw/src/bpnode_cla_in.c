@@ -77,7 +77,7 @@ CFE_Status_t BPNode_ClaInCreateTasks(void)
 
 CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 {
-    CFE_Status_t     Status;
+    CFE_Status_t     Status = CFE_PSP_SUCCESS;
     BPLib_CLA_Type_t ClaType;
 
     /* This should never happen, indicates something is wrong with the function pointers */
@@ -193,7 +193,7 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
     Status = BPLib_CLA_GetContactRunState(ContactId, &RunState);
 
     /* Ingress bundles only when the contact has been started */
-    if (RunState == BPLIB_CLA_STARTED && Status == BPLIB_SUCCESS)
+    if (Status == BPLIB_SUCCESS && RunState == BPLIB_CLA_STARTED)
     {
         BytesIngressed = 0;
 
@@ -405,7 +405,7 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
             if (PspStatus != CFE_PSP_SUCCESS)
             {
                 BPLib_EM_SendEvent(BPNODE_CLA_IN_CFG_SET_RUN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Couldn't set I/O state to running for CLA In #%d. Error = %d",
+                                    "Couldn't set I/O state for CLA In #%d to running. Error = %d",
                                     ContactId,
                                     PspStatus);
 
@@ -448,7 +448,7 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
 
             if (PspStatus != CFE_PSP_SUCCESS)
             {
-                BPLib_EM_SendEvent(BPNODE_CLA_IN_CFG_SET_RUN_ERR_EID,
+                BPLib_EM_SendEvent(BPNODE_CLA_IN_CFG_STOP_ERR_EID,
                                     BPLib_EM_EventType_ERROR,
                                     "Couldn't set I/O state to stop for CLA In #%d. Error = %d",
                                     ContactId,

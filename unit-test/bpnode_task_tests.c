@@ -100,6 +100,58 @@ void Test_BPNode_GetTaskData_AduIn(void)
     UtAssert_ADDRESS_EQ(BPNode_GetTaskData(), &(BPNode_AppData.AduInData[ChanId].TaskData));
 }
 
+/* Test that BPNode_GetTaskData returns the right task data pointer in nominal ADU Out case */
+void Test_BPNode_GetTaskData_AduOut(void)
+{
+    CFE_ES_TaskId_t CfeTaskId  = 1234;
+    uint32 ChanId = 0;
+
+    BPNode_AppData.AduOutData[ChanId].TaskData.CfeTaskId = CfeTaskId;
+
+    UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &CfeTaskId, sizeof(CfeTaskId), false);
+
+    UtAssert_ADDRESS_EQ(BPNode_GetTaskData(), &(BPNode_AppData.AduOutData[ChanId].TaskData));
+}
+
+/* Test that BPNode_GetTaskData returns the right task data pointer in nominal Cla In case */
+void Test_BPNode_GetTaskData_ClaIn(void)
+{
+    CFE_ES_TaskId_t CfeTaskId  = 1234;
+    uint32 ContId = 0;
+
+    BPNode_AppData.ClaInData[ContId].TaskData.CfeTaskId = CfeTaskId;
+
+    UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &CfeTaskId, sizeof(CfeTaskId), false);
+
+    UtAssert_ADDRESS_EQ(BPNode_GetTaskData(), &(BPNode_AppData.ClaInData[ContId].TaskData));
+}
+
+/* Test that BPNode_GetTaskData returns the right task data pointer in nominal CLA Out case */
+void Test_BPNode_GetTaskData_ClaOut(void)
+{
+    CFE_ES_TaskId_t CfeTaskId  = 1234;
+    uint32 ContId = 0;
+
+    BPNode_AppData.ClaOutData[ContId].TaskData.CfeTaskId = CfeTaskId;
+
+    UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &CfeTaskId, sizeof(CfeTaskId), false);
+
+    UtAssert_ADDRESS_EQ(BPNode_GetTaskData(), &(BPNode_AppData.ClaOutData[ContId].TaskData));
+}
+
+/* Test that BPNode_GetTaskData returns the right task data pointer in nominal Generic Worker case */
+void Test_BPNode_GetTaskData_GenWorker(void)
+{
+    CFE_ES_TaskId_t CfeTaskId  = 1234;
+    uint32 WorkerId = 0;
+
+    BPNode_AppData.GenWorkerData[WorkerId].TaskData.CfeTaskId = CfeTaskId;
+
+    UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &CfeTaskId, sizeof(CfeTaskId), false);
+
+    UtAssert_ADDRESS_EQ(BPNode_GetTaskData(), &(BPNode_AppData.GenWorkerData[WorkerId].TaskData));
+}
+
 /* Test that BPNode_GetTaskData returns null when no match is found */
 void Test_BPNode_GetTaskData_NoMatch(void)
 {
@@ -283,6 +335,10 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_TaskExit_Nominal);
 
     ADD_TEST(Test_BPNode_GetTaskData_AduIn);
+    ADD_TEST(Test_BPNode_GetTaskData_AduOut);
+    ADD_TEST(Test_BPNode_GetTaskData_ClaIn);
+    ADD_TEST(Test_BPNode_GetTaskData_ClaOut);
+    ADD_TEST(Test_BPNode_GetTaskData_GenWorker);
     ADD_TEST(Test_BPNode_GetTaskData_NoMatch);
     ADD_TEST(Test_BPNode_GetTaskData_GetIdErr);
 

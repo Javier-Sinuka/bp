@@ -165,7 +165,6 @@ void Test_BPNode_AduIn_TaskMain_IdErr(void)
     UtAssert_STUB_COUNT(BPLib_NC_GetAppState, 0);
 }
 
-
 /* Test BPNode_AduIn_AppMain when app state is started and a null ADU is received */
 void Test_BPNode_AduIn_AppMain_NullBuf(void)
 {

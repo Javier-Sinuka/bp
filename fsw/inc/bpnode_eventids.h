@@ -91,14 +91,15 @@
 #define BPNODE_CLA_IN_CFG_IP_ERR_EID            76
 #define BPNODE_CLA_IN_CFG_DIR_ERR_EID           77
 #define BPNODE_CLA_IN_CFG_SET_RUN_ERR_EID       78
-#define BPNODE_CLA_IN_CREATE_ERR_EID            79
-#define BPNODE_CLA_IN_RUN_ERR_EID               80
-#define BPNODE_CLA_IN_CREATE_PIPE_ERR_EID       81
-#define BPNODE_CLA_IN_SUB_ERR_EID               82
-#define BPNODE_CLA_IN_RECV_BUFF_ERR_EID         83
-#define BPNODE_CLA_IN_IO_READ_ERR_EID           84
+#define BPNODE_CLA_IN_CFG_STOP_ERR_EID          79
+#define BPNODE_CLA_IN_CREATE_ERR_EID            80
+#define BPNODE_CLA_IN_RUN_ERR_EID               81
+#define BPNODE_CLA_IN_CREATE_PIPE_ERR_EID       82
+#define BPNODE_CLA_IN_SUB_ERR_EID               83
+#define BPNODE_CLA_IN_RECV_BUFF_ERR_EID         84
+#define BPNODE_CLA_IN_IO_READ_ERR_EID           85
 
-/* Event IDs 84-99 reserved for future CLA In task event IDs */
+/* Event IDs 86-99 reserved for future CLA In task event IDs */
 
 #define BPNODE_CLA_OUT_INIT_INF_EID            100
 #define BPNODE_CLA_OUT_NOTIF_ERR_EID           101
@@ -111,10 +112,11 @@
 #define BPNODE_CLA_OUT_CFG_IP_ERR_EID          108
 #define BPNODE_CLA_OUT_CFG_DIR_ERR_EID         109
 #define BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID     110
-#define BPNODE_CLA_OUT_CREATE_ERR_EID          111
-#define BPNODE_CLA_OUT_RUN_ERR_EID             112
+#define BPNODE_CLA_OUT_CFG_STOP_ERR_EID        111
+#define BPNODE_CLA_OUT_CREATE_ERR_EID          112
+#define BPNODE_CLA_OUT_RUN_ERR_EID             113
 
-/* Event IDs 113-129 reserved for future CLA Out task event IDs */
+/* Event IDs 114-129 reserved for future CLA Out task event IDs */
 
 #define BPNODE_GEN_WRKR_INIT_INF_EID           130
 #define BPNODE_GEN_WRKR_EXIT_CRT_EID           131
