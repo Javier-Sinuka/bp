@@ -149,7 +149,6 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
                 BytesEgressed += BundleSize;
             }
 
-            printf("bytesegressed=%ld\n", BytesEgressed);
         } while (Status == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) < 
             BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle));
     }
