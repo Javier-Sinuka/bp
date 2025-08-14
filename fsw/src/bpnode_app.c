@@ -489,7 +489,7 @@ void BPNode_AppExit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_EXIT_NOTIF_CRT_EID, BPLib_EM_EventType_CRITICAL,
-                            "Only %d child tasks have exited, expected %d. Error = 0x%08X.", 
+                            "Only %d child tasks have exited, expected %d. Error = %d.", 
                             NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
                             OsStatus);
