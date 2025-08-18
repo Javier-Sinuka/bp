@@ -43,7 +43,7 @@
 #define BPNODE_TBL_LD_ERR_EID                   13
 #define BPNODE_TBL_ADDR_ERR_EID                 14
 #define BPNODE_TBL_MNG_ERR_EID                  15
-#define BPNODE_FWP_INIT_ERR_EID                 16
+#define BPNODE_BPLIB_INIT_ERR_EID               16
 #define BPNODE_EXIT_CRIT_EID                    17
 #define BPNODE_AUTO_ADD_APP_INF_EID             18
 #define BPNODE_ADU_START_SUB_DBG_EID            23
@@ -72,7 +72,7 @@
 #define BPNODE_ADU_OUT_NO_ID_ERR_EID            48
 #define BPNODE_ADU_OUT_INV_ID_ERR_EID           49
 #define BPNODE_ADU_OUT_UNK_EXIT_CRIT_EID        50
-#define BPNODE_TIME_INIT_ERR_EID                51
+// #define BPNODE_UNKNOWN_EID                   51
 #define BPNODE_TIME_WKP_ERR_EID                 52
 #define BPNODE_CLAP_IO_FIND_NAME_DBG_EID        53
 #define BPNODE_CLAP_IO_PORT_DBG_EID             54
@@ -136,20 +136,19 @@
 #define BPNODE_GEN_WRKR_NOTIF_ERR_EID           111
 #define BPNODE_GEN_WRKR_REGISTER_ERR_EID        112
 #define BPNODE_GEN_WRKR_TASKRUN_ERR_EID         113
-
-#define BPNODE_NC_AS_INIT_ERR_EID               114
+// #define BPNODE_UNKNOWN_EID                   114
 #define BPNODE_DP_SEND_NODE_CNTRS_ERR_EID       115
 #define BPNODE_ADU_REM_CHAN_ERR_EID             116
 #define BPNODE_ADU_REM_STAT_ERR_EID             117
 #define BPNODE_DEL_HANDLER_ERR_EID              118
-#define BPNODE_QM_INIT_ERR_EID                  122
-#define BPNODE_MEM_INIT_ERR_EID                 123
+// #define BPNODE_UNKNOWN_EID                   122
+// #define BPNODE_UNKNOWN_EID                   123
 #define BPNODE_ADU_OUT_PI_OUT_ERR_EID           124
-
 #define BPNODE_TBL_UPDATE_INF_EID               125
 #define BPNODE_NC_CFG_UPDATE_ERR_EID            126
-
 #define BPNODE_INIT_SB_CONTACT_ERR_EID          127
+#define BPNODE_INIT_NOTIF_CR_ERR_EID            128
+// #define BPNODE_UNKNOWN_EID                   129
 
 #define BPNODE_CLA_IN_SOCKET_OPEN_ERR_EID       150
 #define BPNODE_CLA_IN_SOCKET_BIND_ERR_EID       151

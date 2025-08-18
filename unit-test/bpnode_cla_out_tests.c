@@ -200,20 +200,18 @@ void Test_BPNode_ClaOut_AppMain_NoBundleAvailable(void)
 {
     uint32                      ContactId;
     CFE_ES_TaskId_t             TaskId;
-    BPLib_CLA_ContactRunState_t RunState1;
-    BPLib_CLA_ContactRunState_t RunState2;
+    BPLib_CLA_ContactRunState_t RunState;
 
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
     TaskId    = 1234;
-    RunState1 = BPLIB_CLA_STARTED;
-    RunState2 = BPLIB_CLA_EXITED;
+    RunState = BPLIB_CLA_STARTED;
 
     BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle = 100000;
 
     /* Test setup */
     UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &TaskId, sizeof(TaskId), false);
-    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState1, sizeof(BPLib_CLA_ContactRunState_t), false);
-    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState2, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);
     UT_SetDeferredRetcode(UT_KEY(BPLib_CLA_Egress), 1, BPLIB_CLA_TIMEOUT);
 
     BPNode_AppData.ClaOutData[ContactId].TaskId = TaskId;
@@ -230,19 +228,16 @@ void Test_BPNode_ClaOut_AppMain_SingleBundle(void)
 {
     uint32                      ContactId;
     CFE_ES_TaskId_t             TaskId;
-    BPLib_CLA_ContactRunState_t RunState1;
-    BPLib_CLA_ContactRunState_t RunState2;
+    BPLib_CLA_ContactRunState_t RunState;
 
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
     TaskId    = 1234;
-    RunState1  = BPLIB_CLA_STARTED;
-    RunState2  = BPLIB_CLA_EXITED;
+    RunState  = BPLIB_CLA_STARTED;
 
     /* Test setup */
     UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);
     UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &TaskId, sizeof(TaskId), false);
-    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState1, sizeof(BPLib_CLA_ContactRunState_t), false);
-    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState2, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
     UT_SetDeferredRetcode(UT_KEY(BPLib_CLA_Egress), 1, BPLIB_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(BPLib_CLA_Egress), 1, BPLIB_CLA_TIMEOUT);
 
@@ -261,8 +256,7 @@ void Test_BPNode_ClaOut_AppMain_NotifErr(void)
 {
     CFE_ES_TaskId_t             TaskId;
     uint32                      ContactId;
-    BPLib_CLA_ContactRunState_t RunState1;
-    BPLib_CLA_ContactRunState_t RunState2;
+    BPLib_CLA_ContactRunState_t RunState;
 
     /* Force a failed task wakeup */
     UT_SetDeferredRetcode(UT_KEY(BPNode_NotifWait), 1, OS_ERROR);
@@ -271,13 +265,12 @@ void Test_BPNode_ClaOut_AppMain_NotifErr(void)
     TaskId = 1234;
     ContactId = 0;
     BPNode_AppData.ClaOutData[ContactId].TaskId = TaskId;
-    RunState1 = BPLIB_CLA_STARTED;
-    RunState2 = BPLIB_CLA_EXITED;
+    RunState = BPLIB_CLA_STARTED;
 
+    UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);
     UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &TaskId, sizeof(TaskId), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_ES_GetTaskID), CFE_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState1, sizeof(BPLib_CLA_ContactRunState_t), false);
-    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState2, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
 
     /* Run the function under test */
     BPNode_ClaOut_AppMain();
@@ -350,7 +343,7 @@ void Test_BPNode_ClaOut_AppMain_ContactIdErr(void)
 {
     /* Test setup */
     UT_SetDeferredRetcode(UT_KEY(CFE_ES_GetTaskID), 1, CFE_ES_ERR_RESOURCEID_NOT_VALID);
-    
+
     BPNode_ClaOut_AppMain();
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_CLA_OUT_UNK_EXIT_CRIT_EID);
@@ -432,7 +425,8 @@ void Test_BPNode_ClaOut_ProcessBundleOutput_SB_Nominal(void)
     uint32 ContactId;
     size_t BundleSize;
 
-    ContactId = BPNODE_CLA_SB_CONTACT_ID;
+    ContactId = 0;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
 
     UtAssert_UINT32_EQ(BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize), CFE_SUCCESS);
 
@@ -470,7 +464,7 @@ void Test_BPNode_ClaOut_ProcessBundleOutput_CLATimeout(void)
 {
     uint32 ContactId = 0;
     size_t BundleSize;
-    
+
     UT_SetDeferredRetcode(UT_KEY(BPLib_CLA_Egress), 1, BPLIB_CLA_TIMEOUT);
     UtAssert_INT32_EQ(BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize), BPLIB_CLA_TIMEOUT);
 }
@@ -479,11 +473,12 @@ void Test_BPNode_ClaOut_Setup_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32 ContId = 0;
-    int32 PortNum = 100;
-    const char *IpAddr = "127.0.0.1";
 
-    Status = BPNode_ClaOut_Setup(ContId, PortNum, (char *) IpAddr);
-    
+    strcpy(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].ClaOutAddr, "127.0.0.1");
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].ClaOutPort = 100;
+
+    Status = BPNode_ClaOut_Setup(ContId);
+
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
@@ -494,7 +489,7 @@ void Test_BPNode_ClaOut_Start_Nominal(void)
     uint32 ContId = 0;
 
     Status = BPNode_ClaOut_Start(ContId);
-    
+
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
@@ -505,22 +500,11 @@ void Test_BPNode_ClaOut_Stop_Nominal(void)
     uint32 ContId = 0;
 
     Status = BPNode_ClaOut_Stop(ContId);
-    
+
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
-void Test_BPNode_ClaOut_DeleteSems_Nominal(void)
-{
-    uint32 ContId = 0;
-
-    (void) OS_BinSemCreate(&BPNode_AppData.ClaOutData[ContId].InitSemId, "Name", 0, 0);
-    (void) OS_BinSemCreate(&BPNode_AppData.ClaOutData[ContId].ExitSemId, "Name", 0, 0);
-
-    BPNode_ClaOut_DeleteSems(ContId);
-    
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);    
-}
 
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
@@ -557,6 +541,4 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaOut_Start_Nominal);
 
     ADD_TEST(Test_BPNode_ClaOut_Stop_Nominal);
-
-    ADD_TEST(Test_BPNode_ClaOut_DeleteSems_Nominal);
 }

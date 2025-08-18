@@ -72,6 +72,7 @@ typedef struct
     osal_id_t       InitSemId;
     osal_id_t       ExitSemId;
     uint32          PerfId;
+    uint32          RunStatus;
 
     #ifdef BPNODE_CLA_UDP_USING_OLD_OSAL
     #else
@@ -130,17 +131,13 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void);
 
 /**
   * \brief     Set up a CLA out task
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \param[in] PortNum (int32) If the task is using UDP, this is the port number
-  *                            gathered from the Contacts Configuration
-  * \param[in] IpAddr (char*) If the task is using UDP, this is the IP address
-  *                           gathered from the Contacts Configuration
+  * \param[in] ContactId Index into the various contact info tracking arrays that
+  *                      corresponds to that contact's info
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Successful execution
   * \retval    BPLIB_CLA_IO_ERROR: A I/O driver API call failed operation
   */
- BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, int32 PortNum, char* IpAddr);
+ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId);
 
 /**
   * \brief     Start up a CLA Out task
@@ -194,13 +191,5 @@ void BPNode_ClaOut_AppMain(void);
  *  \param[in] ContactId Contacts ID for this task
  */
 void BPNode_ClaOut_TaskExit(uint32 ContactId);
-
-/**
-  * \brief     Delete semaphores associated with the task with the given contact ID
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \return    void
-  */
-void BPNode_ClaOut_DeleteSems(uint32 ContactId);
 
 #endif /* BPNODE_CLA_OUT_H */
