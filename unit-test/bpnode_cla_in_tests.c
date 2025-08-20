@@ -198,7 +198,7 @@ void Test_BPNode_ClaIn_TaskInit_SubscribeErr(void)
 
 void Test_BPNode_ClaIn_Setup_Nominal(void)
 {
-#ifdef BPNODE_CLA_UDP_DRIVER
+#ifdef DEFAULT_UDP_CLA
     uint32 ContactId = 0;
 
     strcpy(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].ClaInAddr, "0.0.0.0");
@@ -209,12 +209,12 @@ void Test_BPNode_ClaIn_Setup_Nominal(void)
 
     /* Call function under test and verify return status */
     UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Setup(ContactId), BPLIB_SUCCESS);
-#endif
+#endif /* DEFAULT_UDP_CLA */
 }
 
 void Test_BPNode_ClaIn_Setup_PortErr(void)
 {
-#ifdef BPNODE_CLA_UDP_DRIVER
+#ifdef DEFAULT_UDP_CLA
     uint32 ContactId = 0;
 
     strcpy(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].ClaInAddr, "0.0.0.0");
@@ -232,12 +232,12 @@ void Test_BPNode_ClaIn_Setup_PortErr(void)
                             BPLIB_EM_EXPANDED_EVENT_SIZE);
 
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 1);
-#endif
+#endif /* DEFAULT_UDP_CLA */
 }
 
 void Test_BPNode_ClaIn_Setup_IpErr(void)
 {
-#ifdef BPNODE_CLA_UDP_DRIVER
+#ifdef DEFAULT_UDP_CLA
     uint32 ContactId = 0;
 
     strcpy(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].ClaInAddr, "0.0.0.0");
@@ -255,7 +255,7 @@ void Test_BPNode_ClaIn_Setup_IpErr(void)
                             BPLIB_EM_EXPANDED_EVENT_SIZE);
 
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 2);
-#endif
+#endif /* DEFAULT_UDP_CLA */
 }
 
 /* Test BPNode_ClaIn_AppMain when app state is started and one CLA is received */
