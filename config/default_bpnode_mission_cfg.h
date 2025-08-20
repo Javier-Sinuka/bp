@@ -36,6 +36,11 @@
 
 #include "bpnode_interface_cfg.h"
 
+/**
+ * \brief Determines whether the UDP CLAs are built. Building without the UDP CLA,
+ *        in the current form of the code, will cause an error and the software
+ *        will crash
+ */
 #define DEFAULT_UDP_CLA
 
 /**
