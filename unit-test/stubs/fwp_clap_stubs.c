@@ -32,12 +32,11 @@
  * Generated stub function for BPA_CLAP_ContactSetup()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_CLAP_ContactSetup, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPA_CLAP_ContactSetup, uint32, ContactId);
-    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, BPLib_CLA_ContactsSet_t, ContactInfo);
 
     UT_GenStub_Execute(BPA_CLAP_ContactSetup, Basic, NULL);
 

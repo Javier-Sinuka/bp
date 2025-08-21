@@ -38,7 +38,7 @@
 /* ==================== */
 
 /* Initialize Table Proxy, load default configurations */
-CFE_Status_t BPA_TABLEP_TableInit(void)
+BPLib_Status_t BPA_TABLEP_TableInit(void)
 {
     CFE_Status_t Status;
 
@@ -176,7 +176,7 @@ CFE_Status_t BPA_TABLEP_TableInit(void)
         Status = CFE_SUCCESS;
     }
 
-    return Status;
+    return BPA_CFE_Status_Translate(Status);
 }
 
 CFE_Status_t BPA_TABLEP_SingleTableInit(const char* TableName, const char* TableFileName, size_t Size, CFE_TBL_CallbackFuncPtr_t TblValidationFuncPtr, void** TablePtr, CFE_TBL_Handle_t* TableHandle)

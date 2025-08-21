@@ -126,17 +126,13 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void);
 
 /**
   * \brief     Set up a CLA out task
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \param[in] PortNum (int32) If the task is using UDP, this is the port number
-  *                            gathered from the Contacts Configuration
-  * \param[in] IpAddr (char*) If the task is using UDP, this is the IP address
-  *                           gathered from the Contacts Configuration
+  * \param[in] ContactId Index into the various contact info tracking arrays that
+  *                      corresponds to that contact's info
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Successful execution
   * \retval    BPLIB_CLA_IO_ERROR: A I/O driver API call failed operation
   */
- BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId, int32 PortNum, char* IpAddr);
+ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId);
 
 /**
   * \brief     Start up a CLA Out task
