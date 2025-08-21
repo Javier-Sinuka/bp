@@ -141,7 +141,7 @@ void Test_BPNode_ClaOut_TaskMain_NoBundleAvailable(void)
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
     RunState = BPLIB_CLA_STARTED;
 
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle = 100000;
+    BPNode_AppData.ClaOut[ContactId].RateLimit = 100000;
 
     /* Test setup */
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
@@ -168,7 +168,7 @@ void Test_BPNode_ClaOut_TaskMain_MaxBundles(void)
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_Egress), BPLIB_SUCCESS);
 
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle = RateLimit * 8;
+    BPNode_AppData.ClaOut[ContactId].RateLimit = RateLimit * 8;
 
     for (i = 0; i < NumSentBundles; i++)
     {

@@ -322,8 +322,6 @@ void Test_BPNode_ClaIn_TaskMain_Nominal(void)
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(RunState), false); /* Exits the run loop */
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState2, sizeof(RunState2), false); /* Exits the run loop */
 
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].IngressBitsPerCycle = 0;
-
     UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
@@ -411,7 +409,7 @@ void Test_BPNode_ClaIn_TaskMain_OneBundle(void)
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_IODriver_Command), 1, CFE_PSP_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_IODriver_Command), 1, CFE_PSP_ERROR_TIMEOUT);
 
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].IngressBitsPerCycle = 80000;
+    BPNode_AppData.ClaIn[ContactId].RateLimit = 80000;
 
     UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
 
@@ -433,7 +431,7 @@ void Test_BPNode_ClaIn_TaskMain_MaxLimit(void)
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_IODriver_Command), BPLIB_SUCCESS);
 
     /* Rate limit will be reached by two bundles of max default size */
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].IngressBitsPerCycle = 8192 * 2 * 8;
+    BPNode_AppData.ClaIn[ContactId].RateLimit = 8192 * 2 * 8;
 
     UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
 

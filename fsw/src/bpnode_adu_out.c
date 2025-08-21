@@ -126,7 +126,7 @@ void BPNode_AduOut_TaskMain(uint32 ChanId)
                 BytesEgressed += AduSize;
             }
         } while (BpStatus == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) <
-            BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].EgressBitsPerCycle));
+                        BPNode_AppData.AduOutData[ChanId].RateLimit));
     }
 
     return;

@@ -144,7 +144,7 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
                 BytesIngressed += AduSize;
             }
         } while (Status == CFE_SUCCESS && ((BytesIngressed * BPNODE_BITS_PER_BYTE) < 
-                    BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle));
+                    BPNode_AppData.AduInData[ChanId].RateLimit));
     }
     else
     {

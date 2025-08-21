@@ -99,7 +99,7 @@ void Test_BPNode_AduOut_TaskMain_Nominal(void)
         UT_SetDataBuffer(UT_KEY(BPA_ADUP_Out), &AduSize, sizeof(AduSize), false);
     }
 
-    BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].EgressBitsPerCycle = RateLimit * 8;
+    BPNode_AppData.AduOutData[ChanId].RateLimit = RateLimit * 8;
 
     UtAssert_VOIDCALL(BPNode_AduOut_TaskMain(ChanId));
 

@@ -113,7 +113,7 @@ void Test_BPNode_AduIn_AppMain_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
     UT_SetDataBuffer(UT_KEY(BPA_ADUP_In), &AduSize, sizeof(AduSize), false);
 
-    BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle = 10000000000;
+    BPNode_AppData.AduInData[ChanId].RateLimit = 10000000000;
 
     UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
 
@@ -144,7 +144,7 @@ void Test_BPNode_AduIn_AppMain_MaxAdus(void)
         UT_SetDataBuffer(UT_KEY(BPA_ADUP_In), &AduSize, sizeof(AduSize), false);
     }
 
-    BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle = RateLimit * 8;
+    BPNode_AppData.AduInData[ChanId].RateLimit = RateLimit * 8;
 
     UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
 
@@ -177,7 +177,7 @@ void Test_BPNode_AduIn_AppMain_NullBuf(void)
     UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_TIME_OUT);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
 
-    BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle = 100000;
+    BPNode_AppData.AduInData[ChanId].RateLimit = 100000;
 
     UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
     

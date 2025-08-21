@@ -205,7 +205,7 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
                 BytesIngressed += BundleSize;
             }
         } while (Status != BPLIB_TIMEOUT && ((BytesIngressed * BPNODE_BITS_PER_BYTE) <
-            BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].IngressBitsPerCycle));
+                    BPNode_AppData.ClaInData[ContactId].RateLimit));
     }
 
     return;
