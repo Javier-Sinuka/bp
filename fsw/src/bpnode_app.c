@@ -377,8 +377,8 @@ CFE_Status_t BPNode_AppInit(void)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Only %d child tasks detected, expected %d. Error = 0x%08X.", 
-                            NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskInitNotif),
+                            NumChildTasks, 
                             Status);
 
         return OsStatus;
@@ -493,8 +493,8 @@ void BPNode_AppExit(void)
     {
         BPLib_EM_SendEvent(BPNODE_EXIT_NOTIF_CRT_EID, BPLib_EM_EventType_CRITICAL,
                             "Only %d child tasks have exited, expected %d. Error = 0x%08X.", 
-                            NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
+                            NumChildTasks, 
                             OsStatus);
     }
 
