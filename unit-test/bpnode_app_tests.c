@@ -464,44 +464,6 @@ void Test_BPNode_AppInit_AutoAddAppFail(void)
     UtAssert_STUB_COUNT(BPLib_PI_StartApplication, 1);
 }
 
-/* Test app exit in nominal case */
-void Test_BPNode_AppExit_Nominal(void)
-{
-    uint8 i;
-    uint8 NumAduTasks;
-    uint8 NumClaTasks;
-
-    NumAduTasks = BPLIB_MAX_NUM_CHANNELS * 2; /* ADU In and Out tasks */
-    NumClaTasks = BPLIB_MAX_NUM_CONTACTS * 2; /* CLA In and Out tasks */
-
-    BPNode_AppExit();
-
-    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-    {
-        UtAssert_UINT32_EQ(BPNode_AppData.AduOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-        UtAssert_UINT32_EQ(BPNode_AppData.AduInData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-    }
-
-    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
-    {
-        UtAssert_UINT32_EQ(BPNode_AppData.ClaOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-        UtAssert_UINT32_EQ(BPNode_AppData.ClaInData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-    }
-    
-
-    for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
-    {
-        UtAssert_UINT32_EQ(BPNode_AppData.GenWorkerData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-    }
-
-    UtAssert_STUB_COUNT(OS_BinSemTimedWait, NumAduTasks + NumClaTasks + BPNODE_NUM_GEN_WRKR_TASKS);
-    UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
-
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_EXIT_CRIT_EID);
-    UtAssert_STRINGBUF_EQ("App terminating, error = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
-}
-
 /* Test app initialization in nominal case */
 void Test_BPNode_AppInit_FailedClaIn(void)
 {
@@ -544,6 +506,95 @@ void Test_BPNode_AppInit_InstallDelHandler(void)
 
 }
 
+void Test_BPNode_AppInit_WorkNotifErr(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
+    BPNode_Test_Verify_Event(0, BPNODE_INIT_WORK_NOTIF_ERR_EID, 
+                                "Error creating child task start work notification, RC = 0x%08lX");
+}
+
+void Test_BPNode_AppInit_InitNotifErr(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
+    BPNode_Test_Verify_Event(0, BPNODE_INIT_INIT_NOTIF_ERR_EID, 
+                                "Error creating child task init notification, RC = 0x%08lX");
+}
+
+void Test_BPNode_AppInit_ExitNotifErr(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
+    BPNode_Test_Verify_Event(0, BPNODE_INIT_EXIT_NOTIF_ERR_EID, 
+                                "Error creating child task exit notification, RC = 0x%08lX");
+}
+
+void Test_BPNode_AppInit_NotifWaitErr(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifWaitExact), 1, OS_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
+    BPNode_Test_Verify_Event(0, BPNODE_INIT_NOTIF_ERR_EID, 
+                                "Only %d child tasks detected, expected %d. Error = 0x%08X.");
+}
+
+/* Test app exit in nominal case */
+void Test_BPNode_AppExit_Nominal(void)
+{
+    uint8 i;
+    uint8 NumAduTasks;
+    uint8 NumClaTasks;
+
+    NumAduTasks = BPLIB_MAX_NUM_CHANNELS; /* ADU Out tasks */
+    NumClaTasks = BPLIB_MAX_NUM_CONTACTS * 2; /* CLA In and Out tasks */
+
+    BPNode_AppExit();
+
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    {
+        UtAssert_UINT32_EQ(BPNode_AppData.AduOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.AduInData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
+    }
+
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    {
+        UtAssert_UINT32_EQ(BPNode_AppData.ClaOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.ClaInData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+    }
+    
+
+    for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
+    {
+        UtAssert_UINT32_EQ(BPNode_AppData.GenWorkerData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+    }
+
+    UtAssert_STUB_COUNT(OS_BinSemTimedWait, NumAduTasks + NumClaTasks + BPNODE_NUM_GEN_WRKR_TASKS);
+    UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
+
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_EXIT_CRIT_EID);
+    UtAssert_STRINGBUF_EQ("App terminating, error = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test app exit in nominal case */
+void Test_BPNode_AppExit_NotifErr(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPNode_NotifWaitExact), OS_ERROR);
+
+    UtAssert_VOIDCALL(BPNode_AppExit());
+
+    BPNode_Test_Verify_Event(1, BPNODE_EXIT_NOTIF_CRT_EID, 
+                                "Only %d child tasks have exited, expected %d. Error = 0x%08X.");
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 2);
+}
+
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
 {
@@ -553,6 +604,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppMain_WakeupErr);
     ADD_TEST(Test_BPNode_AppMain_CommandErr);
     ADD_TEST(Test_BPNode_AppMain_CommandRecvd);
+
     ADD_TEST(Test_BPNode_WakeupProcess_CommandRecvd);
     ADD_TEST(Test_BPNode_WakeupProcess_STORNominal);
     ADD_TEST(Test_BPNode_WakeupProcess_STORFail);
@@ -563,6 +615,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_WakeupProcess_TableUpdate_Nominal);
     ADD_TEST(Test_BPNode_WakeupProcess_TableSuccess_Nominal);
     ADD_TEST(Test_BPNode_WakeupProcess_TableUpdate_Error);
+
     ADD_TEST(Test_BPNode_AppInit_Nominal);
     ADD_TEST(Test_BPNode_AppInit_FailedFwpInit);
     ADD_TEST(Test_BPNode_AppInit_FailedEMInit);
@@ -575,9 +628,15 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppInit_FailedAduOutTasks);
     ADD_TEST(Test_BPNode_AppInit_AutoAddApp);
     ADD_TEST(Test_BPNode_AppInit_AutoAddAppFail);
-    ADD_TEST(Test_BPNode_AppExit_Nominal);
     ADD_TEST(Test_BPNode_AppInit_FailedClaIn);
     ADD_TEST(Test_BPNode_AppInit_FailedClaOut);
     ADD_TEST(Test_BPNode_AppInit_FailedGenWrkr);
     ADD_TEST(Test_BPNode_AppInit_InstallDelHandler);
+    ADD_TEST(Test_BPNode_AppInit_WorkNotifErr);
+    ADD_TEST(Test_BPNode_AppInit_InitNotifErr);
+    ADD_TEST(Test_BPNode_AppInit_ExitNotifErr);
+    ADD_TEST(Test_BPNode_AppInit_NotifWaitErr);
+
+    ADD_TEST(Test_BPNode_AppExit_Nominal);
+    ADD_TEST(Test_BPNode_AppExit_NotifErr);
 }

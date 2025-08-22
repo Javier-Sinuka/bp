@@ -28,7 +28,6 @@
 */
 
 #include "bpnode_app.h"
-#include "bpnode_utils.h"
 #include "bpnode_eventids.h"
 #include "bpnode_tbl.h"
 #include "bpnode_version.h"
@@ -176,11 +175,12 @@ CFE_Status_t BPNode_AppInit(void)
 {
     CFE_Status_t Status;
     BPLib_Status_t BpStatus;
-    int32 NotifStatus;
+    int32 OsStatus;
     char VersionString[BPNODE_CFG_MAX_VERSION_STR_LEN];
     char LastOfficialRelease[BPNODE_CFG_MAX_VERSION_STR_LEN];
     uint8 i;
     CFE_SB_Qos_t PipeQOS = {0, 0};
+    uint32 NumChildTasks;
 
     BPLib_FWP_ProxyCallbacks_t Callbacks = {
         /* Time Proxy */
@@ -292,14 +292,36 @@ CFE_Status_t BPNode_AppInit(void)
     /* Call Telemetry Proxy Init Function */
     BPA_TLMP_Init();
 
-    /* Create Child Task Notification */
-    NotifStatus = BPNode_NotifInit(&BPNode_AppData.ChildStartWorkNotif, BPNODE_CHILD_STRTWORKNOTIF_NAME);
-    if (NotifStatus != OS_SUCCESS)
+    /* Create Child Task Notifications */
+
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildStartWorkNotif, 
+                                    BPNODE_CHILD_STRTWORKNOTIF_NAME);
+    if (OsStatus != OS_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_INIT_SB_CONTACT_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating start work notification, RC = 0x%08lX",
+        BPLib_EM_SendEvent(BPNODE_INIT_WORK_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "Error creating child task start work notification, RC = 0x%08lX",
                     (unsigned long)Status);
-        return NotifStatus;
+        return OsStatus;
+    }
+
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskInitNotif, 
+                                    BPNODE_CHILD_INIT_NOTIF_NAME);
+    if (OsStatus != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_INIT_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "Error creating child task init notification, RC = 0x%08lX",
+                    (unsigned long)Status);
+        return OsStatus;
+    }
+
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskExitNotif, 
+                                    BPNODE_CHILD_EXIT_NOTIF_NAME);
+    if (OsStatus != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_INIT_EXIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "Error creating child task exit notification, RC = 0x%08lX",
+                    (unsigned long)Status);
+        return OsStatus;
     }
 
     /* Create ADU In child tasks */
@@ -347,14 +369,29 @@ CFE_Status_t BPNode_AppInit(void)
         return Status;
     }
 
-    /* Register delete handler for graceful app shutdowns */
-    Status = OS_TaskInstallDeleteHandler(&BPNode_AppExit);
-    if (Status != OS_SUCCESS)
+    NumChildTasks = BPLIB_MAX_NUM_CHANNELS;
+    //NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
+                                         BPNODE_CHILD_INIT_WAIT_MSEC);
+    if (OsStatus != OS_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_DEL_HANDLER_ERR_EID, CFE_EVS_EventType_ERROR,
-                            "Failed to install delete handler. Error = 0x%08X", Status);
+        BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Only %d child tasks detected, expected %d. Error = 0x%08X.", 
+                            BPNode_NotifGetCount(&BPNode_AppData.ChildTaskInitNotif),
+                            NumChildTasks, 
+                            Status);
 
-        return Status;
+        return OsStatus;
+    }
+
+    /* Register delete handler for graceful app shutdowns */
+    OsStatus = OS_TaskInstallDeleteHandler(&BPNode_AppExit);
+    if (OsStatus != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_DEL_HANDLER_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Failed to install delete handler. Error = 0x%08X", OsStatus);
+
+        return OsStatus;
     }
 
     /* Add and start all applications set to be loaded at startup */
@@ -403,6 +440,8 @@ void BPNode_AppExit(void)
     uint32 ChanId;
     uint32 ContactId;
     uint32 WorkerId;
+    uint32 NumChildTasks;
+    int32  OsStatus;
 
     BPLib_EM_SendEvent(BPNODE_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,
                         "App terminating, error = %d", BPNode_AppData.RunStatus);
@@ -423,7 +462,7 @@ void BPNode_AppExit(void)
         (void) BPLib_PI_RemoveApplication(&BPNode_AppData.BplibInst, ChanId);
 
         BPNode_AppData.AduOutData[ChanId].RunStatus = CFE_ES_RunStatus_APP_EXIT;
-        BPNode_AppData.AduInData[ChanId].RunStatus = CFE_ES_RunStatus_APP_EXIT;
+        BPNode_AppData.AduInData[ChanId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
 
     /* Signal to CLA child tasks to exit */
@@ -443,11 +482,26 @@ void BPNode_AppExit(void)
         BPNode_AppData.GenWorkerData[WorkerId].RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
 
+    // Verify that all child tasks have shut down
+    NumChildTasks = BPLIB_MAX_NUM_CHANNELS;
+    //NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
+     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
+                                         BPNODE_CHILD_EXIT_WAIT_MSEC);
+    BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
+    if (OsStatus != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_EXIT_NOTIF_CRT_EID, BPLib_EM_EventType_CRITICAL,
+                            "Only %d child tasks have exited, expected %d. Error = 0x%08X.", 
+                            BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
+                            NumChildTasks, 
+                            OsStatus);
+    }
+
     /* Wait on the ADU task exit semaphores */
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
         BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-        (void) OS_BinSemTimedWait(BPNode_AppData.AduInData[ChanId].ExitSemId, BPNODE_ADU_IN_SEM_EXIT_WAIT_MSEC);
         (void) OS_BinSemTimedWait(BPNode_AppData.AduOutData[ChanId].ExitSemId, BPNODE_ADU_OUT_SEM_EXIT_WAIT_MSEC);
         BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
     }
@@ -471,6 +525,8 @@ void BPNode_AppExit(void)
 
     /* Cleanup Notification */
     BPNode_NotifDestroy(&BPNode_AppData.ChildStartWorkNotif);
+    BPNode_NotifDestroy(&BPNode_AppData.ChildTaskInitNotif);
+    BPNode_NotifDestroy(&BPNode_AppData.ChildTaskExitNotif);
 
     /* Cleanup QM and MEM */
     BPLib_QM_QueueTableDestroy(&BPNode_AppData.BplibInst);

@@ -29,7 +29,6 @@
 */
 
 #include "fwp_tlmp.h"
-#include "bpnode_utils.h"
 #include "bpnode_app.h"
 
 /* TLMP-scoped packets to ease packet initialization overhead */
