@@ -36,6 +36,8 @@
 
 #include "bpnode_interface_cfg.h"
 
+// #define CAPSTONE_BUILD
+
 /**
  * \brief Determines whether the UDP CLAs are built. Building without the UDP CLA,
  *        in the current form of the code, will cause an error and the software

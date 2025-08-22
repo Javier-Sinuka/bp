@@ -60,6 +60,7 @@ void BPNode_NotifSet(BPNode_Notif_t* Notif)
     OS_CondVarUnlock(Notif->CondVar);
 }
 
+#ifdef CAPSTONE_BUILD
 /*
  * @brief Gets an absolute time value relative to the current time
  *
@@ -94,6 +95,7 @@ OS_time_t OS_TimeFromRelativeMilliseconds(int32 relative_msec)
 
     return abs_time;
 }
+#endif
 
 /* Wait until notif is incremented */
 int32 BPNode_NotifWait(BPNode_Notif_t* Notif, uint32 OldCount, int32 TimeoutMs)
