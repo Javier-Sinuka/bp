@@ -492,6 +492,7 @@ void BPNode_AppExit(void)
                             "Only %d child tasks have exited, expected %d. Error = %d.", 
                             NumChildTasks, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
+                            NumChildTasks, 
                             OsStatus);
     }
 

@@ -89,6 +89,7 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
         if (CfeTaskId == BPNode_AppData.AduInData[i].TaskData.CfeTaskId)
         {
             TaskData = &(BPNode_AppData.AduInData[i].TaskData);
+            break;
         }
         else if (CfeTaskId == BPNode_AppData.AduOutData[i].TaskData.CfeTaskId)
         {
