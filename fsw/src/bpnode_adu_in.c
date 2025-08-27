@@ -38,7 +38,7 @@
 /* Create ADU In tasks */
 CFE_Status_t BPNode_AduInCreateTasks(void)
 {
-    CFE_Status_t Status;
+    CFE_Status_t Status = CFE_SUCCESS;
     uint32       ChanId;
     uint16       TaskPriority;
     char         Name[OS_MAX_API_NAME];
@@ -144,7 +144,7 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
                 BytesIngressed += AduSize;
             }
         } while (Status == CFE_SUCCESS && ((BytesIngressed * BPNODE_BITS_PER_BYTE) < 
-                    BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle));
+                    BPNode_AppData.AduInData[ChanId].RateLimit));
     }
     else
     {

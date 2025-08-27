@@ -71,12 +71,16 @@ void Test_BPNode_AppMain_WakeupRecvd(void)
 {
     /* Receive wakeup message but no command */
     UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);
-    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SUCCESS);
-    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);
+    UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);
+    UT_SetDeferredRetcode(UT_KEY(CFE_ES_RunLoop), 1, true);
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SUCCESS);        /* For wakeup pipe */
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);  /* For command pipe */
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);  /* For wakeup pipe */
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_TIME_OUT);    /* For wakeup pipe */
 
     BPNode_AppMain();
 
-    UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 2);
+    UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 4);
 }
 
 /* Test app main loop after wakeup pipe read error */
@@ -146,6 +150,21 @@ void Test_BPNode_WakeupProcess_CommandRecvd(void)
     UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 2);
     UtAssert_STUB_COUNT(BPA_DP_TaskPipe, 1);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
+}
+
+/* Test wakeup process when storage operations can be skipped */
+void Test_BPNode_WakeupProcess_NoStorOps(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, BPNODE_MAX_EXP_WAKEUP_RATE - 1);
+
+    UtAssert_INT32_EQ(BPNode_WakeupProcess(), CFE_SUCCESS);
+
+    UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 1);
+    UtAssert_STUB_COUNT(BPA_DP_TaskPipe, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 0);
 }
 
 /* Test wakeup process calls STOR GarbageCollect and FlushPending */
@@ -542,42 +561,34 @@ void Test_BPNode_AppInit_NotifWaitErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_NOTIF_ERR_EID, 
-                                "Only %d child tasks detected, expected %d. Error = 0x%08X.");
+                                "Only %d child tasks detected, expected %d. Error = %d.");
 }
 
 /* Test app exit in nominal case */
 void Test_BPNode_AppExit_Nominal(void)
 {
     uint8 i;
-    uint8 NumAduTasks;
-    uint8 NumClaTasks;
-
-    NumAduTasks = BPLIB_MAX_NUM_CHANNELS; /* ADU Out tasks */
-    NumClaTasks = BPLIB_MAX_NUM_CONTACTS * 2; /* CLA In and Out tasks */
 
     BPNode_AppExit();
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        UtAssert_UINT32_EQ(BPNode_AppData.AduOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.AduOutData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
         UtAssert_UINT32_EQ(BPNode_AppData.AduInData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
     }
 
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
-        UtAssert_UINT32_EQ(BPNode_AppData.ClaOutData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
-        UtAssert_UINT32_EQ(BPNode_AppData.ClaInData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.ClaOutData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.ClaInData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
     }
-    
 
     for (i = 0; i < BPNODE_NUM_GEN_WRKR_TASKS; i++)
     {
-        UtAssert_UINT32_EQ(BPNode_AppData.GenWorkerData[i].RunStatus, CFE_ES_RunStatus_APP_EXIT);
+        UtAssert_UINT32_EQ(BPNode_AppData.GenWorkerData[i].TaskData.RunStatus, CFE_ES_RunStatus_APP_EXIT);
     }
 
-    UtAssert_STUB_COUNT(OS_BinSemTimedWait, NumAduTasks + NumClaTasks + BPNODE_NUM_GEN_WRKR_TASKS);
     UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
-
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_EXIT_CRIT_EID);
     UtAssert_STRINGBUF_EQ("App terminating, error = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
@@ -591,7 +602,7 @@ void Test_BPNode_AppExit_NotifErr(void)
     UtAssert_VOIDCALL(BPNode_AppExit());
 
     BPNode_Test_Verify_Event(1, BPNODE_EXIT_NOTIF_CRT_EID, 
-                                "Only %d child tasks have exited, expected %d. Error = 0x%08X.");
+                                "Only %d child tasks have exited, expected %d. Error = %d.");
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 2);
 }
 
@@ -606,6 +617,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppMain_CommandRecvd);
 
     ADD_TEST(Test_BPNode_WakeupProcess_CommandRecvd);
+    ADD_TEST(Test_BPNode_WakeupProcess_NoStorOps);
     ADD_TEST(Test_BPNode_WakeupProcess_STORNominal);
     ADD_TEST(Test_BPNode_WakeupProcess_STORFail);
     ADD_TEST(Test_BPNode_WakeupProcess_FailTimeMaint);
