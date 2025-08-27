@@ -32,11 +32,14 @@
 */
 
 #include "cfe.h"
-#include "iodriver_base.h"
-#include "iodriver_packet_io.h"
 #include "bplib.h"
 #include "bpnode_platform_cfg.h"
 #include "bpnode_task.h"
+
+#ifdef DEFAULT_UDP_CLA
+#include "iodriver_base.h"
+#include "iodriver_packet_io.h"
+#endif /* DEFAULT_UDP_CLA */
 
 /*
 ** Macro Definitions
@@ -66,9 +69,11 @@ typedef struct
 {
     BPNode_TaskData_t TaskData;
 
+    #ifdef DEFAULT_UDP_CLA
     /* IODriver usock_intf related*/
     CFE_PSP_IODriver_Direction_t Dir;
     CFE_PSP_IODriver_Location_t  PspLocation;
+    #endif /* DEFAULT_UDP_CLA */
 
     /* CLA Out bundle/packet */
     BPNode_ClaOut_Buffer_t OutBuffer;

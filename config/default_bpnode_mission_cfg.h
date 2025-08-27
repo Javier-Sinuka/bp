@@ -36,13 +36,19 @@
 
 #include "bpnode_interface_cfg.h"
 
-#define BPNODE_CLA_UDP_DRIVER
+// #define CAPSTONE_BUILD
 
-#ifdef BPNODE_CLA_UDP_DRIVER
-    #define BPNODE_CLA_PSP_DRIVER_NAME          "udpsock_intf"       /*IODriver udpsock_intf driver name*/
-#else
-    #define BPNODE_CLA_PSP_DRIVER_NAME          "unsock_intf"       /*IODriver unsock_intf driver name*/
-#endif
+/**
+ * \brief Determines whether the UDP CLAs are built. Building without the UDP CLA,
+ *        in the current form of the code, will cause an error and the software
+ *        will crash
+ */
+#define DEFAULT_UDP_CLA
+
+/**
+ * \brief IODriver udpsock_intf driver name
+ */
+#define BPNODE_CLA_PSP_DRIVER_NAME "udpsock_intf"
 
 /**
  * \brief Default EID Service Number to egress bundles over channel 0
