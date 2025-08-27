@@ -34,21 +34,19 @@
 #include "cfe.h"
 #include "bplib.h"
 #include "bpnode_platform_cfg.h"
+#include "bpnode_task.h"
 
 #ifdef DEFAULT_UDP_CLA
 #include "iodriver_base.h"
 #include "iodriver_packet_io.h"
 #endif /* DEFAULT_UDP_CLA */
 
-
 /*
 ** Macro Definitions
 */
 
-#define BPNODE_CLA_OUT_SEM_BASE_NAME          "BPN_CLA_OUT"          /** \brief Semaphore base name */
 #define BPNODE_CLA_OUT_BASE_NAME              "BPNODE.CLA_OUT"       /** \brief Task base name */
 #define BPNODE_CLA_PSP_OUTPUT_BUFFER_SIZE     (BPLIB_MAX_BUNDLE_LEN) /** \brief IODriver output buffer size*/
-#define BPNODE_CLA_OUT_SEM_INIT_WAIT_MSEC     (2000u)                /** \brief Wait time for init semaphore take, in milliseconds */
 
 
 /*
@@ -69,11 +67,7 @@ typedef struct
 */
 typedef struct
 {
-    CFE_ES_TaskId_t TaskId;
-    osal_id_t       InitSemId;
-    osal_id_t       ExitSemId;
-    uint32          PerfId;
-    uint32          RunStatus;
+    BPNode_TaskData_t TaskData;
 
     #ifdef DEFAULT_UDP_CLA
     /* IODriver usock_intf related*/
@@ -83,12 +77,48 @@ typedef struct
 
     /* CLA Out bundle/packet */
     BPNode_ClaOut_Buffer_t OutBuffer;
+
+    size_t            RateLimit;
 } BPNode_ClaOutData_t;
 
 
 /*
 ** Exported Functions
 */
+
+/**
+  * \brief     Create all CLA Out task(s)
+  * \return    Execution status
+  * \retval    CFE_SUCCESS: Successful execution
+  * \retval    CFE errors from CFE_ES_CreateChildTask
+  */
+CFE_Status_t BPNode_ClaOutCreateTasks(void);
+
+/**
+ * \brief     Initialize a CLA Out task
+ * \par       Description
+ *            Initialize provided CLA Out task. This function is called as a function pointer from
+ *            BPNode_TaskInit
+ * \param[in] ContactId (uint32) Index into the various contact info tracking
+ *                                 arrays that corresponds to that contact's info
+ * \return    Execution status
+ * \retval    CFE_SUCCESS: Successful execution
+ * \retval    PSP errors from CFE_PSP_IODriver_FindByName
+ * \retval    PSP errors from CFE_PSP_IODriver_Command
+ */
+CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId);
+
+/**
+ * \brief CLA Out Main Task
+ *
+ *  \par Description
+ *       CLA Out main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ */
+void BPNode_ClaOut_TaskMain(uint32 ContactId);
 
 /**
  * \brief Process Bundle Output to CLA
@@ -106,28 +136,6 @@ typedef struct
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  */
 int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize);
-
-/**
-  * \brief     Create all CLA Out tasks
-  * \return    Execution status
-  * \retval    CFE_SUCCESS: Successful execution
-  * \retval    OS errors from OS_BinSemCreate
-  * \retval    OS errors from OS_BinSemTimedWait
-  * \retval    CFE errors from CFE_ES_CreateChildTask
-  */
-CFE_Status_t BPNode_ClaOutCreateTasks(void);
-
-/**
-  * \brief     Initialize a CLA Out task
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \return    Execution status
-  * \retval    CFE_SUCCESS: Successful execution
-  * \retval    PSP errors from CFE_PSP_IODriver_FindByName
-  * \retval    PSP errors from CFE_PSP_IODriver_Command
-  * \retval    OS errors from OS_BinSemGive
-  */
- CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId);
 
 /**
   * \brief     Set up a CLA out task
@@ -168,28 +176,5 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId);
   * \return    void
   */
 void BPNode_ClaOut_Teardown(uint32 ContactId);
-
-/**
- * \brief CLA Out Main Task
- *
- *  \par Description
- *       CLA Out task main loop. Pull bundle from BI queue and send to CL through UNIX socket.
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- */
-void BPNode_ClaOut_AppMain(void);
-
-/** \brief Exit provided CLA Out task
- *
- *  \par Description
- *       Exit CLA Out task gracefully
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- * 
- *  \param[in] ContactId Contacts ID for this task
- */
-void BPNode_ClaOut_TaskExit(uint32 ContactId);
 
 #endif /* BPNODE_CLA_OUT_H */

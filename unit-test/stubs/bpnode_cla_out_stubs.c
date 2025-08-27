@@ -43,17 +43,6 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPNode_ClaOut_AppMain()
- * ----------------------------------------------------
- */
-void BPNode_ClaOut_AppMain(void)
-{
-
-    UT_GenStub_Execute(BPNode_ClaOut_AppMain, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPNode_ClaOut_ProcessBundleOutput()
  * ----------------------------------------------------
  */
@@ -119,18 +108,6 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPNode_ClaOut_TaskExit()
- * ----------------------------------------------------
- */
-void BPNode_ClaOut_TaskExit(uint32 ContactId)
-{
-    UT_GenStub_AddParam(BPNode_ClaOut_TaskExit, uint32, ContactId);
-
-    UT_GenStub_Execute(BPNode_ClaOut_TaskExit, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPNode_ClaOut_TaskInit()
  * ----------------------------------------------------
  */
@@ -143,6 +120,18 @@ CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
     UT_GenStub_Execute(BPNode_ClaOut_TaskInit, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPNode_ClaOut_TaskInit, CFE_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPNode_ClaOut_TaskMain()
+ * ----------------------------------------------------
+ */
+void BPNode_ClaOut_TaskMain(uint32 ContactId)
+{
+    UT_GenStub_AddParam(BPNode_ClaOut_TaskMain, uint32, ContactId);
+
+    UT_GenStub_Execute(BPNode_ClaOut_TaskMain, Basic, NULL);
 }
 
 /*

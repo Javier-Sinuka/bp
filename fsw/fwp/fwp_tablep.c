@@ -30,7 +30,6 @@
 #include "bplib.h"
 #include "fwp_tablep.h"
 #include "fwp_adup.h"
-#include "bpnode_utils.h"
 #include "bpnode_app.h"
 
 /* ==================== */

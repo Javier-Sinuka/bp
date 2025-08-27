@@ -3,7 +3,7 @@ project(CFS_BPNODE C)
 set(APP_SRC_FILES
   # App files
   fsw/src/bpnode_app.c
-  fsw/src/bpnode_utils.c
+  fsw/src/bpnode_task.c
   fsw/src/bpnode_adu_out.c
   fsw/src/bpnode_adu_in.c
   fsw/src/bpnode_cla_in.c

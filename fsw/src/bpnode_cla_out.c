@@ -34,6 +34,139 @@
 ** Function Definitions
 */
 
+CFE_Status_t BPNode_ClaOutCreateTasks(void)
+{
+    CFE_Status_t Status = CFE_SUCCESS;
+    uint32       ContactId;
+    char         NameBuff[OS_MAX_API_NAME];
+    uint16       TaskPriority;
+
+    /* Create all of the CLA Out task(s) */
+    for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
+    {
+        /* Set up task data for the child task */
+        BPNode_AppData.ClaOutData[ContactId].TaskData.TaskId = ContactId;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.PerfId = BPNODE_CLA_OUT_PERF_ID_BASE + ContactId;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.InitEid = BPNODE_CLA_OUT_INIT_INF_EID;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.NotifErrEid = BPNODE_CLA_OUT_NOTIF_ERR_EID;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.ExitEid = BPNODE_CLA_OUT_EXIT_CRT_EID;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.TaskInitFunc = BPNode_ClaOut_TaskInit;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.TaskMainFunc = BPNode_ClaOut_TaskMain;
+        
+        strncpy(BPNode_AppData.ClaOutData[ContactId].TaskData.Type, "CLA Out", OS_MAX_API_NAME);
+
+        snprintf(NameBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_CLA_OUT_BASE_NAME, ContactId);
+        TaskPriority = BPNODE_CLA_OUT_PRIORITY_BASE + ContactId;
+
+        /* Spawn CLA Out child task */
+        Status = CFE_ES_CreateChildTask(&BPNode_AppData.ClaOutData[ContactId].TaskData.CfeTaskId,
+                                        NameBuff, BPNode_TaskMain, 0,
+                                        BPNODE_CLA_OUT_STACK_SIZE, TaskPriority, 0);
+        if (Status != CFE_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPNODE_CLA_OUT_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
+                                "Failed to create child task for CLA Out #%d. Error = %d",
+                                ContactId, Status);
+            break;
+        }
+    }
+
+    return Status;
+}
+
+CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
+{
+    CFE_Status_t Status = CFE_PSP_SUCCESS;
+
+    /* This should never happen, indicates something is wrong with the function pointers */
+    if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        BPLib_EM_SendEvent(BPNODE_CLA_OUT_INIT_PTR_CRT_EID, BPLib_EM_EventType_CRITICAL,
+                            "Invalid contact ID %d passed into BPNode_ClaOut_TaskInit function pointer.",
+                            ContactId);
+
+        return CFE_STATUS_RANGE_ERROR;
+    }
+
+    #ifdef DEFAULT_UDP_CLA
+    /* Get PSP module ID for the socket driver */
+    Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
+                                            &BPNode_AppData.ClaOutData[ContactId].PspLocation.PspModuleId);
+    #endif /* DEFAULT_UDP_CLA */
+
+    if (Status != CFE_PSP_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_CLA_OUT_FIND_NAME_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[CLA Out #%d]: Couldn't find I/O driver. Error = %d",
+                            ContactId,
+                            Status);
+
+        return Status;
+    }
+
+    #ifdef DEFAULT_UDP_CLA
+    BPNode_AppData.ClaOutData[ContactId].PspLocation.SubsystemId = 2 - (CFE_PSP_GetProcessorId() & 1);
+
+    /* Set direction to output only */
+    Status = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
+                                        CFE_PSP_IODriver_SET_DIRECTION,
+                                        CFE_PSP_IODriver_U32ARG(CFE_PSP_IODriver_Direction_OUTPUT_ONLY));
+
+    #endif /* DEFAULT_UDP_CLA */
+
+    if (Status != CFE_PSP_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_DIR_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[CLA Out #%d]: Couldn't set I/O direction to output. Error = %d",
+                            ContactId,
+                            Status);
+
+        return Status;
+    }
+
+    return Status;
+}
+
+/* Main loop for CLA Out task(s) */
+void BPNode_ClaOut_TaskMain(uint32 ContactId)
+{
+    BPLib_Status_t              Status;
+    BPLib_CLA_ContactRunState_t RunState;
+    size_t                      BundleSize = 0;
+    size_t                      BytesEgressed;
+
+    /* This should never happen, indicates something is wrong with the function pointers */
+    if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        BPLib_EM_SendEvent(BPNODE_CLA_OUT_MAIN_PTR_CRT_EID, BPLib_EM_EventType_CRITICAL,
+                        "Invalid contact ID %d passed into BPNode_ClaOut_TaskMain function pointer.",
+                        ContactId);
+        return;
+    }
+
+    Status = BPLib_CLA_GetContactRunState(ContactId, &RunState);
+
+    /* Ingress bundles only when the contact has been started */
+    if (Status == BPLIB_SUCCESS && RunState == BPLIB_CLA_STARTED)
+    {
+        BytesEgressed = 0;
+
+        do
+        {
+            Status = BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize);
+            if (Status == BPLIB_SUCCESS)
+            {
+                BytesEgressed += BundleSize;
+            }
+
+        } while (Status == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) < 
+                    BPNode_AppData.ClaOutData[ContactId].RateLimit));
+    }
+
+    return;
+}
+
+
 /* Receive bundles from CLA and send egress bundles to network CL */
 int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
 {
@@ -49,7 +182,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     *MsgSize = 0;
 
     /* Get next bundle from CLA */
-    BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContId].PerfId);
+    BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContId].TaskData.PerfId);
 
     Status = BPLib_CLA_Egress(&BPNode_AppData.BplibInst,
                                 ContId,
@@ -58,7 +191,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
                                 BPNODE_CLA_PSP_OUTPUT_BUFFER_SIZE,
                                 BPNODE_DATA_TIMEOUT_MSEC);
 
-    BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].PerfId);
+    BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].TaskData.PerfId);
 
     if (Status != BPLIB_SUCCESS && Status != BPLIB_CLA_TIMEOUT)
     {
@@ -78,7 +211,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
                 WrBuf.OutputSize = *MsgSize;
                 WrBuf.BufferMem  = BPNode_AppData.ClaOutData[ContId].OutBuffer.Payload;
 
-                BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContId].PerfId);
+                BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContId].TaskData.PerfId);
 
                 /* This does not check return code here, it is "best effort" at this stage.
                 * bplib should retry based on custody signals if this does not work. */
@@ -86,7 +219,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
                                                         CFE_PSP_IODriver_PACKET_IO_WRITE,
                                                         CFE_PSP_IODriver_VPARG(&WrBuf));
 
-                BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].PerfId);
+                BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContId].TaskData.PerfId);
                 #endif /* DEFAULT_UDP_CLA */
 
                 break;
@@ -122,168 +255,6 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     return Status;
 }
 
-CFE_Status_t BPNode_ClaOutCreateTasks(void)
-{
-    CFE_Status_t Status;
-    uint32       ContactId;
-    char         NameBuff[OS_MAX_API_NAME];
-    uint16       TaskPriority;
-
-    Status = CFE_SUCCESS;
-
-    /* Create all of the CLA Out task(s) */
-    for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
-    {
-        /* Create init semaphore so main task knows when child initialized */
-        snprintf(NameBuff, OS_MAX_API_NAME, "%s_INIT_%d", BPNODE_CLA_OUT_SEM_BASE_NAME, ContactId);
-        Status = OS_BinSemCreate(&BPNode_AppData.ClaOutData[ContactId].InitSemId, NameBuff, 0, 0);
-
-        if (Status != OS_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPNODE_CLA_OUT_INIT_SEM_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "Failed to create init semaphore, %s, for CLA Out #%d. Error = %d",
-                                NameBuff,
-                                ContactId,
-                                Status);
-
-            /* Stop creating tasks and return error code */
-            break;
-        }
-        else
-        {
-            /* Create exit semaphore so main task knows when child finished shutdown */
-            snprintf(NameBuff, OS_MAX_API_NAME, "%s_EXIT_%d", BPNODE_CLA_OUT_SEM_BASE_NAME, ContactId);
-            Status = OS_BinSemCreate(&BPNode_AppData.ClaOutData[ContactId].ExitSemId, NameBuff, 0, 0);
-
-            if (Status != OS_SUCCESS)
-            {
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_EXIT_SEM_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Failed to create exit semaphore, %s, for CLA Out #%d. Error = %d",
-                                    ContactId,
-                                    NameBuff,
-                                    Status);
-
-                /* Stop creating tasks and return error code */
-                break;
-            }
-            else
-            {
-                /* Create child task */
-                snprintf(NameBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_CLA_OUT_BASE_NAME, ContactId);
-                TaskPriority = BPNODE_CLA_OUT_PRIORITY_BASE + ContactId;
-
-                Status = CFE_ES_CreateChildTask(&BPNode_AppData.ClaOutData[ContactId].TaskId,
-                                                NameBuff,
-                                                BPNode_ClaOut_AppMain,
-                                                0,
-                                                BPNODE_CLA_OUT_STACK_SIZE,
-                                                TaskPriority,
-                                                0);
-
-                if (Status != CFE_SUCCESS)
-                {
-                    BPLib_EM_SendEvent(BPNODE_CLA_OUT_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                                        "Failed to create child task for CLA Out #%d. Error = %d",
-                                        ContactId,
-                                        Status);
-
-                    /* Stop creating tasks and return error code */
-                    break;
-                }
-                else
-                {
-                    /* Verify initialization by trying to take the init semaphore */
-                    BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-                    Status = OS_BinSemTimedWait(BPNode_AppData.ClaOutData[ContactId].InitSemId, BPNODE_CLA_OUT_SEM_INIT_WAIT_MSEC);
-                    BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
-
-                    if (Status != OS_SUCCESS)
-                    {
-                        BPLib_EM_SendEvent(BPNODE_CLA_OUT_RUN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                            "CLA Out task #%d not running. Init Sem Error = %d.",
-                                            ContactId,
-                                            Status);
-
-                        /* Stop creating tasks and return error code */
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    return Status;
-}
-
-CFE_Status_t BPNode_ClaOut_TaskInit(uint32 ContactId)
-{
-    CFE_Status_t Status;
-
-    /* Set a default status to pass through CFE_PSP API */
-    Status = CFE_PSP_SUCCESS;
-
-    /* Set performance ID */
-    BPNode_AppData.ClaOutData[ContactId].PerfId = BPNODE_CLA_OUT_PERF_ID_BASE + ContactId;
-
-    #ifdef DEFAULT_UDP_CLA
-    /* Get PSP module ID for either the Unix or UDP socket driver */
-    Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
-                                            &BPNode_AppData.ClaOutData[ContactId].PspLocation.PspModuleId);
-    #endif /* DEFAULT_UDP_CLA */
-
-    if (Status != CFE_PSP_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_CLA_OUT_FIND_NAME_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[CLA Out #%d]: Couldn't find I/O driver. Error = %d",
-                            ContactId,
-                            Status);
-    }
-    else
-    {
-        #ifdef DEFAULT_UDP_CLA
-        BPNode_AppData.ClaOutData[ContactId].PspLocation.SubsystemId = 2 - (CFE_PSP_GetProcessorId() & 1);
-
-        /* Set direction to output only */
-        Status = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaOutData[ContactId].PspLocation,
-                                            CFE_PSP_IODriver_SET_DIRECTION,
-                                            CFE_PSP_IODriver_U32ARG(CFE_PSP_IODriver_Direction_OUTPUT_ONLY));
-        #endif /* DEFAULT_UDP_CLA */
-
-        if (Status != CFE_PSP_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_DIR_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "[CLA Out #%d]: Couldn't set I/O direction to output. Error = %d",
-                                ContactId,
-                                Status);
-        }
-        else
-        {
-            /* Verify initialization by trying to give on the init semaphore */
-            BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-            Status = OS_BinSemGive(BPNode_AppData.ClaOutData[ContactId].InitSemId);
-            BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
-
-            if (Status != OS_SUCCESS)
-            {
-                BPNode_AppData.ClaOutData[ContactId].RunStatus = CFE_ES_RunStatus_APP_ERROR;
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_RUN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "[CLA Out #%d]: Task not running. Error = %d",
-                                    ContactId,
-                                    Status);
-            }
-            else
-            {
-                BPNode_AppData.ClaOutData[ContactId].RunStatus = CFE_ES_RunStatus_APP_RUN;
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_INIT_INF_EID,
-                                    BPLib_EM_EventType_INFORMATION,
-                                    "[CLA Out #%d]: Child task initialized",
-                                    ContactId);
-            }
-        }
-    }
-
-    return Status;
-}
 
 BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 {
@@ -440,7 +411,7 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 
             if (PspStatus != CFE_PSP_SUCCESS)
             {
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID,
+                BPLib_EM_SendEvent(BPNODE_CLA_OUT_CFG_STOP_ERR_EID,
                                     BPLib_EM_EventType_ERROR,
                                     "Couldn't set I/O state to stop for CLA Out #%d. Error = %d",
                                     ContactId,
@@ -490,136 +461,6 @@ void BPNode_ClaOut_Teardown(uint32 ContactId)
             break;
     }
     */
-
-    return;
-}
-
-/* Main loop for CLA Out task(s) */
-void BPNode_ClaOut_AppMain(void)
-{
-    int32                       OsStatus;
-    CFE_Status_t                CFE_Status;
-    BPLib_Status_t              Status;
-    CFE_ES_TaskId_t             TaskId;
-    uint32                      ContactId;
-    BPLib_CLA_ContactRunState_t RunState;
-    size_t                      BundleSize;
-    size_t                      BytesEgressed;
-    uint32                      RunCount = 0;
-
-    /* Get this tasks ID to reference later */
-    CFE_Status = CFE_ES_GetTaskID(&TaskId);
-    if (CFE_Status != CFE_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_CLA_OUT_UNK_EXIT_CRIT_EID,
-                            BPLib_EM_EventType_CRITICAL,
-                            "[CLA Out #?]: Terminating unknown task");
-
-        /* In case event services is not working, add a message to the system log */
-        CFE_ES_WriteToSysLog("Terminating unknown task");
-
-        /* Stop execution */
-        CFE_ES_ExitChildTask();
-    }
-    else
-    {
-        /* Find a contact whose task ID matches the calling task */
-        for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
-        {
-            if (BPNode_AppData.ClaOutData[ContactId].TaskId == TaskId)
-            {
-                /* break to preserve ContactId */
-                break;
-            }
-        }
-
-        /* Only move toward processing bundles if the task ID has an associated contact ID */
-        if (ContactId != BPLIB_MAX_NUM_CONTACTS)
-        {
-            CFE_Status = BPNode_ClaOut_TaskInit(ContactId);
-            /* Initialization must succeed to start processing, exit task if unsuccessful */
-            if (CFE_Status == CFE_SUCCESS)
-            {
-                while (CFE_ES_RunLoop(&BPNode_AppData.ClaOutData[ContactId].RunStatus) == true)
-                {
-                    /* Attempt to take the wake up semaphore */
-                    BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContactId].PerfId);
-                    OsStatus = BPNode_NotifWait(&BPNode_AppData.ChildStartWorkNotif, 
-                                                    RunCount, BPNODE_WAKEUP_WAIT_MSEC);
-                    BPLib_PL_PerfLogEntry(BPNode_AppData.ClaOutData[ContactId].PerfId);
-
-                    if (OsStatus == OS_SUCCESS)
-                    {
-                        RunCount = BPNode_NotifGetCount(&BPNode_AppData.ChildStartWorkNotif);
-                        Status = BPLib_CLA_GetContactRunState(ContactId, &RunState);
-
-                        /* Ingress bundles only when the contact has been started */
-                        if (RunState == BPLIB_CLA_STARTED && Status == BPLIB_SUCCESS)
-                        {
-                            BytesEgressed = 0;
-
-                            do
-                            {
-                                Status = BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize);
-                                if (Status == BPLIB_SUCCESS)
-                                {
-                                    BytesEgressed += BundleSize;
-                                }                                
-                            } while (Status == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) < 
-                                     BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle));
-                        }
-                    }
-                    else if (OsStatus != OS_ERROR_TIMEOUT)
-                    {
-                        BPLib_EM_SendEvent(BPNODE_CLA_OUT_NOTIF_ERR_EID,
-                                            BPLib_EM_EventType_ERROR,
-                                            "[CLA Out #%d]: Error pending on notification, RC = %d",
-                                            ContactId,
-                                            OsStatus);
-                    }
-                }
-            }
-
-            /* Exit gracefully */
-            BPNode_ClaOut_TaskExit(ContactId);
-        }
-        else
-        {
-            BPLib_EM_SendEvent(BPNODE_CLA_OUT_INV_ID_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "[CLA Out #?] Could not find a CLA Out task to process bundles with");
-
-            /* In case event services is not working, add a message to the system log */
-            CFE_ES_WriteToSysLog("[CLA Out #?] Could not find a CLA Out task to process bundles with");
-
-            /* Stop execution */
-            CFE_ES_ExitChildTask();
-        }
-    }
-
-    return;
-}
-
-void BPNode_ClaOut_TaskExit(uint32 ContactId)
-{
-    BPLib_EM_SendEvent(BPNODE_CLA_OUT_UNK_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,
-                        "[CLA Out #%d]: Terminating Task. Run state = %d.",
-                        ContactId,
-                        BPNode_AppData.ClaOutData[ContactId].RunStatus);
-
-    /* In case event services is not working, add a message to the system log */
-    CFE_ES_WriteToSysLog("[CLA Out #%d]: Terminating Task. Run state = %d.",
-                            ContactId,
-                            BPNode_AppData.ClaOutData[ContactId].RunStatus);
-
-    /* Exit the perf log */
-    BPLib_PL_PerfLogExit(BPNode_AppData.ClaOutData[ContactId].PerfId);
-
-    /* Confirm exit with give on exit semaphore */
-    (void) OS_BinSemGive(BPNode_AppData.ClaOutData[ContactId].ExitSemId);
-
-    /* Stop execution */
-    CFE_ES_ExitChildTask();
 
     return;
 }
