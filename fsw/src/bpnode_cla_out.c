@@ -320,6 +320,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 
             break;
         case BPLib_SB_CLA:
+            /* No SB-specific operations needed */
             break;
         case BPLib_LTP_CLA:
             break;
@@ -372,6 +373,7 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 
             break;
         case BPLib_SB_CLA:
+            /* No SB-specific operations needed */
             break;
         case BPLib_LTP_CLA:
             break;
@@ -421,6 +423,7 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
             }
             break;
         case BPLib_SB_CLA:
+            /* No SB-specific operations needed */
             break;
         case BPLib_LTP_CLA:
             break;

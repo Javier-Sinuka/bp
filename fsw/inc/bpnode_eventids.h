@@ -98,6 +98,7 @@
 #define BPNODE_CLA_IN_SUB_ERR_EID               83
 #define BPNODE_CLA_IN_RECV_BUFF_ERR_EID         84
 #define BPNODE_CLA_IN_IO_READ_ERR_EID           85
+#define BPNODE_CLA_OUT_UNSUB_ERR_EID            86
 
 /* Event IDs 86-99 reserved for future CLA In task event IDs */
 
