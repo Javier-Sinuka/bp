@@ -434,8 +434,9 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
             break;
         case BPLib_SB_CLA:
             /* Subscribe to bundles on ingress pipe */
-            CfeStatus = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(BPNODE_CLA_IN_BUNDLE_MID),
-                                        BPNode_AppData.ClaInData[ContactId].IngressPipe);
+            CfeStatus = CFE_SB_SubscribeEx(CFE_SB_ValueToMsgId(BPNODE_CLA_IN_BUNDLE_MID),
+                                        BPNode_AppData.ClaInData[ContactId].IngressPipe,
+                                        CFE_SB_DEFAULT_QOS, BPNODE_CLA_INGRESS_MSG_LIMIT);
 
             if (CfeStatus != CFE_SUCCESS)
             {
@@ -493,7 +494,9 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
 
                 Status = BPLIB_CLA_IO_ERROR;
             }
+            
             break;
+
         case BPLib_SB_CLA:
             /* Unsubscribe to bundles on ingress pipe */
             CfeStatus = CFE_SB_Unsubscribe(CFE_SB_ValueToMsgId(BPNODE_CLA_IN_BUNDLE_MID),
@@ -502,20 +505,25 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
             if (CfeStatus != CFE_SUCCESS)
             {
                 Status = BPLIB_CLA_IO_ERROR;
-                BPLib_EM_SendEvent(BPNODE_CLA_OUT_UNSUB_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error unsubscribing to CLA In %d task messages, RC = 0x%08lX",
+                BPLib_EM_SendEvent(BPNODE_CLA_IN_UNSUB_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error unsubscribing from CLA In %d task messages, RC = 0x%08lX",
                                     ContactId, (unsigned long)CfeStatus);
             }
             
             break;
+            
         case BPLib_LTP_CLA:
             break;
+
         case BPLib_EPP_CLA:
             break;
+
         case BPLib_TCP_CLA:
             break;
+
         default:
             break;
+
     }
 
     return Status;

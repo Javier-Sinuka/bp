@@ -121,19 +121,6 @@ void Test_BPNode_ClaIn_TaskInit_IdErr(void)
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_FindByName, 0);
 }
 
-void Test_BPNode_ClaIn_TaskInit_SubscribeErr(void)
-{
-    uint32 ContactId = 0;
-
-    UT_SetDefaultReturnValue(UT_KEY(CFE_SB_Subscribe), CFE_SB_MAX_MSGS_MET);
-
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
-    UtAssert_EQ(CFE_Status_t, BPNode_ClaIn_TaskInit(ContactId), CFE_SB_MAX_MSGS_MET);
-
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_SUB_ERR_EID,
-                                "[CLA In #%d]: Error subscribing to CLA In task messages, RC = 0x%08lX");
-}
-
 /* Test BPNode_ClaIn_TaskInit on nominal UDP case */
 void Test_BPNode_ClaIn_TaskInit_UdpNom(void)
 {
@@ -671,6 +658,19 @@ void Test_BPNode_ClaIn_Start_SbNom(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
+void Test_BPNode_ClaIn_Start_SbErr(void)
+{
+    uint32 ContactId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(CFE_SB_SubscribeEx), CFE_SB_MAX_MSGS_MET);
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Start(ContactId), BPLIB_CLA_IO_ERROR);
+
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_SUB_ERR_EID,
+                                "Error subscribing to CLA In %d task messages, RC = 0x%08lX");
+}
+
 void Test_BPNode_ClaIn_Start_LtpNom(void)
 {
     uint32 ContactId = 0;
@@ -750,6 +750,19 @@ void Test_BPNode_ClaIn_Stop_SbNom(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
+void Test_BPNode_ClaIn_Stop_SbErr(void)
+{
+    uint32 ContactId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(CFE_SB_Unsubscribe), CFE_SB_BAD_ARGUMENT);
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
+    UtAssert_EQ(BPLib_Status_t, BPNode_ClaIn_Stop(ContactId), BPLIB_CLA_IO_ERROR);
+
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_IN_UNSUB_ERR_EID,
+                                "Error unsubscribing from CLA In %d task messages, RC = 0x%08lX");
+}
+
 void Test_BPNode_ClaIn_Stop_LtpNom(void)
 {
     uint32 ContactId = 0;
@@ -799,6 +812,47 @@ void Test_BPNode_ClaIn_Teardown_UdpNom(void)
     UtAssert_VOIDCALL(BPNode_ClaIn_Teardown(ContactId));
 }
 
+void Test_BPNode_ClaIn_Teardown_SbNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_SB_CLA;
+
+    /* Set pipe up to clear one message out */
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_Teardown(ContactId));
+    UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 2);
+}
+
+void Test_BPNode_ClaIn_Teardown_LtpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_LTP_CLA;
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_Teardown(ContactId));
+}
+
+void Test_BPNode_ClaIn_Teardown_EppNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_EPP_CLA;
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_Teardown(ContactId));
+}
+
+void Test_BPNode_ClaIn_Teardown_TcpNom(void)
+{
+    uint32 ContactId = 0;
+
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType = BPLib_TCP_CLA;
+
+    UtAssert_VOIDCALL(BPNode_ClaIn_Teardown(ContactId));
+}
+
 
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
@@ -809,7 +863,6 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_FindByNameErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_DirErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_CreatePipeErr);
-    ADD_TEST(Test_BPNode_ClaIn_TaskInit_SubscribeErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_IdErr);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_UdpNom);
     ADD_TEST(Test_BPNode_ClaIn_TaskInit_SbNom);
@@ -830,6 +883,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaIn_Start_UdpNom);
     ADD_TEST(Test_BPNode_ClaIn_Start_PspErr);
     ADD_TEST(Test_BPNode_ClaIn_Start_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_Start_SbErr);
     ADD_TEST(Test_BPNode_ClaIn_Start_LtpNom);
     ADD_TEST(Test_BPNode_ClaIn_Start_EppNom);
     ADD_TEST(Test_BPNode_ClaIn_Start_TcpNom);
@@ -838,12 +892,17 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaIn_Stop_UdpNom);
     ADD_TEST(Test_BPNode_ClaIn_Stop_PspErr);
     ADD_TEST(Test_BPNode_ClaIn_Stop_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_Stop_SbErr);
     ADD_TEST(Test_BPNode_ClaIn_Stop_LtpNom);
     ADD_TEST(Test_BPNode_ClaIn_Stop_EppNom);
     ADD_TEST(Test_BPNode_ClaIn_Stop_TcpNom);
     ADD_TEST(Test_BPNode_ClaIn_Stop_Default);
 
     ADD_TEST(Test_BPNode_ClaIn_Teardown_UdpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Teardown_SbNom);
+    ADD_TEST(Test_BPNode_ClaIn_Teardown_LtpNom);
+    ADD_TEST(Test_BPNode_ClaIn_Teardown_EppNom);
+    ADD_TEST(Test_BPNode_ClaIn_Teardown_TcpNom);
 
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_Nominal);
     ADD_TEST(Test_BPNode_ClaIn_TaskMain_IdErr);
