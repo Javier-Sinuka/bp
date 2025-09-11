@@ -74,6 +74,8 @@ typedef struct
     void* SB_Buffer;
 
     size_t RateLimit;
+    bool   ClearPipe;
+    BPLib_CLA_Type_t ClaType;
 } BPNode_ClaInData_t;
 
 /*

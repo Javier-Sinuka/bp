@@ -32,6 +32,11 @@ BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId)
 {
     BPLib_Status_t Status;
 
+    BPLib_NC_ReaderLock();
+
+    BPNode_AppData.ClaInData[ContactId].ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    BPNode_AppData.ClaOutData[ContactId].ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+
     /* Initialize CLA in */
     Status = BPNode_ClaIn_Setup(ContactId);
 
@@ -43,13 +48,12 @@ BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId)
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_NC_ReaderLock();
         BPNode_AppData.ClaInData[ContactId].RateLimit = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].IngressBitsPerCycle;
         BPNode_AppData.ClaOutData[ContactId].RateLimit = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].EgressBitsPerCycle;
-        BPLib_NC_ReaderUnlock();
     }
 
-
+    BPLib_NC_ReaderUnlock();
+    
     return Status;
 }
 
