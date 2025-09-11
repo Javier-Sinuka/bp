@@ -177,7 +177,7 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
     else
     {
         if (BPNode_AppData.ClaInData[ContactId].ClearPipe == true &&
-            BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType == BPLib_SB_CLA)
+            BPNode_AppData.ClaInData[ContactId].ClaType == BPLib_SB_CLA)
         {
             /* Clear pipe */
             BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContactId].TaskData.PerfId);
