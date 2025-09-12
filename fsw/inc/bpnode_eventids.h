@@ -98,8 +98,12 @@
 #define BPNODE_CLA_IN_SUB_ERR_EID               83
 #define BPNODE_CLA_IN_RECV_BUFF_ERR_EID         84
 #define BPNODE_CLA_IN_IO_READ_ERR_EID           85
+#define BPNODE_CLA_IN_UNSUB_ERR_EID             86
+#define BPNODE_CLA_IN_SOCKET_OPEN_ERR_EID       87
+#define BPNODE_CLA_IN_SOCKET_BIND_ERR_EID       88
+#define BPNODE_CLA_IN_SETUP_SUCCESS_INF_EID     89
 
-/* Event IDs 86-99 reserved for future CLA In task event IDs */
+/* Event IDs 90-99 reserved for future CLA In task event IDs */
 
 #define BPNODE_CLA_OUT_INIT_INF_EID            100
 #define BPNODE_CLA_OUT_NOTIF_ERR_EID           101
@@ -127,8 +131,10 @@
 #define BPNODE_GEN_WRKR_CREATE_ERR_EID         136
 #define BPNODE_GEN_WRKR_REGISTER_ERR_EID       137
 
-#define BPNODE_CLA_IN_SOCKET_OPEN_ERR_EID       150
-#define BPNODE_CLA_IN_SOCKET_BIND_ERR_EID       151
-#define BPNODE_CLA_IN_SETUP_SUCCESS_INF_EID     152
+/* Event IDs 138-149 reserved for future Generic Worker task event IDs */
+
+#define BPNODE_MAINT_INIT_INF_EID              150
+#define BPNODE_MAINT_NOTIF_ERR_EID             151
+#define BPNODE_MAINT_EXIT_CRT_EID              152
 
 #endif /* BPNODE_EVENTS_H */

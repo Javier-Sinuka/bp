@@ -106,15 +106,6 @@ CFE_Status_t BPNode_WakeupProcess(void)
     BPLib_Status_t   BpStatus;
     CFE_SB_Buffer_t *BufPtr = NULL;
 
-    /* Update time as needed */
-    BpStatus = BPLib_TIME_MaintenanceActivities();
-
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_TIME_WKP_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error doing time maintenance activities, RC = %d", BpStatus);
-    }
-
     /* Call NC to update configurations */
     BpStatus = BPLib_NC_ConfigUpdate();
     if (BpStatus != BPLIB_SUCCESS && BpStatus != BPLIB_TBL_UPDATED)
@@ -152,20 +143,6 @@ CFE_Status_t BPNode_WakeupProcess(void)
 
     /* Tell child tasks to start processing */
     BPNode_NotifSet(&BPNode_AppData.ChildStartWorkNotif);
-
-    /* Activities that should only be done once per second */
-    if (BPNode_NotifGetCount(&BPNode_AppData.ChildStartWorkNotif) % BPNODE_MAX_EXP_WAKEUP_RATE == 0)
-    {
-        /* Flush any bundles pending storage - error event issued by bplib */
-        (void) BPLib_STOR_FlushPending(&BPNode_AppData.BplibInst);
-
-        /* Garbage Collect: Ideally, you should do this if nothing is busy. For B 7.0
-        ** Calling it once a second is enough, but this comes with the caveat that removing bundles
-        ** from storage will take several cycles. There may be optimizations that can be done here
-        ** such as detecting system "idle" time and doing a bulk delete then.
-        */
-        BPLib_STOR_GarbageCollect(&BPNode_AppData.BplibInst);
-    }
 
     return Status;
 }
@@ -367,7 +344,17 @@ CFE_Status_t BPNode_AppInit(void)
         return Status;
     }
 
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
+    Status = BPNode_MaintCreateTask();
+
+    if (Status != CFE_SUCCESS)
+    {
+        /* Event message handled in task creation function */
+        return Status;
+    }
+
+    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + 
+                    (BPLIB_MAX_NUM_CONTACTS * 2) + 
+                    BPNODE_NUM_GEN_WRKR_TASKS + 1;
     OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
                                          BPNODE_CHILD_INIT_WAIT_MSEC);
     if (OsStatus != OS_SUCCESS)

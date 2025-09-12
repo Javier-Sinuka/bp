@@ -58,7 +58,7 @@ typedef void (*BPNode_TaskMainFunc_t)(uint32 TaskId);
 typedef struct
 {
     CFE_ES_TaskId_t CfeTaskId;                  /** \brief cFE-assigned task ID */
-    char            Type[OS_MAX_API_NAME];      /** \brief Human-readable type of task (ADU In/Out, CLA In/Out or Gen Worker) */
+    char            Name[OS_MAX_API_NAME];      /** \brief Human-readable name of task */
     uint32          PerfId;                     /** \brief Performance ID for child task */
     uint32          RunStatus;                  /** \brief cFE run status */
     uint32          TaskId;                     /** \brief BPNode identifier of task, unique within each task type but not globally */

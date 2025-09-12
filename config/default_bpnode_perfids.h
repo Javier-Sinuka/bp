@@ -40,4 +40,6 @@
 
 #define BPNODE_GEN_WRKR_PERF_ID_BASE        (120)
 
+#define BPNODE_MAINT_PERF_ID                (130)
+
 #endif /* BPNODE_PERFIDS_H */

@@ -53,9 +53,10 @@ CFE_Status_t BPNode_AduInCreateTasks(void)
         BPNode_AppData.AduInData[ChanId].TaskData.ExitEid = BPNODE_ADU_IN_EXIT_CRT_EID;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskInitFunc = BPNode_AduIn_TaskInit;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskMainFunc = BPNode_AduIn_TaskMain;
-        
+
+        snprintf(BPNode_AppData.AduInData[ChanId].TaskData.Name, OS_MAX_API_NAME,
+                         "ADU In %d", ChanId);
         snprintf(Name, OS_MAX_API_NAME, "%s_%d", BPNODE_ADU_IN_BASE_NAME, ChanId);
-        strncpy(BPNode_AppData.AduInData[ChanId].TaskData.Type, "ADU In", OS_MAX_API_NAME);
         
         TaskPriority = BPNODE_ADU_IN_PRIORITY_BASE + ChanId;
 

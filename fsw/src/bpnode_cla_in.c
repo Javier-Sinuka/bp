@@ -53,7 +53,8 @@ CFE_Status_t BPNode_ClaInCreateTasks(void)
         BPNode_AppData.ClaInData[ContactId].TaskData.TaskInitFunc = BPNode_ClaIn_TaskInit;
         BPNode_AppData.ClaInData[ContactId].TaskData.TaskMainFunc = BPNode_ClaIn_TaskMain;
         
-        strncpy(BPNode_AppData.ClaInData[ContactId].TaskData.Type, "CLA In", OS_MAX_API_NAME);
+        snprintf(BPNode_AppData.ClaInData[ContactId].TaskData.Name, OS_MAX_API_NAME,
+                            "CLA In %d", ContactId);
 
         snprintf(NameBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_CLA_IN_BASE_NAME, ContactId);
         TaskPriority = BPNODE_CLA_IN_PRIORITY_BASE + ContactId;

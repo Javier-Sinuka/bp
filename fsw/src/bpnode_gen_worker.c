@@ -55,7 +55,8 @@ CFE_Status_t BPNode_GenWorkerCreateTasks(void)
         BPNode_AppData.GenWorkerData[WorkerId].TaskData.TaskInitFunc = BPNode_GenWorker_TaskInit;
         BPNode_AppData.GenWorkerData[WorkerId].TaskData.TaskMainFunc = BPNode_GenWorker_TaskMain;
         
-        strncpy(BPNode_AppData.GenWorkerData[WorkerId].TaskData.Type, "Generic Worker", OS_MAX_API_NAME);
+        snprintf(BPNode_AppData.GenWorkerData[WorkerId].TaskData.Name, OS_MAX_API_NAME, 
+                                                            "Generic Worker %d", WorkerId);
 
         snprintf(NameBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_GEN_WRKR_BASE_NAME, WorkerId);
         TaskPriority = BPNODE_GEN_WRKR_PRIORITY_BASE + WorkerId;

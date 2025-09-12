@@ -39,7 +39,7 @@ CFE_Status_t BPNode_TaskInit(BPNode_TaskData_t *TaskData)
         TaskData->RunStatus = CFE_ES_RunStatus_APP_RUN;
 
         BPLib_EM_SendEvent(TaskData->InitEid, BPLib_EM_EventType_INFORMATION,
-                      "[%s #%d]: Child Task Initialized.", TaskData->Type, TaskData->TaskId);        
+                      "[%s]: Child Task Initialized.", TaskData->Name);        
     }
 
     return Status;
@@ -49,12 +49,12 @@ CFE_Status_t BPNode_TaskInit(BPNode_TaskData_t *TaskData)
 void BPNode_TaskExit(BPNode_TaskData_t *TaskData)
 {
     BPLib_EM_SendEvent(TaskData->ExitEid, BPLib_EM_EventType_CRITICAL,
-                      "[%s #%d]: Terminating Task. RunStatus = %d.",
-                      TaskData->Type, TaskData->TaskId, TaskData->RunStatus);
+                      "[%s]: Terminating Task. RunStatus = %d.",
+                      TaskData->Name, TaskData->RunStatus);
 
     /* In case event services is not working, add a message to the system log */
-    CFE_ES_WriteToSysLog("[%s #%d]: Terminating Task. RunStatus = %d.\n",
-                      TaskData->Type, TaskData->TaskId, TaskData->RunStatus);
+    CFE_ES_WriteToSysLog("[%s]: Terminating Task. RunStatus = %d.\n",
+                      TaskData->Name, TaskData->RunStatus);
 
     /* Exit the perf log */
     BPLib_PL_PerfLogExit(TaskData->PerfId);
@@ -84,16 +84,24 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
     }
 
     /* Find the task data that contains this cFE task ID */
+
+    if (CfeTaskId == BPNode_AppData.MaintData.TaskData.CfeTaskId)
+    {
+        TaskData = &(BPNode_AppData.MaintData.TaskData);
+        return TaskData;
+    }
+
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         if (CfeTaskId == BPNode_AppData.AduInData[i].TaskData.CfeTaskId)
         {
             TaskData = &(BPNode_AppData.AduInData[i].TaskData);
-            break;
+            return TaskData;
         }
         else if (CfeTaskId == BPNode_AppData.AduOutData[i].TaskData.CfeTaskId)
         {
             TaskData = &(BPNode_AppData.AduOutData[i].TaskData);
+            return TaskData;
         }
     }
 
@@ -102,10 +110,12 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
         if (CfeTaskId == BPNode_AppData.ClaInData[i].TaskData.CfeTaskId)
         {
             TaskData = &(BPNode_AppData.ClaInData[i].TaskData);
+            return TaskData;
         }
         else if (CfeTaskId == BPNode_AppData.ClaOutData[i].TaskData.CfeTaskId)
         {
             TaskData = &(BPNode_AppData.ClaOutData[i].TaskData);
+            return TaskData;
         }
     }
 
@@ -114,6 +124,7 @@ BPNode_TaskData_t* BPNode_GetTaskData(void)
         if (CfeTaskId == BPNode_AppData.GenWorkerData[i].TaskData.CfeTaskId)
         {
             TaskData = &(BPNode_AppData.GenWorkerData[i].TaskData);
+            return TaskData;
         }        
     }
 
@@ -170,8 +181,8 @@ void BPNode_TaskMain(void)
         else if (Status != OS_ERROR_TIMEOUT)
         {
             BPLib_EM_SendEvent(TaskData->NotifErrEid, BPLib_EM_EventType_ERROR,
-                                "[%s #%d]: Error pending on notification, RC = %d",
-                                TaskData->Type, TaskData->TaskId, Status);
+                                "[%s]: Error pending on notification, RC = %d",
+                                TaskData->Name, Status);
         }
     }
 
