@@ -85,19 +85,11 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_NoopCmd_t)))
             {
                 char VersionString[BPNODE_CFG_MAX_VERSION_STR_LEN];
-                char LastOfficialRelease[BPNODE_CFG_MAX_VERSION_STR_LEN];
 
-                (void) snprintf(LastOfficialRelease, BPNODE_CFG_MAX_VERSION_STR_LEN, "v%u.%u.%u",
+                (void) snprintf(VersionString, BPNODE_CFG_MAX_VERSION_STR_LEN, "v%u.%u.%u",
                                 BPNODE_MAJOR_VERSION,
                                 BPNODE_MINOR_VERSION,
                                 BPNODE_REVISION);
-
-                snprintf(VersionString, sizeof(VersionString), "BPNode for CAPSTONE 7.0.0");
-                /*
-                CFE_Config_GetVersionString(VersionString, BPNODE_CFG_MAX_VERSION_STR_LEN, "BPNode",
-
-                                            BPNODE_VERSION, BPNODE_BUILD_CODENAME, LastOfficialRelease);
-                */
 
                 BPLib_EM_SendEvent(BPNODE_NOOP_INF_EID, BPLib_EM_EventType_INFORMATION,
                                     "No-op command. %s", VersionString);
