@@ -51,7 +51,7 @@ void Test_BPNode_ClaOutCreateTasks_TaskCrErr(void)
     UtAssert_INT32_EQ(BPNode_ClaOutCreateTasks(), CFE_ES_ERR_CHILD_TASK_CREATE);
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_CLA_OUT_CREATE_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Failed to create child task for CLA Out #%d. Error = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
+    UtAssert_STRINGBUF_EQ("Failed to create child task for CLA Out #%d. Error = 0x%08X.", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(CFE_ES_CreateChildTask, 1);

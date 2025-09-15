@@ -56,7 +56,7 @@ CFE_Status_t BPNode_MaintCreateTask(void)
                             BPNODE_MAINTENANCE_PRIORITY, 0);
     if (Status != CFE_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPNODE_GEN_WRKR_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPNODE_MAINT_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
                         "Failed to create Maintenance Task. Error = 0x%08X.",
                         Status);
     }

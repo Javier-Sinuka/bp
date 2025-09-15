@@ -136,5 +136,6 @@
 #define BPNODE_MAINT_INIT_INF_EID              150
 #define BPNODE_MAINT_NOTIF_ERR_EID             151
 #define BPNODE_MAINT_EXIT_CRT_EID              152
+#define BPNODE_MAINT_CREATE_ERR_EID            153
 
 #endif /* BPNODE_EVENTS_H */

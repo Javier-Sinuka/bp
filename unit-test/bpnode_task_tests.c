@@ -48,7 +48,7 @@ void Test_BPNode_TaskInit_Nominal(void)
     UtAssert_STUB_COUNT(BPNode_NotifSet, 1);
     UtAssert_UINT32_EQ(TaskData.RunStatus, CFE_ES_RunStatus_APP_RUN);
     BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_INIT_INF_EID, 
-                                "[%s #%d]: Child Task Initialized.");
+                                "[%s]: Child Task Initialized.");
 }
 
 /* Test BPNode_TaskInit when the initialization function pointer returns an error */
@@ -79,7 +79,7 @@ void Test_BPNode_TaskExit_Nominal(void)
     UtAssert_VOIDCALL(BPNode_TaskExit(&TaskData));
 
     BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_EXIT_CRT_EID, 
-                                "[%s #%d]: Terminating Task. RunStatus = %d.");    
+                                "[%s]: Terminating Task. RunStatus = %d.");    
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(CFE_ES_WriteToSysLog, 1);
     UtAssert_STUB_COUNT(BPLib_PL_PerfLogExit, 1);
@@ -324,7 +324,7 @@ void Test_BPNode_TaskMain_NotifErr(void)
     UtAssert_STUB_COUNT(BPNode_AduIn_TaskMain, 0);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 3);
     BPNode_Test_Verify_Event(1, BPNODE_ADU_IN_NOTIF_ERR_EID, 
-                                "[%s #%d]: Error pending on notification, RC = %d");      
+                                "[%s]: Error pending on notification, RC = %d");      
 }
 
 void UtTest_Setup(void)
