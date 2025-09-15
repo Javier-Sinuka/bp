@@ -470,8 +470,13 @@ void BPNode_AppExit(void)
         BPNode_AppData.GenWorkerData[WorkerId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
 
+    /* Signal to maintenance task to exit */
+    BPNode_AppData.MaintData.TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
+
     /* Verify that all child tasks have shut down */
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
+    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + 
+                    (BPLIB_MAX_NUM_CONTACTS * 2) + 
+                    BPNODE_NUM_GEN_WRKR_TASKS + 1;
     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
     OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
                                          BPNODE_CHILD_EXIT_WAIT_MSEC);

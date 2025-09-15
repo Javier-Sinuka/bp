@@ -66,7 +66,7 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void)
         if (Status != CFE_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_CLA_OUT_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "Failed to create child task for CLA Out #%d. Error = %d",
+                                "Failed to create child task for CLA Out #%d. Error = 0x%08X",
                                 ContactId, Status);
             break;
         }

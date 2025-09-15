@@ -10,7 +10,8 @@ set(APP_SRC_FILES
   fsw/src/bpnode_cla_out.c
   fsw/src/bpnode_gen_worker.c
   fsw/src/bpnode_notif.c
-
+  fsw/src/bpnode_maint.c
+  
   # FWP files
   fsw/fwp/fwp_timep.c
   fsw/fwp/fwp_tablep.c

@@ -86,7 +86,7 @@ CFE_Status_t BPNode_MaintCreateTask(void);
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-CFE_Status_t BPNode_Maint_TaskInit(void);
+CFE_Status_t BPNode_Maint_TaskInit(uint32 TaskId);
 
 /**
  * \brief Maintenance Main Task
@@ -98,6 +98,6 @@ CFE_Status_t BPNode_Maint_TaskInit(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  */
-void BPNode_Maint_TaskMain(void);
+void BPNode_Maint_TaskMain(uint32 TaskId);
 
 #endif /* BPNODE_MAINT_H */

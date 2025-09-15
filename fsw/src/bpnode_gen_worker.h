@@ -37,7 +37,7 @@
 ** Macro Definitions
 */
 
-#define BPNODE_GEN_WRKR_BASE_NAME            "BPNODE.GEN_WRKR"  /** \brief Task base name */
+#define BPNODE_GEN_WRKR_BASE_NAME            "BPNODE.WRKR"  /** \brief Task base name */
 
 /*
 ** Type Definitions

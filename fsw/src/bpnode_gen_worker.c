@@ -68,7 +68,7 @@ CFE_Status_t BPNode_GenWorkerCreateTasks(void)
         if (Status != CFE_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_GEN_WRKR_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[Generic Worker #%d]: Failed to create child task. Error = %d.",
+                            "Failed to create Generic Worker #%d child task. Error = 0x%08X.",
                             WorkerId, Status);
             break;
         }

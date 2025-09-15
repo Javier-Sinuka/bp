@@ -37,7 +37,7 @@
 ** Macro Definitions
 */
 
-#define BPNODE_ADU_OUT_BASE_NAME            "BPNODE.ADU_OUT" /** \brief Task base name */
+#define BPNODE_ADU_OUT_BASE_NAME            "BPNODE.ADU_TX" /** \brief Task base name */
 #define BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES    (1048u)
 
 

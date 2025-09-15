@@ -67,7 +67,7 @@ CFE_Status_t BPNode_AduOutCreateTasks(void)
         if (Status != CFE_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_ADU_OUT_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[ADU Out #%d]: Failed to create child task. Error = %d.",
+                            "Failed to create ADU Out #%d child task. Error = 0x%08X.",
                             ChanId, Status);
             break;
         }

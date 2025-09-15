@@ -38,8 +38,6 @@
 CFE_Status_t BPNode_MaintCreateTask(void)
 {
     CFE_Status_t Status = CFE_SUCCESS;
-    char   NameBuff[OS_MAX_API_NAME];
-    uint16 TaskPriority;
 
     /* Set up task data for the child task */
     BPNode_AppData.MaintData.TaskData.TaskId = 0;   /* Only one maintenace task */
@@ -50,20 +48,18 @@ CFE_Status_t BPNode_MaintCreateTask(void)
     BPNode_AppData.MaintData.TaskData.TaskInitFunc = BPNode_Maint_TaskInit;
     BPNode_AppData.MaintData.TaskData.TaskMainFunc = BPNode_Maint_TaskMain;
     
-    strncpy(BPNode_AppData.MaintData.TaskData.Type, "Maintenance Task", OS_MAX_API_NAME);
+    strncpy(BPNode_AppData.MaintData.TaskData.Name, "Maintenance Task", OS_MAX_API_NAME);
 
     /* Spawn Maintenance child task */
     Status = CFE_ES_CreateChildTask(&BPNode_AppData.MaintData.TaskData.CfeTaskId,
                             BPNODE_MAINT_BASE_NAME, BPNode_TaskMain, 0, BPNODE_GEN_WRKR_STACK_SIZE, 
-                            TaskPriority, 0);
+                            BPNODE_MAINTENANCE_PRIORITY, 0);
     if (Status != CFE_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_GEN_WRKR_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                        "[Maintenance Task]: Failed to create child task. Error = %d.",
+                        "Failed to create Maintenance Task. Error = 0x%08X.",
                         Status);
-        break;
     }
-
 
     return Status;
 }
@@ -86,7 +82,7 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
         if (Status != BPLIB_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_TIME_WKP_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "[Maintenance Task]: Error doing time maintenance activities, RC = %d", BpStatus);
+                                "[Maintenance Task]: Error doing time maintenance activities, RC = %d", Status);
         }
 
         /* Flush any bundles pending storage - error event issued by bplib */
