@@ -99,11 +99,8 @@
 #define BPNODE_CLA_IN_RECV_BUFF_ERR_EID         84
 #define BPNODE_CLA_IN_IO_READ_ERR_EID           85
 #define BPNODE_CLA_IN_UNSUB_ERR_EID             86
-#define BPNODE_CLA_IN_SOCKET_OPEN_ERR_EID       87
-#define BPNODE_CLA_IN_SOCKET_BIND_ERR_EID       88
-#define BPNODE_CLA_IN_SETUP_SUCCESS_INF_EID     89
 
-/* Event IDs 90-99 reserved for future CLA In task event IDs */
+/* Event IDs 87-99 reserved for future CLA In task event IDs */
 
 #define BPNODE_CLA_OUT_INIT_INF_EID            100
 #define BPNODE_CLA_OUT_NOTIF_ERR_EID           101

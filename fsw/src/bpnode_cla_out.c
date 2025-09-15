@@ -176,10 +176,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     #endif /* DEFAULT_UDP_CLA */
 
     BPLib_Status_t                       Status;
-    BPLib_CLA_Type_t                     ClaType;
 
-    /* Shorten the variable name for the CLA type of the contact */
-    ClaType  = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType;
     *MsgSize = 0;
 
     /* Get next bundle from CLA */
@@ -205,7 +202,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     /* Send egress bundle onto CL */
     if (Status == BPLIB_SUCCESS)
     {
-        switch (ClaType)
+        switch (BPNode_AppData.ClaOutData[ContId].ClaType)
         {
             case BPLib_UDP_CLA:
                 #ifdef DEFAULT_UDP_CLA
@@ -273,7 +270,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
     Status      = BPLIB_SUCCESS;
     ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
-    switch (ContactInfo->CLAType)
+    switch (BPNode_AppData.ClaOutData[ContactId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -321,6 +318,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 
             break;
         case BPLib_SB_CLA:
+            /* No SB-specific operations needed */
             break;
         case BPLib_LTP_CLA:
             break;
@@ -338,7 +336,6 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
 BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 {
     BPLib_Status_t   Status;
-    BPLib_CLA_Type_t ClaType;
 
     #ifdef DEFAULT_UDP_CLA
     int32 PspStatus;
@@ -346,12 +343,10 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
     /* Default PSP status to output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
     #endif /* DEFAULT_UDP_CLA */
-
-    /* Shorten the variable name for the CLA type of the contact */
-    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    
     Status  = BPLIB_SUCCESS;
 
-    switch (ClaType)
+    switch (BPNode_AppData.ClaOutData[ContactId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -373,6 +368,7 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
 
             break;
         case BPLib_SB_CLA:
+            /* No SB-specific operations needed */
             break;
         case BPLib_LTP_CLA:
             break;
@@ -391,16 +387,13 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
 {
     BPLib_Status_t   Status;
     int32            PspStatus;
-    BPLib_CLA_Type_t ClaType;
-
-    /* Shorten the variable name for the CLA type of the contact */
-    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    
     Status  = BPLIB_SUCCESS;
 
     /* Default PSP status to output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
-    switch (ClaType)
+    switch (BPNode_AppData.ClaOutData[ContactId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -422,6 +415,7 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
             }
             break;
         case BPLib_SB_CLA:
+            /* No SB-specific operations needed */
             break;
         case BPLib_LTP_CLA:
             break;

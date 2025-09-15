@@ -78,7 +78,7 @@ CFE_Status_t BPNode_ClaInCreateTasks(void)
 CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 {
     CFE_Status_t     Status = CFE_PSP_SUCCESS;
-    BPLib_CLA_Type_t ClaType;
+    char             PipeBuff[OS_MAX_API_NAME];
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
@@ -89,89 +89,52 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
         return CFE_STATUS_RANGE_ERROR;
     }
 
-    /* Shorten the variable name for the CLA type of the contact */
-    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
+    /*
+    ** Initialize UDP CLA infrastructure
+    */
 
-    switch (ClaType)
+    #ifdef DEFAULT_UDP_CLA
+    /* Get PSP module ID for the UDP socket driver */
+    Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
+                            &BPNode_AppData.ClaInData[ContactId].PspLocation.PspModuleId);
+    if (Status != CFE_PSP_SUCCESS)
     {
-        case BPLib_UDP_CLA:
-            #ifdef DEFAULT_UDP_CLA
-            /* Get PSP module ID for either the Unix or UDP socket driver */
-            Status = CFE_PSP_IODriver_FindByName(BPNODE_CLA_PSP_DRIVER_NAME,
-                                                    &BPNode_AppData.ClaInData[ContactId].PspLocation.PspModuleId);
-            #endif /* DEFAULT_UDP_CLA */
+        BPLib_EM_SendEvent(BPNODE_CLA_IN_FIND_NAME_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[CLA In #%d]: Couldn't find I/O driver. Error = %d",
+                            ContactId, Status);
+        return Status;
+    }
 
-            if (Status != CFE_PSP_SUCCESS)
-            {
-                BPLib_EM_SendEvent(BPNODE_CLA_IN_FIND_NAME_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "[CLA In #%d]: Couldn't find I/O driver. Error = %d",
-                                    ContactId, Status);
-            }
-            else
-            {
-                #ifdef DEFAULT_UDP_CLA
-                BPNode_AppData.ClaInData[ContactId].PspLocation.SubsystemId = 1 + (CFE_PSP_GetProcessorId() & 1);
+    BPNode_AppData.ClaInData[ContactId].PspLocation.SubsystemId = 1 + (CFE_PSP_GetProcessorId() & 1);
 
-                /* Set direction to input only */
-                Status = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
-                                                    CFE_PSP_IODriver_SET_DIRECTION,
-                                                    CFE_PSP_IODriver_U32ARG(CFE_PSP_IODriver_Direction_INPUT_ONLY));
-                #endif /* DEFAULT_UDP_CLA */
+    /* Set direction to input only */
+    Status = CFE_PSP_IODriver_Command(&BPNode_AppData.ClaInData[ContactId].PspLocation,
+                                        CFE_PSP_IODriver_SET_DIRECTION,
+                                        CFE_PSP_IODriver_U32ARG(CFE_PSP_IODriver_Direction_INPUT_ONLY));
+    if (Status != CFE_PSP_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_CLA_IN_CFG_DIR_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[CLA In #%d]: Couldn't set I/O direction to input. Error = %d",
+                            ContactId, Status);
+        return Status;
+    }
+    #endif /* DEFAULT_UDP_CLA */
 
-                if (Status != CFE_PSP_SUCCESS)
-                {
-                    BPLib_EM_SendEvent(BPNODE_CLA_IN_CFG_DIR_ERR_EID, BPLib_EM_EventType_ERROR,
-                                        "[CLA In #%d]: Couldn't set I/O direction to input. Error = %d",
-                                        ContactId,
-                                        Status);
-                }
-            }
-            break;
+    /*
+    ** Initialize SB CLA infrastructure
+    */
 
-        case BPLib_SB_CLA:
-            /* Create ingress pipe */
-            Status = CFE_SB_CreatePipe(&(BPNode_AppData.ClaInData[ContactId].IngressPipe),
-                                        BPNODE_CLA_INGRESS_PIPE_DEPTH,
-                                        "BPNODE_CLA_IN_PIPE");
+    snprintf(PipeBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_CLA_IN_BASE_NAME, ContactId);
+    
+    /* Create ingress pipe */
+    Status = CFE_SB_CreatePipe(&(BPNode_AppData.ClaInData[ContactId].IngressPipe),
+                                BPNODE_CLA_INGRESS_PIPE_DEPTH, PipeBuff);
 
-            if (Status != CFE_SUCCESS)
-            {
-                BPLib_EM_SendEvent(BPNODE_CLA_IN_CREATE_PIPE_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "[CLA In #%d]: Error creating CLA In task SB pipe, RC = 0x%08lX",
-                                    ContactId, (unsigned long)Status);
-            }
-            else
-            {
-                /* Put bundles from SB into ingress pipe */
-                Status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(BPNODE_CLA_IN_BUNDLE_MID),
-                                            BPNode_AppData.ClaInData[ContactId].IngressPipe);
-
-                if (Status != CFE_SUCCESS)
-                {
-                    BPLib_EM_SendEvent(BPNODE_CLA_IN_SUB_ERR_EID, BPLib_EM_EventType_ERROR,
-                                        "[CLA In #%d]: Error subscribing to CLA In task messages, RC = 0x%08lX",
-                                        ContactId, (unsigned long)Status);
-                }
-                else
-                {
-                    /* CFE_SUCCESS ~= CFE_PSP_SUCCESS but the logic makes more sense this way */
-                    Status = CFE_PSP_SUCCESS;
-                }
-            }
-            break;
-
-        case BPLib_LTP_CLA:
-            break;
-
-        case BPLib_EPP_CLA:
-            break;
-
-        case BPLib_TCP_CLA:
-            break;
-
-        default:
-            break;
-
+    if (Status != CFE_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_CLA_IN_CREATE_PIPE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[CLA In #%d]: Error creating CLA In task SB pipe, RC = 0x%08lX",
+                            ContactId, (unsigned long)Status);
     }
 
     return Status;
@@ -184,6 +147,7 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
     size_t                      BytesIngressed;
     BPLib_CLA_ContactRunState_t RunState;
     size_t                      BundleSize = 0;
+    CFE_SB_Buffer_t            *BufPtr = NULL;
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
@@ -211,7 +175,25 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
         } while (Status != BPLIB_TIMEOUT && ((BytesIngressed * BPNODE_BITS_PER_BYTE) <
                     BPNode_AppData.ClaInData[ContactId].RateLimit));
     }
+    else
+    {
+        if (BPNode_AppData.ClaInData[ContactId].ClearPipe == true &&
+            BPNode_AppData.ClaInData[ContactId].ClaType == BPLib_SB_CLA)
+        {
+            /* Clear pipe */
+            BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContactId].TaskData.PerfId);
 
+            while (Status == CFE_SUCCESS)
+            {
+                Status = CFE_SB_ReceiveBuffer(&BufPtr, 
+                                        BPNode_AppData.ClaInData[ContactId].IngressPipe,
+                                        CFE_SB_POLL);
+            }
+
+            BPLib_PL_PerfLogEntry(BPNode_AppData.ClaInData[ContactId].TaskData.PerfId);    
+        }    
+    }
+    
     return;
 }
 
@@ -225,13 +207,11 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
     int32                               Status;
     BPLib_Status_t                      BpStatus = BPLIB_TIMEOUT;
     CFE_MSG_Message_t*                  MsgPtr;
-    BPLib_CLA_Type_t                    ClaType;
 
-    ClaType     = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContId].CLAType;
     Status      = CFE_PSP_SUCCESS;
     *BundleSize = 0;
 
-    switch (ClaType)
+    switch (BPNode_AppData.ClaInData[ContId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -354,7 +334,7 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId)
     ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
     /* Nothing special needs to happen for an SB contact */
-    switch (ContactInfo->CLAType)
+    switch (BPNode_AppData.ClaInData[ContactId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -419,16 +399,15 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId)
 BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
 {
     int32            PspStatus;
+    CFE_Status_t     CfeStatus;
     BPLib_Status_t   Status;
-    BPLib_CLA_Type_t ClaType;
 
-    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
     Status  = BPLIB_SUCCESS;
 
     /* Default to a PSP status that will output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
-    switch (ClaType)
+    switch (BPNode_AppData.ClaInData[ContactId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -449,6 +428,19 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
             }
             break;
         case BPLib_SB_CLA:
+            /* Subscribe to bundles on ingress pipe */
+            CfeStatus = CFE_SB_SubscribeEx(CFE_SB_ValueToMsgId(BPNODE_CLA_IN_BUNDLE_MID),
+                                        BPNode_AppData.ClaInData[ContactId].IngressPipe,
+                                        CFE_SB_DEFAULT_QOS, BPNODE_CLA_INGRESS_MSG_LIMIT);
+
+            if (CfeStatus != CFE_SUCCESS)
+            {
+                Status = BPLIB_CLA_IO_ERROR;
+                BPLib_EM_SendEvent(BPNODE_CLA_IN_SUB_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error subscribing to CLA In %d task messages, RC = 0x%08lX",
+                                    ContactId, (unsigned long)CfeStatus);
+            }
+
             break;
         case BPLib_LTP_CLA:
             break;
@@ -466,17 +458,15 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
 BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
 {
     BPLib_Status_t   Status;
+    CFE_Status_t     CfeStatus;
     int32            PspStatus;
-    BPLib_CLA_Type_t ClaType;
 
-    /* Shorten the variable name for the CLA type of the contact */
-    ClaType = BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CLAType;
     Status  = BPLIB_SUCCESS;
 
     /* Default to a PSP status that will output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
-    switch (ClaType)
+    switch (BPNode_AppData.ClaInData[ContactId].ClaType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -496,17 +486,38 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
 
                 Status = BPLIB_CLA_IO_ERROR;
             }
+            
             break;
+
         case BPLib_SB_CLA:
+            /* Unsubscribe to bundles on ingress pipe */
+            CfeStatus = CFE_SB_Unsubscribe(CFE_SB_ValueToMsgId(BPNODE_CLA_IN_BUNDLE_MID),
+                                        BPNode_AppData.ClaInData[ContactId].IngressPipe);
+
+            if (CfeStatus != CFE_SUCCESS)
+            {
+                Status = BPLIB_CLA_IO_ERROR;
+                BPLib_EM_SendEvent(BPNODE_CLA_IN_UNSUB_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error unsubscribing from CLA In %d task messages, RC = 0x%08lX",
+                                    ContactId, (unsigned long)CfeStatus);
+            }
+
+            BPNode_AppData.ClaInData[ContactId].ClearPipe = true;
+            
             break;
+            
         case BPLib_LTP_CLA:
             break;
+
         case BPLib_EPP_CLA:
             break;
+
         case BPLib_TCP_CLA:
             break;
+
         default:
             break;
+
     }
 
     return Status;
@@ -514,30 +525,6 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
 
 void BPNode_ClaIn_Teardown(uint32 ContactId)
 {
-    /*
-    ** Disestablish CLA
-    ** Free all CLA resources
-    ** Discard output queue
-    ** Delete custody timers
-    */
-
-    /*
-    switch (CLAType)
-    {
-        case BPLib_UDP_CLA:
-            break;
-        case BPLib_SB_CLA:
-            break;
-        case BPLib_LTP_CLA:
-            break;
-        case BPLib_EPP_CLA:
-            break;
-        case BPLib_TCP_CLA:
-            break;
-        default:
-            break;
-    */
-
     return;
 }
 
