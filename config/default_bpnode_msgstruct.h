@@ -382,6 +382,14 @@ typedef struct
 } BPNode_PerformSelfTestCmd_t;
 
 /**
+ * \brief Clean storage command
+ */
+typedef struct
+{
+    CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
+} BPNode_CleanStorageCmd_t;
+
+/**
  * \brief Send node mib config hk command
  */
 typedef struct

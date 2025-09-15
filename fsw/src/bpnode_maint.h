@@ -48,7 +48,8 @@
 */
 typedef struct
 {
-    BPNode_TaskData_t TaskData;
+    BPNode_TaskData_t TaskData;         /** \brief Task data */
+    bool              CleanStor;        /** \brief Flag for whether to clean storage */
 } BPNode_MaintData_t;
 
 

@@ -93,6 +93,7 @@
 #define BPNODE_ADD_STORAGE_ALLOCATION_CC            (36)
 #define BPNODE_REMOVE_STORAGE_ALLOCATION_CC         (37)
 #define BPNODE_PERFORM_SELF_TEST_CC                 (38) /* Deferred */
+#define BPNODE_CLEAN_STORAGE_CC                     (39)
 
 /* Telemetry directives */
 #define BPNODE_SEND_NODE_MIB_CONFIG_HK_CC           (40)
