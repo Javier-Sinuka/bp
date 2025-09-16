@@ -58,8 +58,9 @@
 #define BPNODE_EXIT_NOTIF_CRT_EID               29
 #define BPNODE_TASK_NO_ID_ERR_EID               30
 #define BPNODE_TASK_UNK_EXIT_CRIT_EID           31
+#define BPNODE_INIT_STOR_NOTIF_ERR_EID          32
 
-/* Event IDs 31-49 reserved for future main task event IDs */
+/* Event IDs 33-49 reserved for future main task event IDs */
 
 #define BPNODE_ADU_IN_INIT_INF_EID              50
 #define BPNODE_ADU_IN_EXIT_CRT_EID              51

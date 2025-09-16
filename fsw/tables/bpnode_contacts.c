@@ -37,8 +37,8 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
                         .MaxAllocator = 0,
                         .MinAllocator = 0,
-                        .MaxNode      = 400,
-                        .MinNode      = 400,
+                        .MaxNode      = BPNODE_EID_NODE_NUM_FOR_CONTACT_0,
+                        .MinNode      = BPNODE_EID_NODE_NUM_FOR_CONTACT_0,
                         .MaxService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_0,
                         .MinService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_0
                     },
@@ -62,7 +62,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .CSTimeTrigger       = 103,           /* Custody Signal time trigger in seconds, uint32 */
                 .CSSizeTrigger       = 10,            /* Custody signal size trigger in bytes, size_t */
                 .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
-                .EgressBitsPerCycle  = 10000000       /* Egress rate, 20 Mb per cycle */
+                .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
             },
             { /* SB CLA contact */
                 .DestEIDs = {

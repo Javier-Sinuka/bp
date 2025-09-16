@@ -87,6 +87,18 @@ void Test_BPNode_TaskExit_Nominal(void)
     UtAssert_STUB_COUNT(CFE_ES_ExitChildTask, 1);
 }
 
+/* Test that BPNode_GetTaskData returns the right task data pointer in maintenance task case */
+void Test_BPNode_GetTaskData_Maint(void)
+{
+    CFE_ES_TaskId_t CfeTaskId  = 1234;
+
+    BPNode_AppData.MaintData.TaskData.CfeTaskId = CfeTaskId;
+
+    UT_SetDataBuffer(UT_KEY(CFE_ES_GetTaskID), &CfeTaskId, sizeof(CfeTaskId), false);
+
+    UtAssert_ADDRESS_EQ(BPNode_GetTaskData(), &(BPNode_AppData.MaintData.TaskData));
+}
+
 /* Test that BPNode_GetTaskData returns the right task data pointer in nominal ADU In case */
 void Test_BPNode_GetTaskData_AduIn(void)
 {
@@ -334,6 +346,7 @@ void UtTest_Setup(void)
 
     ADD_TEST(Test_BPNode_TaskExit_Nominal);
 
+    ADD_TEST(Test_BPNode_GetTaskData_Maint);
     ADD_TEST(Test_BPNode_GetTaskData_AduIn);
     ADD_TEST(Test_BPNode_GetTaskData_AduOut);
     ADD_TEST(Test_BPNode_GetTaskData_ClaIn);

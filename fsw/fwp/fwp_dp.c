@@ -447,7 +447,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_PerformSelfTestCmd_t)))
             {
                 /* Flag maintenance task to perform storage cleanup operation */
-                BPNode_AppData.MaintData.CleanStor = true;
+                BPNode_NotifSet(&(BPNode_AppData.ChildTaskCleanStorNotif));
             }
             break;
 

@@ -274,8 +274,8 @@ CFE_Status_t BPNode_AppInit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_WORK_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating child task start work notification, RC = 0x%08lX",
-                    (unsigned long)Status);
+                    "Error creating child task start work notification, RC = %d",
+                    OsStatus);
         return OsStatus;
     }
 
@@ -284,8 +284,8 @@ CFE_Status_t BPNode_AppInit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating child task init notification, RC = 0x%08lX",
-                    (unsigned long)Status);
+                    "Error creating child task init notification, RC = %d",
+                    OsStatus);
         return OsStatus;
     }
 
@@ -294,8 +294,18 @@ CFE_Status_t BPNode_AppInit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_EXIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating child task exit notification, RC = 0x%08lX",
-                    (unsigned long)Status);
+                    "Error creating child task exit notification, RC = %d",
+                    OsStatus);
+        return OsStatus;
+    }
+
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskCleanStorNotif, 
+                                    BPNODE_CHILD_STOR_NOTIF_NAME);
+    if (OsStatus != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_INIT_STOR_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "Error creating child task storage notification, RC = %d",
+                    OsStatus);
         return OsStatus;
     }
 
@@ -495,6 +505,7 @@ void BPNode_AppExit(void)
     BPNode_NotifDestroy(&BPNode_AppData.ChildStartWorkNotif);
     BPNode_NotifDestroy(&BPNode_AppData.ChildTaskInitNotif);
     BPNode_NotifDestroy(&BPNode_AppData.ChildTaskExitNotif);
+    BPNode_NotifDestroy(&BPNode_AppData.ChildTaskCleanStorNotif);
 
     /* Cleanup QM and MEM */
     BPLib_QM_QueueTableDestroy(&BPNode_AppData.BplibInst);

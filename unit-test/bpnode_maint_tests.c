@@ -72,6 +72,23 @@ void Test_BPNode_Maint_TaskMain_Nominal(void)
 
     UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
 
+    UtAssert_STUB_COUNT(BPLib_NC_CleanupStorage, 0);
+    UtAssert_STUB_COUNT(BPLib_TIME_MaintenanceActivities, 1);
+    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
+    UtAssert_STUB_COUNT(BPLib_STOR_GarbageCollect, 1);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test maintenace main loop cleans storage when prompted by the notif */
+void Test_BPNode_Maint_TaskMain_Cleanup(void)
+{
+    uint32 TaskId = 0;
+
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, 1);
+
+    UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
+
+    UtAssert_STUB_COUNT(BPLib_NC_CleanupStorage, 1);
     UtAssert_STUB_COUNT(BPLib_TIME_MaintenanceActivities, 1);
     UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
     UtAssert_STUB_COUNT(BPLib_STOR_GarbageCollect, 1);
@@ -84,6 +101,7 @@ void Test_BPNode_Maint_TaskMain_QuietWakeup(void)
     #if BPNODE_MAX_EXP_WAKEUP_RATE != 0
     uint32 TaskId = 0;
 
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, 0);
     UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, BPNODE_MAX_EXP_WAKEUP_RATE - 1);
 
     UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
@@ -120,6 +138,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_Maint_TaskInit_Nominal);
 
     ADD_TEST(Test_BPNode_Maint_TaskMain_Nominal);
+    ADD_TEST(Test_BPNode_Maint_TaskMain_Cleanup);
     ADD_TEST(Test_BPNode_Maint_TaskMain_QuietWakeup);
     ADD_TEST(Test_BPNode_Maint_TaskMain_TimeErr);
 }

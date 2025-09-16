@@ -95,6 +95,19 @@ void BPNode_NotifDestroy(BPNode_Notif_t* Notif);
 void BPNode_NotifSet(BPNode_Notif_t* Notif);
 
 /**
+ * \brief Unset notification
+ *
+ *  \par Description
+ *       Unset notification variable by decrementing its count
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Notif Pointer to notification variable
+ */
+void BPNode_NotifUnset(BPNode_Notif_t* Notif);
+
+/**
  * \brief Get notification count
  *
  *  \par Description

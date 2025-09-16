@@ -409,6 +409,14 @@ void Test_BPNode_AppInit_FailedAduOutTasks(void)
     UtAssert_INT32_EQ(BPNode_AppInit(), CFE_ES_ERR_CHILD_TASK_CREATE);
 }
 
+/* Test app initialization after failure to create maintenance task */
+void Test_BPNode_AppInit_FailedMaintTask(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_MaintCreateTask), 1, CFE_ES_ERR_CHILD_TASK_CREATE);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), CFE_ES_ERR_CHILD_TASK_CREATE);
+}
+
 /* Test adding one application automatically at startup */
 void Test_BPNode_AppInit_AutoAddApp(void)
 {
@@ -485,7 +493,7 @@ void Test_BPNode_AppInit_WorkNotifErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_WORK_NOTIF_ERR_EID, 
-                                "Error creating child task start work notification, RC = 0x%08lX");
+                                "Error creating child task start work notification, RC = %d");
 }
 
 void Test_BPNode_AppInit_InitNotifErr(void)
@@ -495,7 +503,7 @@ void Test_BPNode_AppInit_InitNotifErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_INIT_NOTIF_ERR_EID, 
-                                "Error creating child task init notification, RC = 0x%08lX");
+                                "Error creating child task init notification, RC = %d");
 }
 
 void Test_BPNode_AppInit_ExitNotifErr(void)
@@ -506,7 +514,19 @@ void Test_BPNode_AppInit_ExitNotifErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_EXIT_NOTIF_ERR_EID, 
-                                "Error creating child task exit notification, RC = 0x%08lX");
+                                "Error creating child task exit notification, RC = %d");
+}
+
+void Test_BPNode_AppInit_StorNotifErr(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
+    BPNode_Test_Verify_Event(0, BPNODE_INIT_STOR_NOTIF_ERR_EID, 
+                                "Error creating child task storage notification, RC = %d");
 }
 
 void Test_BPNode_AppInit_NotifWaitErr(void)
@@ -589,6 +609,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppInit_FailedWakeupSub);
     ADD_TEST(Test_BPNode_AppInit_FailedAduInTasks);
     ADD_TEST(Test_BPNode_AppInit_FailedAduOutTasks);
+    ADD_TEST(Test_BPNode_AppInit_FailedMaintTask);
     ADD_TEST(Test_BPNode_AppInit_AutoAddApp);
     ADD_TEST(Test_BPNode_AppInit_AutoAddAppFail);
     ADD_TEST(Test_BPNode_AppInit_FailedClaIn);
@@ -599,7 +620,8 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppInit_InitNotifErr);
     ADD_TEST(Test_BPNode_AppInit_ExitNotifErr);
     ADD_TEST(Test_BPNode_AppInit_NotifWaitErr);
-
+    ADD_TEST(Test_BPNode_AppInit_StorNotifErr);
+    
     ADD_TEST(Test_BPNode_AppExit_Nominal);
     ADD_TEST(Test_BPNode_AppExit_NotifErr);
 }

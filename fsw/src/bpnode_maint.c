@@ -74,9 +74,11 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
     BPLib_Status_t Status;
 
     /* Check if main task has indicated that storage should be cleaned up */
-    if (BPNode_AppData.MaintData.CleanStor)
+    if (BPNode_NotifGetCount(&BPNode_AppData.ChildTaskCleanStorNotif) > 0)
     {
         BPLib_NC_CleanupStorage(&(BPNode_AppData.BplibInst));
+
+        BPNode_NotifUnset(&BPNode_AppData.ChildTaskCleanStorNotif);
     }
 
     /* Activities that should only be done once per second */

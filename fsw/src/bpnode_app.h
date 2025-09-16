@@ -66,6 +66,7 @@
 #define BPNODE_CHILD_STRTWORKNOTIF_NAME     "BPNODE_CHLDSTRT"
 #define BPNODE_CHILD_INIT_NOTIF_NAME        "BPNODE_CHLDINIT"
 #define BPNODE_CHILD_EXIT_NOTIF_NAME        "BPNODE_CHLDEXIT"
+#define BPNODE_CHILD_STOR_NOTIF_NAME        "BPNODE_CHLDSTOR"
 #define BPNODE_CHILD_INIT_WAIT_MSEC         (2000u)
 #define BPNODE_CHILD_EXIT_WAIT_MSEC         (2000u)
 
@@ -97,7 +98,8 @@ typedef struct
     BPNode_Notif_t         ChildStartWorkNotif;                      /** \brief Shared notification for starting child task work */
     BPNode_Notif_t         ChildTaskInitNotif;                       /** \brief Shared notification for verifying child task initialization */
     BPNode_Notif_t         ChildTaskExitNotif;                       /** \brief Shared notification for verifying child task shutdown */
-
+    BPNode_Notif_t         ChildTaskCleanStorNotif;                  /** \brief Shared notification for cleaning storage */
+    
     /* BPLib Instance State */
     BPLib_Instance_t            BplibInst;
     uint8                       pool_mem[BPNODE_MEM_POOL_LEN];
