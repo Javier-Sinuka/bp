@@ -437,14 +437,14 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             break;
 
         case BPNODE_PERFORM_SELF_TEST_CC:
-            if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_CleanStorageCmd_t)))
+            if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_PerformSelfTestCmd_t)))
             {
                 BPLib_NC_PerformSelfTest();
             }
             break;
 
         case BPNODE_CLEAN_STORAGE_CC:
-            if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_PerformSelfTestCmd_t)))
+            if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_CleanStorageCmd_t)))
             {
                 /* Flag maintenance task to perform storage cleanup operation */
                 BPNode_NotifSet(&(BPNode_AppData.ChildTaskCleanStorNotif));

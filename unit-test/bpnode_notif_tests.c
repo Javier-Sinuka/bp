@@ -72,6 +72,23 @@ void Test_BPNode_NotifSet_Null(void)
     UtAssert_STUB_COUNT(OS_CondVarLock, 0);
 } 
 
+/* Test BPNode_NotifUnset unsets the internal flag */
+void Test_BPNode_NotifUnset_Nominal(void)
+{
+    BPNode_NotifSet(&BPNode_AppData.ChildStartWorkNotif);
+    UtAssert_UINT32_EQ(BPNode_AppData.ChildStartWorkNotif.Count, 1);
+    BPNode_NotifUnset(&BPNode_AppData.ChildStartWorkNotif);
+    UtAssert_UINT32_EQ(BPNode_AppData.ChildStartWorkNotif.Count, 0);
+} 
+
+/* Test BPNode_NotifUnset when null is passed in */
+void Test_BPNode_NotifUnset_Null(void)
+{
+    BPNode_NotifUnset(NULL);
+
+    UtAssert_STUB_COUNT(OS_CondVarLock, 0);
+} 
+
 /* Test BPNode_NotifGetCount returns the right value */
 void Test_BPNode_NotifGetCount_Nominal(void)
 {
@@ -217,6 +234,9 @@ void UtTest_Setup(void)
 
     ADD_TEST(Test_BPNode_NotifSet_Nominal);
     ADD_TEST(Test_BPNode_NotifSet_Null);
+
+    ADD_TEST(Test_BPNode_NotifUnset_Nominal);
+    ADD_TEST(Test_BPNode_NotifUnset_Null);
 
     ADD_TEST(Test_BPNode_NotifGetCount_Nominal);
     ADD_TEST(Test_BPNode_NotifGetCount_Null);
