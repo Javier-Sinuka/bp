@@ -68,7 +68,7 @@ CFE_PSP_MODULE_DECLARE_IODEVICEDRIVER(udpsock_intf);
 ** Macro Definitions
 */
 
-#define UDPSOCK_MAX_INTERFACE_DEVS 2 /* For now */
+#define UDPSOCK_MAX_INTERFACE_DEVS 6 /* NOTE: For BPNode, this should match BPLIB_MAX_NUM_CONTACTS * 2 */
 
 #define UDPSOCK_INTF_DEBUG      /* Turn debug prints on for now */
 

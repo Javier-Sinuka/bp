@@ -80,4 +80,14 @@
  */
 #define BPNODE_EID_SERVICE_NUM_FOR_CONTACT_1 42
 
+/**
+ * \brief Default EID Node Number to egress bundles to contact 2
+ */
+#define BPNODE_EID_NODE_NUM_FOR_CONTACT_2 600
+
+/**
+ * \brief Default EID Service Number to egress bundles to contact 2
+ */
+#define BPNODE_EID_SERVICE_NUM_FOR_CONTACT_2 12
+
 #endif /* BPNODE_MISSION_CFG_H */
