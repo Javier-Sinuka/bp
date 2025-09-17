@@ -160,7 +160,8 @@ int32 udpsock_intf_OpenPort(udpsock_intf_State_t *State, uint32 Instance)
     }
     else if (State->ConfigDir == CFE_PSP_IODriver_Direction_INPUT_ONLY)
     {
-        OS_printf("%s(): Opening input side: %s\n", __func__, inet_ntoa(State->LocalAddr.sin_addr));
+        OS_printf("%s(): Opening input side: %s:%d\n", __func__, 
+                            inet_ntoa(State->LocalAddr.sin_addr), ntohs(State->LocalAddr.sin_port));
 
         if (bind(PendingFd, (struct sockaddr *)&State->LocalAddr, sizeof(State->LocalAddr)) < 0)
         {
@@ -173,7 +174,8 @@ int32 udpsock_intf_OpenPort(udpsock_intf_State_t *State, uint32 Instance)
     }
     else
     {
-        OS_printf("%s(): Opening output side: %s\n", __func__, inet_ntoa(State->LocalAddr.sin_addr));
+        OS_printf("%s(): Opening output side: %s:%d\n", __func__, 
+                        inet_ntoa(State->LocalAddr.sin_addr), ntohs(State->LocalAddr.sin_port));
         Result = CFE_PSP_SUCCESS;
     }
 
