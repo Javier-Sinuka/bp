@@ -56,8 +56,8 @@
  *         There is an In and an Out task for each contact and for each channel, one task
  *         per generic worker, and one maintenance task.
  */
-#define BPNODE_TOTAL_NUM_CHILD_TASKS      ((BPLIB_MAX_NUM_CHANNELS * 2) + 
-                                           (BPLIB_MAX_NUM_CONTACTS * 2) + 
+#define BPNODE_TOTAL_NUM_CHILD_TASKS      ((BPLIB_MAX_NUM_CHANNELS * 2) + \
+                                           (BPLIB_MAX_NUM_CONTACTS * 2) + \
                                             BPNODE_NUM_GEN_WRKR_TASKS + 1)
 
 /** 
