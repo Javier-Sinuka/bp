@@ -40,7 +40,7 @@ CFE_Status_t BPNode_MaintCreateTask(void)
     CFE_Status_t Status = CFE_SUCCESS;
 
     /* Set up task data for the child task */
-    BPNode_AppData.MaintData.TaskData.TaskId = 0;   /* Only one maintenace task */
+    BPNode_AppData.MaintData.TaskData.TaskId = 0;   /* Only one maintenace task, this is really just a dummy variable */
     BPNode_AppData.MaintData.TaskData.PerfId = BPNODE_MAINT_PERF_ID;
     BPNode_AppData.MaintData.TaskData.InitEid = BPNODE_MAINT_INIT_INF_EID;
     BPNode_AppData.MaintData.TaskData.NotifErrEid = BPNODE_MAINT_NOTIF_ERR_EID;

@@ -155,7 +155,6 @@ CFE_Status_t BPNode_AppInit(void)
     int32          OsStatus;
     uint8          i;
     CFE_SB_Qos_t   PipeQOS = {0, 0};
-    uint32         NumChildTasks;
 
     BPLib_FWP_ProxyCallbacks_t Callbacks = {
         /* Time Proxy */
@@ -361,18 +360,15 @@ CFE_Status_t BPNode_AppInit(void)
         /* Event message handled in task creation function */
         return Status;
     }
-
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + 
-                    (BPLIB_MAX_NUM_CONTACTS * 2) + 
-                    BPNODE_NUM_GEN_WRKR_TASKS + 1;
-    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
+    
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, BPNODE_TOTAL_NUM_CHILD_TASKS,
                                          BPNODE_CHILD_INIT_WAIT_MSEC);
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Only %d child tasks detected, expected %d. Error = %d.", 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskInitNotif),
-                            NumChildTasks, OsStatus);
+                            BPNODE_TOTAL_NUM_CHILD_TASKS, OsStatus);
 
         return OsStatus;
     }
@@ -438,7 +434,6 @@ void BPNode_AppExit(void)
     uint32 ChanId;
     uint32 ContactId;
     uint32 WorkerId;
-    uint32 NumChildTasks;
     int32  OsStatus;
 
     BPLib_EM_SendEvent(BPNODE_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,
@@ -484,20 +479,17 @@ void BPNode_AppExit(void)
     BPNode_AppData.MaintData.TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
 
     /* Verify that all child tasks have shut down */
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + 
-                    (BPLIB_MAX_NUM_CONTACTS * 2) + 
-                    BPNODE_NUM_GEN_WRKR_TASKS + 1;
     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, BPNODE_TOTAL_NUM_CHILD_TASKS,
                                          BPNODE_CHILD_EXIT_WAIT_MSEC);
     BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_EXIT_NOTIF_CRT_EID, BPLib_EM_EventType_CRITICAL,
                             "Only %d child tasks have exited, expected %d. Error = %d.", 
-                            NumChildTasks, 
+                            BPNODE_TOTAL_NUM_CHILD_TASKS, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
-                            NumChildTasks, 
+                            BPNODE_TOTAL_NUM_CHILD_TASKS, 
                             OsStatus);
     }
 
