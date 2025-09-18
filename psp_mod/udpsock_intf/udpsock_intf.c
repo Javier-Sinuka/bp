@@ -149,6 +149,7 @@ int32 udpsock_intf_OpenPort(udpsock_intf_State_t *State, uint32 Instance)
 {
     int32 Result = CFE_PSP_ERROR;
     int PendingFd;
+    int SockOptVal = 1;
 
     State->LocalAddr.sin_family = AF_INET;
 
@@ -158,25 +159,32 @@ int32 udpsock_intf_OpenPort(udpsock_intf_State_t *State, uint32 Instance)
     {
         perror("udpsock_intf_OpenPort: socket()");
     }
-    else if (State->ConfigDir == CFE_PSP_IODriver_Direction_INPUT_ONLY)
+    else
     {
-        OS_printf("%s(): Opening input side: %s:%d\n", __func__, 
-                            inet_ntoa(State->LocalAddr.sin_addr), ntohs(State->LocalAddr.sin_port));
-
-        if (bind(PendingFd, (struct sockaddr *)&State->LocalAddr, sizeof(State->LocalAddr)) < 0)
+        if (setsockopt(PendingFd, SOL_SOCKET, SO_REUSEADDR, &SockOptVal, sizeof(SockOptVal)) < 0)
         {
-            perror("udpsock_intf_OpenPort: bind()");
+            perror("udpsock_intf_OpenPort: Failed to set socket option");
+        }
+        else if (State->ConfigDir == CFE_PSP_IODriver_Direction_INPUT_ONLY)
+        {
+            OS_printf("%s(): Opening input side: %s:%d\n", __func__, 
+                                inet_ntoa(State->LocalAddr.sin_addr), ntohs(State->LocalAddr.sin_port));
+
+            if (bind(PendingFd, (struct sockaddr *)&State->LocalAddr, sizeof(State->LocalAddr)) < 0)
+            {
+                perror("udpsock_intf_OpenPort: bind()");
+            }
+            else
+            {
+                Result = CFE_PSP_SUCCESS;
+            }
         }
         else
         {
+            OS_printf("%s(): Opening output side: %s:%d\n", __func__, 
+                            inet_ntoa(State->LocalAddr.sin_addr), ntohs(State->LocalAddr.sin_port));
             Result = CFE_PSP_SUCCESS;
         }
-    }
-    else
-    {
-        OS_printf("%s(): Opening output side: %s:%d\n", __func__, 
-                        inet_ntoa(State->LocalAddr.sin_addr), ntohs(State->LocalAddr.sin_port));
-        Result = CFE_PSP_SUCCESS;
     }
 
     /* Error handing for opening either master or slave pseudo-terminal */
