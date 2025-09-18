@@ -53,7 +53,8 @@ void Test_BPNode_AduInCreateTasks_TaskCrErr(void)
 
     /* Verify event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_CREATE_ERR_EID, "[ADU In #%d]: Failed to create child task. Error = %d.");
+    BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_CREATE_ERR_EID, 
+                                "Failed to create ADU In #%d child task. Error = 0x%08X.");
 
     UtAssert_STUB_COUNT(CFE_ES_CreateChildTask, 1);
 }

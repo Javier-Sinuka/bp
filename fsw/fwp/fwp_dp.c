@@ -34,8 +34,6 @@
 #include "bpnode_msgids.h"
 #include "bpnode_msg.h"
 
-#include "bplib_nc_directives.h"
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -442,6 +440,14 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_PerformSelfTestCmd_t)))
             {
                 BPLib_NC_PerformSelfTest();
+            }
+            break;
+
+        case BPNODE_CLEAN_STORAGE_CC:
+            if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_CleanStorageCmd_t)))
+            {
+                /* Flag maintenance task to perform storage cleanup operation */
+                BPNode_NotifSet(&(BPNode_AppData.ChildTaskCleanStorNotif));
             }
             break;
 

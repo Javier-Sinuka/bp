@@ -150,7 +150,6 @@ void Test_BPNode_WakeupProcess_CommandRecvd(void)
     UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 2);
     UtAssert_STUB_COUNT(BPA_DP_TaskPipe, 1);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
 }
 
 /* Test wakeup process when storage operations can be skipped */
@@ -165,57 +164,6 @@ void Test_BPNode_WakeupProcess_NoStorOps(void)
     UtAssert_STUB_COUNT(BPA_DP_TaskPipe, 0);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
     UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 0);
-}
-
-/* Test wakeup process calls STOR GarbageCollect and FlushPending */
-void Test_BPNode_WakeupProcess_STORNominal(void)
-{
-    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);
-
-    UtAssert_INT32_EQ(BPNode_WakeupProcess(), CFE_SUCCESS);
-
-    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
-    UtAssert_STUB_COUNT(BPLib_STOR_GarbageCollect, 1);
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-}
-
-void Test_BPNode_WakeupProcess_STORFail(void)
-{
-    int64 TimeNow = 123450000;
-    UT_SetDataBuffer(UT_KEY(CFE_PSP_GetTime), (OS_time_t *) &TimeNow, 
-                                                            sizeof(TimeNow), false);
-    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);
-
-    /* return a storage error from FlushPending */
-    UT_SetDeferredRetcode(UT_KEY(BPLib_STOR_FlushPending), 1, BPLIB_STOR_SQL_STORAGE_ERR);
-
-    UtAssert_INT32_EQ(BPNode_WakeupProcess(), CFE_SUCCESS);
-
-    /* Flush and GarbageCollect should still be called */
-    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
-    UtAssert_STUB_COUNT(BPLib_STOR_GarbageCollect, 1);
-}
-
-/* Test wakeup process after failing Time maintenance activities */
-void Test_BPNode_WakeupProcess_FailTimeMaint(void)
-{
-    int64 TimeNow = 123450000;
-    UT_SetDataBuffer(UT_KEY(CFE_PSP_GetTime), (OS_time_t *) &TimeNow, 
-                                                            sizeof(TimeNow), false);
-
-    /* Fail Time activities */
-    UT_SetDeferredRetcode(UT_KEY(BPLib_TIME_MaintenanceActivities), 1, BPLIB_TIME_WRITE_ERROR);
-    UT_SetDeferredRetcode(UT_KEY(CFE_SB_ReceiveBuffer), 1, CFE_SB_NO_MESSAGE);
-
-    UtAssert_INT32_EQ(BPNode_WakeupProcess(), CFE_SUCCESS);
-
-    UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 1);
-    UtAssert_STUB_COUNT(BPA_DP_TaskPipe, 0);
-    UtAssert_STUB_COUNT(BPLib_TIME_MaintenanceActivities, 1);
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_TIME_WKP_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Error doing time maintenance activities, RC = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 /* Test wakeup process after failing NC Update */
@@ -461,6 +409,14 @@ void Test_BPNode_AppInit_FailedAduOutTasks(void)
     UtAssert_INT32_EQ(BPNode_AppInit(), CFE_ES_ERR_CHILD_TASK_CREATE);
 }
 
+/* Test app initialization after failure to create maintenance task */
+void Test_BPNode_AppInit_FailedMaintTask(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_MaintCreateTask), 1, CFE_ES_ERR_CHILD_TASK_CREATE);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), CFE_ES_ERR_CHILD_TASK_CREATE);
+}
+
 /* Test adding one application automatically at startup */
 void Test_BPNode_AppInit_AutoAddApp(void)
 {
@@ -537,7 +493,7 @@ void Test_BPNode_AppInit_WorkNotifErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_WORK_NOTIF_ERR_EID, 
-                                "Error creating child task start work notification, RC = 0x%08lX");
+                                "Error creating child task start work notification, RC = %d");
 }
 
 void Test_BPNode_AppInit_InitNotifErr(void)
@@ -547,7 +503,7 @@ void Test_BPNode_AppInit_InitNotifErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_INIT_NOTIF_ERR_EID, 
-                                "Error creating child task init notification, RC = 0x%08lX");
+                                "Error creating child task init notification, RC = %d");
 }
 
 void Test_BPNode_AppInit_ExitNotifErr(void)
@@ -558,7 +514,19 @@ void Test_BPNode_AppInit_ExitNotifErr(void)
 
     UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
     BPNode_Test_Verify_Event(0, BPNODE_INIT_EXIT_NOTIF_ERR_EID, 
-                                "Error creating child task exit notification, RC = 0x%08lX");
+                                "Error creating child task exit notification, RC = %d");
+}
+
+void Test_BPNode_AppInit_StorNotifErr(void)
+{
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifInit), 1, OS_ERROR);
+
+    UtAssert_INT32_EQ(BPNode_AppInit(), OS_ERROR);
+    BPNode_Test_Verify_Event(0, BPNODE_INIT_STOR_NOTIF_ERR_EID, 
+                                "Error creating child task storage notification, RC = %d");
 }
 
 void Test_BPNode_AppInit_NotifWaitErr(void)
@@ -624,9 +592,6 @@ void UtTest_Setup(void)
 
     ADD_TEST(Test_BPNode_WakeupProcess_CommandRecvd);
     ADD_TEST(Test_BPNode_WakeupProcess_NoStorOps);
-    ADD_TEST(Test_BPNode_WakeupProcess_STORNominal);
-    ADD_TEST(Test_BPNode_WakeupProcess_STORFail);
-    ADD_TEST(Test_BPNode_WakeupProcess_FailTimeMaint);
     ADD_TEST(Test_BPNode_WakeupProcess_FailNCUpdate);
     ADD_TEST(Test_BPNode_WakeupProcess_NullBuf);
     ADD_TEST(Test_BPNode_WakeupProcess_RecvErr);
@@ -644,6 +609,7 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppInit_FailedWakeupSub);
     ADD_TEST(Test_BPNode_AppInit_FailedAduInTasks);
     ADD_TEST(Test_BPNode_AppInit_FailedAduOutTasks);
+    ADD_TEST(Test_BPNode_AppInit_FailedMaintTask);
     ADD_TEST(Test_BPNode_AppInit_AutoAddApp);
     ADD_TEST(Test_BPNode_AppInit_AutoAddAppFail);
     ADD_TEST(Test_BPNode_AppInit_FailedClaIn);
@@ -654,7 +620,8 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AppInit_InitNotifErr);
     ADD_TEST(Test_BPNode_AppInit_ExitNotifErr);
     ADD_TEST(Test_BPNode_AppInit_NotifWaitErr);
-
+    ADD_TEST(Test_BPNode_AppInit_StorNotifErr);
+    
     ADD_TEST(Test_BPNode_AppExit_Nominal);
     ADD_TEST(Test_BPNode_AppExit_NotifErr);
 }

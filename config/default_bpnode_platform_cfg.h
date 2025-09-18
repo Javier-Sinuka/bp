@@ -51,6 +51,14 @@
  */
 #define BPNODE_NUM_GEN_WRKR_TASKS         (1)
 
+/**
+ *  \brief Total number of child tasks in BPNode
+ *         There is an In and an Out task for each contact and for each channel, one task
+ *         per generic worker, and one maintenance task.
+ */
+#define BPNODE_TOTAL_NUM_CHILD_TASKS      ((BPLIB_MAX_NUM_CHANNELS * 2) + \
+                                           (BPLIB_MAX_NUM_CONTACTS * 2) + \
+                                            BPNODE_NUM_GEN_WRKR_TASKS + 1)
 
 /** 
  * @defgroup Child task stack sizes
@@ -190,6 +198,10 @@
  */
 #define BPNODE_ADU_IN_PRIORITY_BASE  (BPNODE_ADU_OUT_PRIORITY_BASE + BPLIB_MAX_NUM_CHANNELS)
 
+/**
+ * \brief Maintenance task priority
+ */
+#define BPNODE_MAINTENANCE_PRIORITY (BPNODE_ADU_IN_PRIORITY_BASE + BPLIB_MAX_NUM_CHANNELS)
 
 /** @} */
 

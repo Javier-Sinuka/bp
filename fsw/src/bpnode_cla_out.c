@@ -53,7 +53,8 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void)
         BPNode_AppData.ClaOutData[ContactId].TaskData.TaskInitFunc = BPNode_ClaOut_TaskInit;
         BPNode_AppData.ClaOutData[ContactId].TaskData.TaskMainFunc = BPNode_ClaOut_TaskMain;
         
-        strncpy(BPNode_AppData.ClaOutData[ContactId].TaskData.Type, "CLA Out", OS_MAX_API_NAME);
+        snprintf(BPNode_AppData.ClaOutData[ContactId].TaskData.Name, OS_MAX_API_NAME,
+                            "CLA Out %d", ContactId);
 
         snprintf(NameBuff, OS_MAX_API_NAME, "%s_%d", BPNODE_CLA_OUT_BASE_NAME, ContactId);
         TaskPriority = BPNODE_CLA_OUT_PRIORITY_BASE + ContactId;
@@ -65,7 +66,7 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void)
         if (Status != CFE_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_CLA_OUT_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "Failed to create child task for CLA Out #%d. Error = %d",
+                                "Failed to create child task for CLA Out #%d. Error = 0x%08X.",
                                 ContactId, Status);
             break;
         }

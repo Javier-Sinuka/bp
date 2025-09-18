@@ -63,6 +63,20 @@ void BPNode_NotifSet(BPNode_Notif_t* Notif)
     OS_CondVarUnlock(Notif->CondVar);
 }
 
+/* Set notification by decrementing its count */
+void BPNode_NotifUnset(BPNode_Notif_t* Notif)
+{
+    if (Notif == NULL)
+    {
+        return;
+    }
+
+    OS_CondVarLock(Notif->CondVar);
+    Notif->Count--;
+    OS_CondVarBroadcast(Notif->CondVar);
+    OS_CondVarUnlock(Notif->CondVar);
+}
+
 #ifdef CAPSTONE_BUILD
 /*
  * @brief Gets an absolute time value relative to the current time

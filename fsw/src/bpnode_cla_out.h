@@ -45,7 +45,7 @@
 ** Macro Definitions
 */
 
-#define BPNODE_CLA_OUT_BASE_NAME              "BPNODE.CLA_OUT"       /** \brief Task base name */
+#define BPNODE_CLA_OUT_BASE_NAME              "BPNODE.CLA_TX"       /** \brief Task base name */
 #define BPNODE_CLA_PSP_OUTPUT_BUFFER_SIZE     (BPLIB_MAX_BUNDLE_LEN) /** \brief IODriver output buffer size*/
 
 

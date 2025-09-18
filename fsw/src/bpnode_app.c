@@ -106,15 +106,6 @@ CFE_Status_t BPNode_WakeupProcess(void)
     BPLib_Status_t   BpStatus;
     CFE_SB_Buffer_t *BufPtr = NULL;
 
-    /* Update time as needed */
-    BpStatus = BPLib_TIME_MaintenanceActivities();
-
-    if (BpStatus != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPNODE_TIME_WKP_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error doing time maintenance activities, RC = %d", BpStatus);
-    }
-
     /* Call NC to update configurations */
     BpStatus = BPLib_NC_ConfigUpdate();
     if (BpStatus != BPLIB_SUCCESS && BpStatus != BPLIB_TBL_UPDATED)
@@ -153,20 +144,6 @@ CFE_Status_t BPNode_WakeupProcess(void)
     /* Tell child tasks to start processing */
     BPNode_NotifSet(&BPNode_AppData.ChildStartWorkNotif);
 
-    /* Activities that should only be done once per second */
-    if (BPNode_NotifGetCount(&BPNode_AppData.ChildStartWorkNotif) % BPNODE_MAX_EXP_WAKEUP_RATE == 0)
-    {
-        /* Flush any bundles pending storage - error event issued by bplib */
-        (void) BPLib_STOR_FlushPending(&BPNode_AppData.BplibInst);
-
-        /* Garbage Collect: Ideally, you should do this if nothing is busy. For B 7.0
-        ** Calling it once a second is enough, but this comes with the caveat that removing bundles
-        ** from storage will take several cycles. There may be optimizations that can be done here
-        ** such as detecting system "idle" time and doing a bulk delete then.
-        */
-        BPLib_STOR_GarbageCollect(&BPNode_AppData.BplibInst);
-    }
-
     return Status;
 }
 
@@ -178,7 +155,6 @@ CFE_Status_t BPNode_AppInit(void)
     int32          OsStatus;
     uint8          i;
     CFE_SB_Qos_t   PipeQOS = {0, 0};
-    uint32         NumChildTasks;
 
     BPLib_FWP_ProxyCallbacks_t Callbacks = {
         /* Time Proxy */
@@ -297,8 +273,8 @@ CFE_Status_t BPNode_AppInit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_WORK_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating child task start work notification, RC = 0x%08lX",
-                    (unsigned long)Status);
+                    "Error creating child task start work notification, RC = %d",
+                    OsStatus);
         return OsStatus;
     }
 
@@ -307,8 +283,8 @@ CFE_Status_t BPNode_AppInit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating child task init notification, RC = 0x%08lX",
-                    (unsigned long)Status);
+                    "Error creating child task init notification, RC = %d",
+                    OsStatus);
         return OsStatus;
     }
 
@@ -317,8 +293,18 @@ CFE_Status_t BPNode_AppInit(void)
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_EXIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Error creating child task exit notification, RC = 0x%08lX",
-                    (unsigned long)Status);
+                    "Error creating child task exit notification, RC = %d",
+                    OsStatus);
+        return OsStatus;
+    }
+
+    OsStatus = BPNode_NotifInit(&BPNode_AppData.ChildTaskCleanStorNotif, 
+                                    BPNODE_CHILD_STOR_NOTIF_NAME);
+    if (OsStatus != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_INIT_STOR_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "Error creating child task storage notification, RC = %d",
+                    OsStatus);
         return OsStatus;
     }
 
@@ -367,15 +353,22 @@ CFE_Status_t BPNode_AppInit(void)
         return Status;
     }
 
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
-    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, NumChildTasks,
+    Status = BPNode_MaintCreateTask();
+
+    if (Status != CFE_SUCCESS)
+    {
+        /* Event message handled in task creation function */
+        return Status;
+    }
+    
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, BPNODE_TOTAL_NUM_CHILD_TASKS,
                                          BPNODE_CHILD_INIT_WAIT_MSEC);
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_INIT_NOTIF_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Only %d child tasks detected, expected %d. Error = %d.", 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskInitNotif),
-                            NumChildTasks, OsStatus);
+                            BPNODE_TOTAL_NUM_CHILD_TASKS, OsStatus);
 
         return OsStatus;
     }
@@ -441,7 +434,6 @@ void BPNode_AppExit(void)
     uint32 ChanId;
     uint32 ContactId;
     uint32 WorkerId;
-    uint32 NumChildTasks;
     int32  OsStatus;
 
     BPLib_EM_SendEvent(BPNODE_EXIT_CRIT_EID, BPLib_EM_EventType_CRITICAL,
@@ -483,19 +475,21 @@ void BPNode_AppExit(void)
         BPNode_AppData.GenWorkerData[WorkerId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
 
+    /* Signal to maintenance task to exit */
+    BPNode_AppData.MaintData.TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
+
     /* Verify that all child tasks have shut down */
-    NumChildTasks = (BPLIB_MAX_NUM_CHANNELS * 2) + (BPLIB_MAX_NUM_CONTACTS * 2) + BPNODE_NUM_GEN_WRKR_TASKS;
     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
-    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, NumChildTasks,
+    OsStatus = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskExitNotif, BPNODE_TOTAL_NUM_CHILD_TASKS,
                                          BPNODE_CHILD_EXIT_WAIT_MSEC);
     BPLib_PL_PerfLogEntry(BPNODE_PERF_ID);
     if (OsStatus != OS_SUCCESS)
     {
         BPLib_EM_SendEvent(BPNODE_EXIT_NOTIF_CRT_EID, BPLib_EM_EventType_CRITICAL,
                             "Only %d child tasks have exited, expected %d. Error = %d.", 
-                            NumChildTasks, 
+                            BPNODE_TOTAL_NUM_CHILD_TASKS, 
                             BPNode_NotifGetCount(&BPNode_AppData.ChildTaskExitNotif),
-                            NumChildTasks, 
+                            BPNODE_TOTAL_NUM_CHILD_TASKS, 
                             OsStatus);
     }
 
@@ -503,6 +497,7 @@ void BPNode_AppExit(void)
     BPNode_NotifDestroy(&BPNode_AppData.ChildStartWorkNotif);
     BPNode_NotifDestroy(&BPNode_AppData.ChildTaskInitNotif);
     BPNode_NotifDestroy(&BPNode_AppData.ChildTaskExitNotif);
+    BPNode_NotifDestroy(&BPNode_AppData.ChildTaskCleanStorNotif);
 
     /* Cleanup QM and MEM */
     BPLib_QM_QueueTableDestroy(&BPNode_AppData.BplibInst);

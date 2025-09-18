@@ -53,9 +53,10 @@ CFE_Status_t BPNode_AduInCreateTasks(void)
         BPNode_AppData.AduInData[ChanId].TaskData.ExitEid = BPNODE_ADU_IN_EXIT_CRT_EID;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskInitFunc = BPNode_AduIn_TaskInit;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskMainFunc = BPNode_AduIn_TaskMain;
-        
+
+        snprintf(BPNode_AppData.AduInData[ChanId].TaskData.Name, OS_MAX_API_NAME,
+                         "ADU In %d", ChanId);
         snprintf(Name, OS_MAX_API_NAME, "%s_%d", BPNODE_ADU_IN_BASE_NAME, ChanId);
-        strncpy(BPNode_AppData.AduInData[ChanId].TaskData.Type, "ADU In", OS_MAX_API_NAME);
         
         TaskPriority = BPNODE_ADU_IN_PRIORITY_BASE + ChanId;
 
@@ -66,7 +67,7 @@ CFE_Status_t BPNode_AduInCreateTasks(void)
         if (Status != CFE_SUCCESS)
         {
             BPLib_EM_SendEvent(BPNODE_ADU_IN_CREATE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[ADU In #%d]: Failed to create child task. Error = %d.",
+                            "Failed to create ADU In #%d child task. Error = 0x%08X.",
                             ChanId, Status);
             break;
         }

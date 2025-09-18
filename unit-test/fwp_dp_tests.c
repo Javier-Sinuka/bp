@@ -1567,6 +1567,44 @@ void Test_BPA_DP_ProcessGroundCommand_InvalidPerformSelfTest(void)
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     }
 
+/* Test ground command processing after receiving a valid clean-storage */
+void Test_BPA_DP_ProcessGroundCommand_ValidCleanStor(void)
+{
+    CFE_MSG_FcnCode_t FcnCode = BPNODE_CLEAN_STORAGE_CC;
+    size_t            Size = sizeof(BPNode_CleanStorageCmd_t);
+    CFE_SB_Buffer_t   Buf;
+
+    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetFcnCode), &FcnCode, sizeof(FcnCode), false);
+    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &Size, sizeof(Size), false);
+
+    BPA_DP_ProcessGroundCommand(&Buf);
+
+    UtAssert_STUB_COUNT(BPNode_NotifSet, 1);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+/* Test ground command processing after receiving an invalid clean-storage */
+void Test_BPA_DP_ProcessGroundCommand_InvalidCleanStor(void)
+{
+    CFE_MSG_FcnCode_t FcnCode = BPNODE_CLEAN_STORAGE_CC;
+    size_t            Size = sizeof(BPNode_CleanStorageCmd_t) - 1; /* Invalid length */
+    CFE_SB_MsgId_t    MsgId = CFE_SB_ValueToMsgId(BPNODE_CMD_MID);
+    CFE_SB_Buffer_t   Buf;
+
+    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetFcnCode), &FcnCode, sizeof(FcnCode), false);
+    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &Size, sizeof(Size), false);
+    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetFcnCode), &FcnCode, sizeof(FcnCode), false);
+    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetMsgId), &MsgId, sizeof(MsgId), false);
+
+    BPA_DP_ProcessGroundCommand(&Buf);
+
+    UtAssert_STUB_COUNT(BPNode_NotifSet, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_CMD_LEN_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Invalid Msg length: ID = 0x%X,  CC = %u, Len = %u, Expected = %u", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
 /* Test ground command processing after receiving a valid send-node-mib-config-hk */
 void Test_BPA_DP_ProcessGroundCommand_ValidSendNodeMibConfigHk(void)
 {
@@ -2054,6 +2092,8 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPA_DP_ProcessGroundCommand_InvalidRemoveStorageAllocation);
     ADD_TEST(Test_BPA_DP_ProcessGroundCommand_ValidPerformSelfTest);
     ADD_TEST(Test_BPA_DP_ProcessGroundCommand_InvalidPerformSelfTest);
+    ADD_TEST(Test_BPA_DP_ProcessGroundCommand_ValidCleanStor);
+    ADD_TEST(Test_BPA_DP_ProcessGroundCommand_InvalidCleanStor);
     ADD_TEST(Test_BPA_DP_ProcessGroundCommand_ValidSendNodeMibConfigHk);
     ADD_TEST(Test_BPA_DP_ProcessGroundCommand_InvalidSendNodeMibConfigHk);
     ADD_TEST(Test_BPA_DP_ProcessGroundCommand_InvalidSendNodeMibConfigHk_Error);

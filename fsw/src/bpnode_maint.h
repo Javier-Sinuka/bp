@@ -20,11 +20,11 @@
 
 /**
  * @file
- *   This file contains the function definitions for the Generic Worker Task(s)
+ *   This file contains the function definitions for the Maintenance Task
  */
 
-#ifndef BPNODE_GEN_WORKER_H
-#define BPNODE_GEN_WORKER_H
+#ifndef BPNODE_MAINT_H
+#define BPNODE_MAINT_H
 
 /*
 ** Include Files
@@ -37,20 +37,20 @@
 ** Macro Definitions
 */
 
-#define BPNODE_GEN_WRKR_BASE_NAME            "BPNODE.WRKR"  /** \brief Task base name */
+#define BPNODE_MAINT_BASE_NAME            "BPNODE.MAINT"  /** \brief Task base name */
 
 /*
 ** Type Definitions
 */
 
 /**
-** \brief Generic Worker Task Data
+** \brief Maintenance Task Data
 */
 typedef struct
 {
-    BPNode_TaskData_t TaskData;
-    int32             BPLibWorkerId;
-} BPNode_GenWorkerData_t;
+    BPNode_TaskData_t TaskData;         /** \brief Task data */
+    bool              CleanStor;        /** \brief Flag for whether to clean storage */
+} BPNode_MaintData_t;
 
 
 /*
@@ -58,49 +58,47 @@ typedef struct
 */
 
 /**
- * \brief Create Generic Worker Task(s)
+ * \brief Create Maintenance Task(s)
  *
  *  \par Description
- *       Initialize the task data and spawn all generic worker child task(s)
+ *       Initialize the task data and spawn the maintenance task
  *
  *  \par Assumptions, External Events, and Notes:
  *       - Note: This is the only function in this file called by the main task, all other
- *         functions are called by the child task(s)
+ *         functions are called by the child task
  *
  *  \return Validation status
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-CFE_Status_t BPNode_GenWorkerCreateTasks(void);
+CFE_Status_t BPNode_MaintCreateTask(void);
 
 /**
- * \brief Initialize provided Generic Worker task
+ * \brief Initialize provided Maintenance task
  *
  *  \par Description
- *       Initialize provided Generic Worker task. This function is called as a 
+ *       Initialize provided Maintenance task. This function is called as a 
  *       function pointer from BPNode_TaskInit
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
- *  \param[in] WorkerId Pointer to worker ID to set
- *
  *  \return Validation status
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-CFE_Status_t BPNode_GenWorker_TaskInit(uint32 WorkerId);
+CFE_Status_t BPNode_Maint_TaskInit(uint32 TaskId);
 
 /**
- * \brief Generic Worker Main Task
+ * \brief Maintenance Main Task
  *
  *  \par Description
- *       Generic Worker main task operations. This function is called as a function 
+ *       Maintenance main task operations. This function is called as a function 
  *       pointer from BPNode_TaskMain
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  */
-void BPNode_GenWorker_TaskMain(uint32 WorkerId);
+void BPNode_Maint_TaskMain(uint32 TaskId);
 
-#endif /* BPNODE_GEN_WORKER_H */
+#endif /* BPNODE_MAINT_H */

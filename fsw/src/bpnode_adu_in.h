@@ -38,7 +38,7 @@
 ** Macro Definitions
 */
 
-#define BPNODE_ADU_IN_BASE_NAME            "BPNODE.ADU_IN"   /** \brief Task base name */
+#define BPNODE_ADU_IN_BASE_NAME            "BPNODE.ADU_RX"   /** \brief Task base name */
 #define BPNODE_ADU_IN_PIPE_BASE_NAME       "BPNODE_ADU_PIPE" /** \brief ADU pipe base name */
 #define BPNODE_ADU_PIPE_DEPTH              (32u)             /** \brief ADU pipe depth */
 
