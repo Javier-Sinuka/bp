@@ -53,18 +53,18 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                         .MinService   = 2
                     }
                 },
-                .CLAType             = BPLib_UDP_CLA, /*CLA Type, BPLib_CLA_Type_t */
+                .CLAType             = BPLib_UDP_CLA,
                 .ClaInAddr           = "0.0.0.0",
-                .ClaOutAddr          = "127.0.0.1",   /* CL ip address */
-                .ClaInPort           = 4501,          /* Port Number, int32 */
+                .ClaOutAddr          = "127.0.0.1",
+                .ClaInPort           = 4501,         
                 .ClaOutPort          = 4551,
-                .RetransmitTimeout   = 102,           /* Bundle reforwarding timeout in seconds, uint32 */
-                .CSTimeTrigger       = 103,           /* Custody Signal time trigger in seconds, uint32 */
-                .CSSizeTrigger       = 10,            /* Custody signal size trigger in bytes, size_t */
+                .RetransmitTimeout   = 102,           
+                .CSTimeTrigger       = 103,           
+                .CSSizeTrigger       = 10,            
                 .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
                 .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
             },
-            { /* SB CLA contact */
+            {
                 .DestEIDs = {
                     {
                         .Scheme       = BPLIB_EID_SCHEME_IPN,
@@ -87,6 +87,30 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .CSSizeTrigger          = 0,
                 .IngressBitsPerCycle    = 20000000, /* Ingress rate, 20 Mb per cycle */
                 .EgressBitsPerCycle     = 20000000  /* Egress rate, 20 Mb per cycle */
+            },
+            {
+                .DestEIDs = {
+                    {
+                        .Scheme       = BPLIB_EID_SCHEME_IPN,
+                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                        .MaxAllocator = 0,
+                        .MinAllocator = 0,
+                        .MaxNode      = BPNODE_EID_NODE_NUM_FOR_CONTACT_2,
+                        .MinNode      = BPNODE_EID_NODE_NUM_FOR_CONTACT_2,
+                        .MaxService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_2,
+                        .MinService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_2
+                    }
+                },
+                .CLAType             = BPLib_UDP_CLA,
+                .ClaInAddr           = "0.0.0.0",
+                .ClaOutAddr          = "127.0.0.1", 
+                .ClaInPort           = 4502, 
+                .ClaOutPort          = 4552,
+                .RetransmitTimeout   = 102,          
+                .CSTimeTrigger       = 103,           
+                .CSSizeTrigger       = 10,            
+                .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
+                .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
             }
         }
 };
