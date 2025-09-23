@@ -55,7 +55,6 @@ typedef struct
     CFE_SB_PipeId_t   AduPipe;
     bool              ClearPipe;
     bool              AduUnwrapping;
-    uint32            MaxBundlePayloadSize;
     uint32            NumRecvFromMsgIds;
     CFE_SB_MsgId_t    RecvFromMsgIds[BPNODE_MAX_CHAN_SUBSCRIPTION];
     uint32            MsgLims[BPNODE_MAX_CHAN_SUBSCRIPTION];

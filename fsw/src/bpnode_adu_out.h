@@ -32,6 +32,7 @@
 
 #include "cfe.h"
 #include "bpnode_task.h"
+#include "bplib.h"
 
 /*
 ** Macro Definitions
