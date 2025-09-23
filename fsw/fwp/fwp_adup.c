@@ -74,33 +74,18 @@ CFE_Status_t BPA_ADUP_ValidateConfigTbl(void *TblData)
 /* Ingest an ADU */
 BPLib_Status_t BPA_ADUP_In(void *AduPtr, uint32_t ChanId, size_t *AduSize)
 {
-    BPLib_Status_t  Status = BPLIB_SUCCESS;
-    CFE_SB_Buffer_t *Buf   = (CFE_SB_Buffer_t *) AduPtr;
+    CFE_SB_Buffer_t *Buf = (CFE_SB_Buffer_t *) AduPtr;
 
     CFE_MSG_GetSize(&Buf->Msg, AduSize);
 
-    /* Validate ADU is an acceptable size */
-    if (*AduSize <= BPNode_AppData.AduInData[ChanId].MaxBundlePayloadSize)
+    /* Remove header from ADU */
+    if (BPNode_AppData.AduInData[ChanId].AduUnwrapping == true)
     {
-        /* Remove header from ADU */
-        if (BPNode_AppData.AduInData[ChanId].AduUnwrapping == true)
-        {
-            /* TODO remove header */
-        }
-
-        /* Pass ADU to PI */
-        Status = BPLib_PI_Ingress(&BPNode_AppData.BplibInst, ChanId, AduPtr, *AduSize);
-    }
-    else
-    {
-        Status = BPLIB_ERROR;
-
-        BPLib_EM_SendEvent(BPNODE_ADU_IN_TOO_BIG_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[ADU In #%d]: Received an ADU too big to ingest, Size=%ld, MaxBundlePayloadSize=%d",
-                            ChanId, *AduSize, BPNode_AppData.AduInData[ChanId].MaxBundlePayloadSize);
+        /* TODO remove header */
     }
 
-    return Status;
+    /* Pass ADU to PI */
+    return BPLib_PI_Ingress(&BPNode_AppData.BplibInst, ChanId, AduPtr, *AduSize);
 }
 
 /* Send out an ADU */
@@ -111,7 +96,7 @@ BPLib_Status_t BPA_ADUP_Out(uint32_t ChanId, uint32_t Timeout, size_t *AduSize)
     /* Get an ADU from PI */
     Status = BPLib_PI_Egress(&BPNode_AppData.BplibInst, ChanId,
                             (void *) &BPNode_AppData.AduOutData[ChanId].OutBuf.Payload,
-                            AduSize, BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES, Timeout);
+                            AduSize, BPLIB_MAX_PAYLOAD_SIZE, Timeout);
 
     if (Status == BPLIB_SUCCESS)
     {
