@@ -38,9 +38,9 @@
 ** Macro Definitions
 */
 
-#define BPNODE_ADU_IN_BASE_NAME            "BPNODE.ADU_RX"   /** \brief Task base name */
-#define BPNODE_ADU_IN_PIPE_BASE_NAME       "BPNODE_ADU_PIPE" /** \brief ADU pipe base name */
-#define BPNODE_ADU_PIPE_DEPTH              (32u)             /** \brief ADU pipe depth */
+#define BPNODE_ADU_IN_BASE_NAME            "BPNODE.ADU_RX"      /** \brief Task base name */
+#define BPNODE_ADU_IN_PIPE_BASE_NAME       "BPNODE_ADU_PIPE"    /** \brief ADU pipe base name */
+#define BPNODE_ADU_PIPE_DEPTH              (OS_QUEUE_MAX_DEPTH) /** \brief ADU pipe depth */
 
 /*
 ** Type Definitions
@@ -55,7 +55,6 @@ typedef struct
     CFE_SB_PipeId_t   AduPipe;
     bool              ClearPipe;
     bool              AduUnwrapping;
-    uint32            MaxBundlePayloadSize;
     uint32            NumRecvFromMsgIds;
     CFE_SB_MsgId_t    RecvFromMsgIds[BPNODE_MAX_CHAN_SUBSCRIPTION];
     uint32            MsgLims[BPNODE_MAX_CHAN_SUBSCRIPTION];
