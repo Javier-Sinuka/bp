@@ -458,7 +458,7 @@ void Test_BPNode_ClaIn_TaskMain_MaxLimit(void)
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_IODriver_Command), BPLIB_SUCCESS);
 
     /* Rate limit will be reached by two bundles of max default size */
-    BPNode_AppData.ClaInData[ContactId].RateLimit = 8192 * 2 * 8;
+    BPNode_AppData.ClaInData[ContactId].RateLimit = BPLIB_MAX_BUNDLE_LEN * 2 * 8;
 
     UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
 

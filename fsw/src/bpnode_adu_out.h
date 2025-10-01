@@ -32,13 +32,13 @@
 
 #include "cfe.h"
 #include "bpnode_task.h"
+#include "bplib.h"
 
 /*
 ** Macro Definitions
 */
 
 #define BPNODE_ADU_OUT_BASE_NAME            "BPNODE.ADU_TX" /** \brief Task base name */
-#define BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES    (1048u)
 
 
 /*
@@ -51,7 +51,7 @@
 typedef struct 
 {
     CFE_MSG_TelemetryHeader_t TelemetryHeader;
-    uint8 Payload[BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES];
+    uint8 Payload[BPLIB_MAX_PAYLOAD_SIZE];
 } BPNode_AduOutBuf_t;
 
 
