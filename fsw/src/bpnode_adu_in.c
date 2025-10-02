@@ -46,13 +46,14 @@ CFE_Status_t BPNode_AduInCreateTasks(void)
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
         /* Set up task data for the child task */
-        BPNode_AppData.AduInData[ChanId].TaskData.TaskId = ChanId;
-        BPNode_AppData.AduInData[ChanId].TaskData.PerfId = BPNODE_ADU_IN_PERF_ID_BASE + ChanId;
-        BPNode_AppData.AduInData[ChanId].TaskData.InitEid = BPNODE_ADU_IN_INIT_INF_EID;
-        BPNode_AppData.AduInData[ChanId].TaskData.NotifErrEid = BPNODE_ADU_IN_NOTIF_ERR_EID;
-        BPNode_AppData.AduInData[ChanId].TaskData.ExitEid = BPNODE_ADU_IN_EXIT_CRT_EID;
+        BPNode_AppData.AduInData[ChanId].TaskData.TaskId       = ChanId;
+        BPNode_AppData.AduInData[ChanId].TaskData.PerfId       = BPNODE_ADU_IN_PERF_ID_BASE + ChanId;
+        BPNode_AppData.AduInData[ChanId].TaskData.InitEid      = BPNODE_ADU_IN_INIT_INF_EID;
+        BPNode_AppData.AduInData[ChanId].TaskData.NotifErrEid  = BPNODE_ADU_IN_NOTIF_ERR_EID;
+        BPNode_AppData.AduInData[ChanId].TaskData.ExitEid      = BPNODE_ADU_IN_EXIT_CRT_EID;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskInitFunc = BPNode_AduIn_TaskInit;
         BPNode_AppData.AduInData[ChanId].TaskData.TaskMainFunc = BPNode_AduIn_TaskMain;
+        BPNode_AppData.AduInData[ChanId].BitsIngressed         = 0;
 
         snprintf(BPNode_AppData.AduInData[ChanId].TaskData.Name, OS_MAX_API_NAME,
                          "ADU In %d", ChanId);
@@ -111,7 +112,6 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
     CFE_Status_t Status = CFE_SUCCESS;
     CFE_SB_Buffer_t *BufPtr = NULL;
     size_t AduSize;
-    size_t BytesIngressed;
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
@@ -123,10 +123,10 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
     /* Check if channel is started */
     else if (BPLib_NC_GetAppState(ChanId) == BPLIB_NC_APP_STATE_STARTED)
     {
-        BytesIngressed = 0;
-
         /* Check for ADUs to ingest */
-        do
+        while (Status == CFE_SUCCESS &&
+                (BPNode_AppData.AduInData[ChanId].BitsIngressed <
+                BPNode_AppData.AduInData[ChanId].RateLimit))
         {
             BPLib_PL_PerfLogExit(BPNode_AppData.AduInData[ChanId].TaskData.PerfId);
 
@@ -142,10 +142,18 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
                 (void) BPA_ADUP_In((void *) BufPtr, ChanId, &AduSize);
 
                 /* Even if bplib rejects the ADU, this ADU's size gets counted */
-                BytesIngressed += AduSize;
+                BPNode_AppData.AduInData[ChanId].BitsIngressed += (AduSize * BPNODE_BITS_PER_BYTE);
             }
-        } while (Status == CFE_SUCCESS && ((BytesIngressed * BPNODE_BITS_PER_BYTE) < 
-                    BPNode_AppData.AduInData[ChanId].RateLimit));
+        }
+
+        if (BPNode_AppData.AduInData[ChanId].BitsIngressed < BPNode_AppData.AduInData[ChanId].RateLimit)
+        {
+            BPNode_AppData.AduInData[ChanId].BitsIngressed = 0;
+        }
+        else
+        {
+            BPNode_AppData.AduInData[ChanId].BitsIngressed -= BPNode_AppData.AduInData[ChanId].RateLimit;
+        }
     }
     else
     {
