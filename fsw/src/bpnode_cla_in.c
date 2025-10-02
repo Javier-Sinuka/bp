@@ -145,7 +145,6 @@ CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId)
 void BPNode_ClaIn_TaskMain(uint32 ContactId)
 {
     BPLib_Status_t              Status;
-    size_t                      BytesIngressed;
     BPLib_CLA_ContactRunState_t RunState;
     size_t                      BundleSize = 0;
     CFE_SB_Buffer_t            *BufPtr = NULL;

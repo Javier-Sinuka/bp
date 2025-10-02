@@ -105,7 +105,6 @@ void BPNode_AduOut_TaskMain(uint32 ChanId)
 {
     BPLib_Status_t BpStatus = BPLIB_SUCCESS;
     size_t AduSize;
-    size_t BytesEgressed;
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)

@@ -135,7 +135,6 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
     size_t                      BundleSize = 0;
-    size_t                      BytesEgressed;
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
