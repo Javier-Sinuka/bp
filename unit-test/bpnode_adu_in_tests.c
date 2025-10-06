@@ -99,8 +99,8 @@ void Test_BPNode_AduIn_TaskInit_PipeErr(void)
 }
 
 
-/* Test BPNode_AduIn_AppMain when app state is started and one ADU is received */
-void Test_BPNode_AduIn_AppMain_Nominal(void)
+/* Test BPNode_AduIn_TaskMain when app state is started and one ADU is received */
+void Test_BPNode_AduIn_TaskMain_Nominal(void)
 {
     CFE_SB_Buffer_t  Buf;
     CFE_SB_Buffer_t *BufPtr = &Buf;
@@ -123,8 +123,8 @@ void Test_BPNode_AduIn_AppMain_Nominal(void)
 }
 
 
-/* Test BPNode_AduIn_AppMain when app state is started and max ADU rate is received */
-void Test_BPNode_AduIn_AppMain_MaxAdus(void)
+/* Test BPNode_AduIn_TaskMain when app state is started and max ADU rate is received */
+void Test_BPNode_AduIn_TaskMain_MaxAdus(void)
 {
     CFE_SB_Buffer_t  Buf;
     CFE_SB_Buffer_t *BufPtr = &Buf;
@@ -153,21 +153,8 @@ void Test_BPNode_AduIn_AppMain_MaxAdus(void)
     UtAssert_STUB_COUNT(BPA_ADUP_In, NumProcessedAdus);
 }
 
-/* Test BPNode_AduIn_TaskMain when the channel ID is invalid */
-void Test_BPNode_AduIn_TaskMain_IdErr(void)
-{
-    uint32 ChanId = BPLIB_MAX_NUM_CHANNELS;
-
-    UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
-
-    BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_MAIN_PTR_CRT_EID, 
-                                "Invalid channel ID %d passed into BPNode_AduIn_TaskMain function pointer.");
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    UtAssert_STUB_COUNT(BPLib_NC_GetAppState, 0);
-}
-
-/* Test BPNode_AduIn_AppMain when app state is started and a null ADU is received */
-void Test_BPNode_AduIn_AppMain_NullBuf(void)
+/* Test BPNode_AduIn_TaskMain when app state is started and a null ADU is received */
+void Test_BPNode_AduIn_TaskMain_NullBuf(void)
 {
     CFE_SB_Buffer_t *BufPtr = NULL;
     uint32 ChanId = 0;
@@ -186,8 +173,8 @@ void Test_BPNode_AduIn_AppMain_NullBuf(void)
     UtAssert_STUB_COUNT(BPA_ADUP_In, 0);
 }
 
-/* Test BPNode_AduIn_AppMain when app state is stopped */
-void Test_BPNode_AduIn_AppMain_AppStopped(void)
+/* Test BPNode_AduIn_TaskMain when app state is stopped */
+void Test_BPNode_AduIn_TaskMain_AppStopped(void)
 {
     uint32 ChanId = 0;
 
@@ -199,8 +186,8 @@ void Test_BPNode_AduIn_AppMain_AppStopped(void)
     UtAssert_STUB_COUNT(CFE_SB_ReceiveBuffer, 0);
 }
 
-/* Test BPNode_AduIn_AppMain when the app was just stopped and the pipe needs to be cleared */
-void Test_BPNode_AduIn_AppMain_ClearPipe(void)
+/* Test BPNode_AduIn_TaskMain when the app was just stopped and the pipe needs to be cleared */
+void Test_BPNode_AduIn_TaskMain_ClearPipe(void)
 {
     CFE_SB_Buffer_t  Buf;
     CFE_SB_Buffer_t *BufPtr = &Buf;
@@ -222,6 +209,56 @@ void Test_BPNode_AduIn_AppMain_ClearPipe(void)
     UtAssert_BOOL_FALSE(BPNode_AppData.AduInData[ChanId].ClearPipe);
 }
 
+/* Test BPNode_AduIn_TaskMain when the channel ID is invalid */
+void Test_BPNode_AduIn_TaskMain_IdErr(void)
+{
+    uint32 ChanId = BPLIB_MAX_NUM_CHANNELS;
+
+    UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
+
+    BPNode_Test_Verify_Event(0, BPNODE_ADU_IN_MAIN_PTR_CRT_EID, 
+                                "Invalid channel ID %d passed into BPNode_AduIn_TaskMain function pointer.");
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_GetAppState, 0);
+}
+
+void Test_BPNode_AduIn_TaskMain_RateLimitedOver(void)
+{
+    uint32 ChanId            = 0;
+    size_t OrigBitsIngressed = 5000;
+
+    /* Test setup */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+    BPNode_AppData.AduInData[ChanId].BitsIngressed = OrigBitsIngressed;
+    BPNode_AppData.AduInData[ChanId].RateLimit     = 1000;
+
+    UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
+
+    UtAssert_EQ(size_t,
+                BPNode_AppData.AduInData[ChanId].BitsIngressed,
+                OrigBitsIngressed - BPNode_AppData.AduInData[ChanId].RateLimit);
+
+    UtAssert_STUB_COUNT(BPA_ADUP_In, 0);
+}
+
+void Test_BPNode_AduIn_TaskMain_RateLimitedUnder(void)
+{
+    uint32 ChanId = 0;
+
+    /* Test setup */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+    BPNode_AppData.AduInData[ChanId].BitsIngressed = 1010;
+    BPNode_AppData.AduInData[ChanId].RateLimit     = 1000;
+
+    UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));
+
+    UtAssert_EQ(size_t,
+                BPNode_AppData.AduInData[ChanId].BitsIngressed,
+                0);
+
+    UtAssert_STUB_COUNT(BPA_ADUP_In, 0);
+}
+
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
 {
@@ -232,10 +269,12 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_AduIn_TaskInit_IdErr);
     ADD_TEST(Test_BPNode_AduIn_TaskInit_PipeErr);
 
-    ADD_TEST(Test_BPNode_AduIn_AppMain_Nominal);
-    ADD_TEST(Test_BPNode_AduIn_AppMain_NullBuf);
-    ADD_TEST(Test_BPNode_AduIn_AppMain_AppStopped);
-    ADD_TEST(Test_BPNode_AduIn_AppMain_ClearPipe);
-    ADD_TEST(Test_BPNode_AduIn_AppMain_MaxAdus);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_Nominal);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_MaxAdus);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_NullBuf);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_AppStopped);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_ClearPipe);
     ADD_TEST(Test_BPNode_AduIn_TaskMain_IdErr);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_RateLimitedOver);
+    ADD_TEST(Test_BPNode_AduIn_TaskMain_RateLimitedUnder);
 }
