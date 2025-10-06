@@ -159,7 +159,6 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
             {
                 BPNode_AppData.ClaOutData[ContactId].BitsEgressed += (BundleSize * BPNODE_BITS_PER_BYTE);
             }
-
         }
 
         if (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < BPNode_AppData.ClaOutData[ContactId].RateLimit)
