@@ -223,9 +223,11 @@ void Test_BPNode_ClaOut_TaskMain_FailedProcBundle(void)
     BPLib_CLA_ContactRunState_t RunState1;
     BPLib_CLA_ContactRunState_t RunState2;
 
-    ContactId = 0;
-    RunState1 = BPLIB_CLA_STARTED;
-    RunState2 = BPLIB_CLA_EXITED;
+    ContactId                                         = 0;
+    RunState1                                         = BPLIB_CLA_STARTED;
+    RunState2                                         = BPLIB_CLA_EXITED;
+    BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 0;
+    BPNode_AppData.ClaOutData[ContactId].RateLimit    = 1000;
 
     /* Test setup */
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState1, sizeof(BPLib_CLA_ContactRunState_t), false);
@@ -240,11 +242,13 @@ void Test_BPNode_ClaOut_TaskMain_FailedProcBundle(void)
 
 void Test_BPNode_ClaOut_TaskMain_RateLimitedOver(void)
 {
-    uint32 ContactId        = 0;
-    size_t OrigBitsEgressed = 5000;
+    uint32 ContactId                     = 0;
+    size_t OrigBitsEgressed              = 5000;
+    BPLib_CLA_ContactRunState_t RunState = BPLIB_CLA_STARTED;
 
     /* Test setup */
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_CLA_STARTED);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
     BPNode_AppData.ClaOutData[ContactId].BitsEgressed = OrigBitsEgressed;
     BPNode_AppData.ClaOutData[ContactId].RateLimit    = 1000;
 
@@ -259,11 +263,14 @@ void Test_BPNode_ClaOut_TaskMain_RateLimitedOver(void)
 
 void Test_BPNode_ClaOut_TaskMain_RateLimitedUnder(void)
 {
-    uint32 ContactId = 0;
+    uint32 ContactId                     = 0;
+    BPLib_CLA_ContactRunState_t RunState = BPLIB_CLA_STARTED;
 
     /* Test setup */
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_CLA_STARTED);
-    BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 1010;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_Egress), BPLIB_INVALID_CONT_ID_ERR);
+    BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 900;
     BPNode_AppData.ClaOutData[ContactId].RateLimit    = 1000;
 
     UtAssert_VOIDCALL(BPNode_ClaOut_TaskMain(ContactId));

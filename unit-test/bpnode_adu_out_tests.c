@@ -163,7 +163,8 @@ void Test_BPNode_AduOut_TaskMain_RateLimitedUnder(void)
 
     /* Test setup */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
-    BPNode_AppData.AduOutData[ChanId].BitsEgressed = 1010;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_Out), BPLIB_TIMEOUT);
+    BPNode_AppData.AduOutData[ChanId].BitsEgressed = 900;
     BPNode_AppData.AduOutData[ChanId].RateLimit    = 1000;
 
     UtAssert_VOIDCALL(BPNode_AduOut_TaskMain(ChanId));
@@ -172,7 +173,7 @@ void Test_BPNode_AduOut_TaskMain_RateLimitedUnder(void)
                 BPNode_AppData.AduOutData[ChanId].BitsEgressed,
                 0);
 
-    UtAssert_STUB_COUNT(BPA_ADUP_Out, 0);
+    UtAssert_STUB_COUNT(BPA_ADUP_Out, 1);
 }
 
 /* Test BPNode_AduOut_TaskMain when the channel ID is invalid */

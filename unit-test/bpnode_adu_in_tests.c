@@ -247,7 +247,8 @@ void Test_BPNode_AduIn_TaskMain_RateLimitedUnder(void)
 
     /* Test setup */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
-    BPNode_AppData.AduInData[ChanId].BitsIngressed = 1010;
+    UT_SetDefaultReturnValue(UT_KEY(CFE_SB_ReceiveBuffer), CFE_SB_BAD_ARGUMENT);
+    BPNode_AppData.AduOutData[ChanId].BitsEgressed = 900;
     BPNode_AppData.AduInData[ChanId].RateLimit     = 1000;
 
     UtAssert_VOIDCALL(BPNode_AduIn_TaskMain(ChanId));

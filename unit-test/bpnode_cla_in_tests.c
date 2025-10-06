@@ -409,8 +409,10 @@ void Test_BPNode_ClaIn_TaskMain_FailedProcBundle(void)
     uint32_t                    ContactId;
     BPLib_CLA_ContactRunState_t RunState;
 
-    ContactId = 0;
-    RunState  = BPLIB_CLA_STARTED;
+    ContactId                                         = 0;
+    RunState                                          = BPLIB_CLA_STARTED;
+    BPNode_AppData.ClaInData[ContactId].BitsIngressed = 900;
+    BPNode_AppData.ClaInData[ContactId].RateLimit     = 1000;
 
     /* Test setup */
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
@@ -468,11 +470,14 @@ void Test_BPNode_ClaIn_TaskMain_MaxLimit(void)
 
 void Test_BPNode_ClaIn_TaskMain_RateLimitedOver(void)
 {
-    uint32 ContactId         = 0;
-    size_t OrigBitsIngressed = 5000;
+    uint32 ContactId                     = 0;
+    size_t OrigBitsIngressed             = 5000;
+    BPLib_CLA_ContactRunState_t RunState = BPLIB_CLA_STARTED;
 
     /* Test setup */
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_CLA_STARTED);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPNode_ClaIn_ProcessBundleInput), BPLIB_INVALID_CONT_ID_ERR);
     BPNode_AppData.ClaInData[ContactId].BitsIngressed = OrigBitsIngressed;
     BPNode_AppData.ClaInData[ContactId].RateLimit     = 1000;
 
@@ -488,10 +493,13 @@ void Test_BPNode_ClaIn_TaskMain_RateLimitedOver(void)
 void Test_BPNode_ClaIn_TaskMain_RateLimitedUnder(void)
 {
     uint32 ContactId = 0;
+    BPLib_CLA_ContactRunState_t RunState = BPLIB_CLA_STARTED;
 
     /* Test setup */
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_CLA_STARTED);
-    BPNode_AppData.ClaInData[ContactId].BitsIngressed = 1010;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_IODriver_Command), CFE_PSP_ERROR_NOT_IMPLEMENTED);
+    BPNode_AppData.ClaInData[ContactId].BitsIngressed = 900;
     BPNode_AppData.ClaInData[ContactId].RateLimit     = 1000;
 
     UtAssert_VOIDCALL(BPNode_ClaIn_TaskMain(ContactId));
