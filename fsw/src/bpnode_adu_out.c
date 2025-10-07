@@ -46,13 +46,14 @@ CFE_Status_t BPNode_AduOutCreateTasks(void)
     /* Create all of the ADU Out task(s) */
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
-        BPNode_AppData.AduOutData[ChanId].TaskData.TaskId = ChanId;
-        BPNode_AppData.AduOutData[ChanId].TaskData.PerfId = BPNODE_ADU_OUT_PERF_ID_BASE + ChanId;
-        BPNode_AppData.AduOutData[ChanId].TaskData.InitEid = BPNODE_ADU_OUT_INIT_INF_EID;
-        BPNode_AppData.AduOutData[ChanId].TaskData.NotifErrEid = BPNODE_ADU_OUT_NOTIF_ERR_EID;
-        BPNode_AppData.AduOutData[ChanId].TaskData.ExitEid = BPNODE_ADU_OUT_EXIT_CRT_EID;
+        BPNode_AppData.AduOutData[ChanId].TaskData.TaskId       = ChanId;
+        BPNode_AppData.AduOutData[ChanId].TaskData.PerfId       = BPNODE_ADU_OUT_PERF_ID_BASE + ChanId;
+        BPNode_AppData.AduOutData[ChanId].TaskData.InitEid      = BPNODE_ADU_OUT_INIT_INF_EID;
+        BPNode_AppData.AduOutData[ChanId].TaskData.NotifErrEid  = BPNODE_ADU_OUT_NOTIF_ERR_EID;
+        BPNode_AppData.AduOutData[ChanId].TaskData.ExitEid      = BPNODE_ADU_OUT_EXIT_CRT_EID;
         BPNode_AppData.AduOutData[ChanId].TaskData.TaskInitFunc = BPNode_AduOut_TaskInit;
         BPNode_AppData.AduOutData[ChanId].TaskData.TaskMainFunc = BPNode_AduOut_TaskMain;
+        BPNode_AppData.AduOutData[ChanId].BitsEgressed          = 0;
 
         snprintf(BPNode_AppData.AduOutData[ChanId].TaskData.Name, OS_MAX_API_NAME,
                          "ADU Out %d", ChanId);
@@ -104,7 +105,6 @@ void BPNode_AduOut_TaskMain(uint32 ChanId)
 {
     BPLib_Status_t BpStatus = BPLIB_SUCCESS;
     size_t AduSize;
-    size_t BytesEgressed;
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
@@ -116,18 +116,26 @@ void BPNode_AduOut_TaskMain(uint32 ChanId)
     /* Check if channel is started */
     else if (BPLib_NC_GetAppState(ChanId) == BPLIB_NC_APP_STATE_STARTED)
     {
-        BytesEgressed = 0;
-
-        do
+        while (BpStatus == BPLIB_SUCCESS &&
+                (BPNode_AppData.AduOutData[ChanId].BitsEgressed <
+                BPNode_AppData.AduOutData[ChanId].RateLimit))
         {
             /* Poll bundle from PI out queue */
             BpStatus = BPA_ADUP_Out(ChanId, BPNODE_DATA_TIMEOUT_MSEC, &AduSize);
             if (BpStatus == BPLIB_SUCCESS)
             {
-                BytesEgressed += AduSize;
+                BPNode_AppData.AduOutData[ChanId].BitsEgressed += (AduSize * BPNODE_BITS_PER_BYTE);
             }
-        } while (BpStatus == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) <
-                        BPNode_AppData.AduOutData[ChanId].RateLimit));
+        }
+
+        if (BPNode_AppData.AduOutData[ChanId].BitsEgressed < BPNode_AppData.AduOutData[ChanId].RateLimit)
+        {
+            BPNode_AppData.AduOutData[ChanId].BitsEgressed = 0;
+        }
+        else
+        {
+            BPNode_AppData.AduOutData[ChanId].BitsEgressed -= BPNode_AppData.AduOutData[ChanId].RateLimit;
+        }
     }
 
     return;

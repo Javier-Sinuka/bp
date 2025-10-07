@@ -45,13 +45,14 @@ CFE_Status_t BPNode_ClaOutCreateTasks(void)
     for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
     {
         /* Set up task data for the child task */
-        BPNode_AppData.ClaOutData[ContactId].TaskData.TaskId = ContactId;
-        BPNode_AppData.ClaOutData[ContactId].TaskData.PerfId = BPNODE_CLA_OUT_PERF_ID_BASE + ContactId;
-        BPNode_AppData.ClaOutData[ContactId].TaskData.InitEid = BPNODE_CLA_OUT_INIT_INF_EID;
-        BPNode_AppData.ClaOutData[ContactId].TaskData.NotifErrEid = BPNODE_CLA_OUT_NOTIF_ERR_EID;
-        BPNode_AppData.ClaOutData[ContactId].TaskData.ExitEid = BPNODE_CLA_OUT_EXIT_CRT_EID;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.TaskId       = ContactId;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.PerfId       = BPNODE_CLA_OUT_PERF_ID_BASE + ContactId;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.InitEid      = BPNODE_CLA_OUT_INIT_INF_EID;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.NotifErrEid  = BPNODE_CLA_OUT_NOTIF_ERR_EID;
+        BPNode_AppData.ClaOutData[ContactId].TaskData.ExitEid      = BPNODE_CLA_OUT_EXIT_CRT_EID;
         BPNode_AppData.ClaOutData[ContactId].TaskData.TaskInitFunc = BPNode_ClaOut_TaskInit;
         BPNode_AppData.ClaOutData[ContactId].TaskData.TaskMainFunc = BPNode_ClaOut_TaskMain;
+        BPNode_AppData.ClaOutData[ContactId].BitsEgressed          = 0;
         
         snprintf(BPNode_AppData.ClaOutData[ContactId].TaskData.Name, OS_MAX_API_NAME,
                             "CLA Out %d", ContactId);
@@ -134,7 +135,6 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
     size_t                      BundleSize = 0;
-    size_t                      BytesEgressed;
 
     /* This should never happen, indicates something is wrong with the function pointers */
     if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
@@ -150,18 +150,25 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     /* Ingress bundles only when the contact has been started */
     if (Status == BPLIB_SUCCESS && RunState == BPLIB_CLA_STARTED)
     {
-        BytesEgressed = 0;
-
-        do
+        while (Status == BPLIB_SUCCESS &&
+                (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < 
+                BPNode_AppData.ClaOutData[ContactId].RateLimit))
         {
             Status = BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize);
             if (Status == BPLIB_SUCCESS)
             {
-                BytesEgressed += BundleSize;
+                BPNode_AppData.ClaOutData[ContactId].BitsEgressed += (BundleSize * BPNODE_BITS_PER_BYTE);
             }
+        }
 
-        } while (Status == BPLIB_SUCCESS && ((BytesEgressed * BPNODE_BITS_PER_BYTE) < 
-                    BPNode_AppData.ClaOutData[ContactId].RateLimit));
+        if (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < BPNode_AppData.ClaOutData[ContactId].RateLimit)
+        {
+            BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 0;
+        }
+        else
+        {
+            BPNode_AppData.ClaOutData[ContactId].BitsEgressed -= BPNode_AppData.ClaOutData[ContactId].RateLimit;
+        }
     }
 
     return;

@@ -69,6 +69,8 @@ typedef struct
 {
     BPNode_TaskData_t TaskData;
 
+    size_t BitsEgressed;
+
     #ifdef DEFAULT_UDP_CLA
     /* IODriver usock_intf related*/
     CFE_PSP_IODriver_Direction_t Dir;

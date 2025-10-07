@@ -80,7 +80,7 @@ void Test_BPNode_ClaOut_TaskInit_IdErr(void)
 
     UtAssert_INT32_EQ(BPNode_ClaOut_TaskInit(ContactId), CFE_STATUS_RANGE_ERROR);
 
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_INIT_PTR_CRT_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_INIT_PTR_CRT_EID,
                                 "Invalid contact ID %d passed into BPNode_ClaOut_TaskInit function pointer.");
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_FindByName, 0);
@@ -126,7 +126,7 @@ void Test_BPNode_ClaOut_TaskMain_IdErr(void)
 
     UtAssert_VOIDCALL(BPNode_ClaOut_TaskMain(ContactId));
 
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_MAIN_PTR_CRT_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_MAIN_PTR_CRT_EID,
                                 "Invalid contact ID %d passed into BPNode_ClaOut_TaskMain function pointer.");
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(BPLib_CLA_GetContactRunState, 0);
@@ -214,7 +214,7 @@ void Test_BPNode_ClaOut_TaskMain_StateErr(void)
     UtAssert_VOIDCALL(BPNode_ClaOut_TaskMain(ContactId));
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_CLA_Egress, 0);    
+    UtAssert_STUB_COUNT(BPLib_CLA_Egress, 0);
 }
 
 void Test_BPNode_ClaOut_TaskMain_FailedProcBundle(void)
@@ -223,9 +223,11 @@ void Test_BPNode_ClaOut_TaskMain_FailedProcBundle(void)
     BPLib_CLA_ContactRunState_t RunState1;
     BPLib_CLA_ContactRunState_t RunState2;
 
-    ContactId = 0;
-    RunState1 = BPLIB_CLA_STARTED;
-    RunState2 = BPLIB_CLA_EXITED;
+    ContactId                                         = 0;
+    RunState1                                         = BPLIB_CLA_STARTED;
+    RunState2                                         = BPLIB_CLA_EXITED;
+    BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 0;
+    BPNode_AppData.ClaOutData[ContactId].RateLimit    = 1000;
 
     /* Test setup */
     UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState1, sizeof(BPLib_CLA_ContactRunState_t), false);
@@ -236,6 +238,48 @@ void Test_BPNode_ClaOut_TaskMain_FailedProcBundle(void)
     UtAssert_VOIDCALL(BPNode_ClaOut_TaskMain(ContactId));
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+}
+
+void Test_BPNode_ClaOut_TaskMain_RateLimitedOver(void)
+{
+    uint32 ContactId                     = 0;
+    size_t OrigBitsEgressed              = 5000;
+    BPLib_CLA_ContactRunState_t RunState = BPLIB_CLA_STARTED;
+
+    /* Test setup */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    BPNode_AppData.ClaOutData[ContactId].BitsEgressed = OrigBitsEgressed;
+    BPNode_AppData.ClaOutData[ContactId].RateLimit    = 1000;
+
+    UtAssert_VOIDCALL(BPNode_ClaOut_TaskMain(ContactId));
+
+    UtAssert_EQ(size_t,
+                BPNode_AppData.ClaOutData[ContactId].BitsEgressed,
+                OrigBitsEgressed - BPNode_AppData.ClaOutData[ContactId].RateLimit);
+
+    UtAssert_STUB_COUNT(BPNode_ClaOut_ProcessBundleOutput, 0);
+}
+
+void Test_BPNode_ClaOut_TaskMain_RateLimitedUnder(void)
+{
+    uint32 ContactId                     = 0;
+    BPLib_CLA_ContactRunState_t RunState = BPLIB_CLA_STARTED;
+
+    /* Test setup */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_GetContactRunState), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_CLA_GetContactRunState), &RunState, sizeof(BPLib_CLA_ContactRunState_t), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_Egress), BPLIB_INVALID_CONT_ID_ERR);
+    BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 900;
+    BPNode_AppData.ClaOutData[ContactId].RateLimit    = 1000;
+
+    UtAssert_VOIDCALL(BPNode_ClaOut_TaskMain(ContactId));
+
+    UtAssert_EQ(size_t,
+                BPNode_AppData.ClaOutData[ContactId].BitsEgressed,
+                0);
+
+    UtAssert_STUB_COUNT(BPNode_ClaOut_ProcessBundleOutput, 0);
 }
 
 void Test_BPNode_ClaOut_ProcessBundleOutput_SbNom(void)
@@ -368,7 +412,7 @@ void Test_BPNode_ClaOut_Setup_PortErr(void)
     UtAssert_INT32_EQ(BPNode_ClaOut_Setup(ContId), BPLIB_CLA_IO_ERROR);
 
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_PORT_ERR_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_PORT_ERR_EID,
                             "Couldn't configure port number for CLA Out #%d. Error = %d");
 }
 
@@ -386,7 +430,7 @@ void Test_BPNode_ClaOut_Setup_IpErr(void)
     UtAssert_INT32_EQ(BPNode_ClaOut_Setup(ContId), BPLIB_CLA_IO_ERROR);
 
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 2);
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_IP_ERR_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_IP_ERR_EID,
                             "Couldn't configure IP address for CLA Out #%d. Error = %d");
 }
 
@@ -464,7 +508,7 @@ void Test_BPNode_ClaOut_Start_PspErr(void)
     UtAssert_INT32_EQ(BPNode_ClaOut_Start(ContId), BPLIB_CLA_IO_ERROR);
 
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_SET_RUN_ERR_EID,
                             "Couldn't set I/O state for CLA Out #%d to running. Error = %d");
 }
 
@@ -542,7 +586,7 @@ void Test_BPNode_ClaOut_Stop_PspErr(void)
     UtAssert_INT32_EQ(BPNode_ClaOut_Stop(ContId), BPLIB_CLA_IO_ERROR);
 
     UtAssert_STUB_COUNT(CFE_PSP_IODriver_Command, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_STOP_ERR_EID, 
+    BPNode_Test_Verify_Event(0, BPNODE_CLA_OUT_CFG_STOP_ERR_EID,
                             "Couldn't set I/O state to stop for CLA Out #%d. Error = %d");
 }
 
@@ -617,12 +661,14 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaOut_TaskInit_FindByNameErr);
     ADD_TEST(Test_BPNode_ClaOut_TaskInit_DirErr);
 
+    ADD_TEST(Test_BPNode_ClaOut_TaskMain_IdErr);
     ADD_TEST(Test_BPNode_ClaOut_TaskMain_NoBundleAvailable);
     ADD_TEST(Test_BPNode_ClaOut_TaskMain_MaxBundles);
     ADD_TEST(Test_BPNode_ClaOut_TaskMain_NoEgress);
-    ADD_TEST(Test_BPNode_ClaOut_TaskMain_FailedProcBundle);
-    ADD_TEST(Test_BPNode_ClaOut_TaskMain_IdErr);
     ADD_TEST(Test_BPNode_ClaOut_TaskMain_StateErr);
+    ADD_TEST(Test_BPNode_ClaOut_TaskMain_FailedProcBundle);
+    ADD_TEST(Test_BPNode_ClaOut_TaskMain_RateLimitedOver);
+    ADD_TEST(Test_BPNode_ClaOut_TaskMain_RateLimitedUnder);
 
     ADD_TEST(Test_BPNode_ClaOut_ProcessBundleOutput_SbNom);
     ADD_TEST(Test_BPNode_ClaOut_ProcessBundleOutput_UdpNom);
@@ -657,6 +703,6 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_ClaOut_Stop_EppNom);
     ADD_TEST(Test_BPNode_ClaOut_Stop_TcpNom);
     ADD_TEST(Test_BPNode_ClaOut_Stop_Default);
-    
+
     ADD_TEST(Test_BPNode_ClaOut_Teardown_UdpNom);
 }

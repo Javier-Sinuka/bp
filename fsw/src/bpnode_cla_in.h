@@ -59,6 +59,7 @@ typedef struct
 {
     BPNode_TaskData_t TaskData;
 
+    size_t BitsIngressed;
 
     #ifdef DEFAULT_UDP_CLA
     /* IODriver usock_intf related */
