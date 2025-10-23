@@ -288,10 +288,11 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
             /* Grab the size of the bundle */
             CFE_MSG_GetSize(MsgPtr, BundleSize);
 
-            if (Status == CFE_SUCCESS && *BundleSize != 0)
+            if (Status == CFE_SUCCESS && *BundleSize > sizeof(CFE_MSG_CommandHeader_t))
             { /* Ingress received bundle to bplib CLA */
                 /* Extract the bundle from the space packet */
                 BPNode_AppData.ClaInData[ContId].SB_Buffer = CFE_SB_GetUserData(MsgPtr);
+                *BundleSize -= sizeof(CFE_MSG_CommandHeader_t);
 
                 BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContId].TaskData.PerfId);
 
