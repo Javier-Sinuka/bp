@@ -192,7 +192,7 @@ CFE_Status_t BPNode_AppInit(void)
     };
 
     /* Zero out the global data structure */
-    memset(&BPNode_AppData, 0, sizeof(BPNode_AppData));
+    CFE_PSP_MemSet(&BPNode_AppData, 0, sizeof(BPNode_AppData));
 
     BPNode_AppData.MemPool = malloc(BPNODE_MEM_POOL_LEN);
 
@@ -414,6 +414,9 @@ CFE_Status_t BPNode_AppInit(void)
             }
         }
     }
+
+    BPLib_CLA_ContactSetup(0);
+    BPLib_CLA_ContactStart(&BPNode_AppData.BplibInst, 0);
 
     /* App has initialized properly */
     BPNode_AppData.RunStatus = CFE_ES_RunStatus_APP_RUN;
