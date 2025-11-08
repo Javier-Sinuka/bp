@@ -102,7 +102,7 @@ typedef struct
     
     /* BPLib Instance State */
     BPLib_Instance_t            BplibInst;
-    uint8                       pool_mem[BPNODE_MEM_POOL_LEN];
+    void                       *MemPool;
 } BPNode_AppData_t;
 
 /*
