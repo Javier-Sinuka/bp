@@ -194,9 +194,18 @@ CFE_Status_t BPNode_AppInit(void)
     /* Zero out the global data structure */
     CFE_PSP_MemSet(&BPNode_AppData, 0, sizeof(BPNode_AppData));
 
+    BPNode_AppData.MemPool = malloc(BPNODE_MEM_POOL_LEN);
+
+    if (BPNode_AppData.MemPool == NULL)
+    {
+        CFE_ES_WriteToSysLog("Failed to malloc the memory pool\n");
+
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
     /* Initialize configurations and counters */
     BpStatus = BPLib_NC_Init(&BPNode_AppData.ConfigPtrs, &Callbacks, &BPNode_AppData.BplibInst, (uint16) BPNODE_MAX_UNSORTED_JOBS,
-                             (void*) BPNode_AppData.pool_mem, (size_t) BPNODE_MEM_POOL_LEN);
+                             BPNode_AppData.MemPool, BPNODE_MEM_POOL_LEN);
 
     if (BpStatus != BPLIB_SUCCESS)
     {
@@ -502,6 +511,7 @@ void BPNode_AppExit(void)
     /* Cleanup QM and MEM */
     BPLib_QM_QueueTableDestroy(&BPNode_AppData.BplibInst);
     BPLib_MEM_PoolDestroy(&BPNode_AppData.BplibInst.pool);
+    free(BPNode_AppData.MemPool);
 
     /* Performance Log Exit Stamp */
     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
