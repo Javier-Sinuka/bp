@@ -107,7 +107,7 @@ CFE_Status_t BPNode_WakeupProcess(void)
     CFE_SB_Buffer_t *BufPtr = NULL;
 
     /* Call NC to update configurations */
-    BpStatus = BPLib_NC_ConfigUpdate();
+    BpStatus = BPLib_NC_ConfigUpdate(&BPNode_AppData.BplibInst);
     if (BpStatus != BPLIB_SUCCESS && BpStatus != BPLIB_TBL_UPDATED)
     {
         BPLib_EM_SendEvent(BPNODE_NC_CFG_UPDATE_ERR_EID, BPLib_EM_EventType_ERROR,
@@ -398,7 +398,7 @@ CFE_Status_t BPNode_AppInit(void)
         if (BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[i].AddAutomatically == true)
         {
             /* Ignore return value, no failure conditions are possible here */
-            (void) BPLib_PI_AddApplication(i);
+            (void) BPLib_PI_AddApplication(&BPNode_AppData.BplibInst, i);
 
             BpStatus = BPLib_PI_StartApplication(i);
 
