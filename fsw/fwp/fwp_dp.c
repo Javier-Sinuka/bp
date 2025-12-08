@@ -222,7 +222,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_SetRegistrationStateCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_SetRegistrationStateCmd_t*) SBBufPtr;
 
-                BPLib_NC_SetRegistrationState(MsgPtr->Payload);
+                BPLib_NC_SetRegistrationState(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 
