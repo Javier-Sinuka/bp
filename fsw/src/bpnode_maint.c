@@ -72,6 +72,7 @@ CFE_Status_t BPNode_Maint_TaskInit(uint32 TaskId)
 void BPNode_Maint_TaskMain(uint32 TaskId)
 {
     BPLib_Status_t Status;
+    uint32 WorkNotifCount;
 
     /* Check if main task has indicated that storage should be cleaned up */
     if (BPNode_NotifGetCount(&BPNode_AppData.ChildTaskCleanStorNotif) > 0)
@@ -81,9 +82,14 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
         BPNode_NotifUnset(&BPNode_AppData.ChildTaskCleanStorNotif);
     }
 
+    WorkNotifCount = BPNode_NotifGetCount(&BPNode_AppData.ChildStartWorkNotif);
+
     /* Activities that should only be done once per second */
-    if (BPNode_NotifGetCount(&BPNode_AppData.ChildStartWorkNotif) % BPNODE_MAX_EXP_WAKEUP_RATE == 0)
-    {
+    if (WorkNotifCount >= (BPNode_AppData.MaintData.LastGarbageCollectCycle + BPNODE_MAX_EXP_WAKEUP_RATE) ||
+        WorkNotifCount < BPNode_AppData.MaintData.LastGarbageCollectCycle)
+    {    
+        BPNode_AppData.MaintData.LastGarbageCollectCycle = WorkNotifCount;
+
         /* Update time as needed */
         Status = BPLib_TIME_MaintenanceActivities();
 
