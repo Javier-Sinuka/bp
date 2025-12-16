@@ -31,7 +31,6 @@ BPLib_PI_ChannelTable_t ChannelTable = {
         /* Channel 0 */
         {
             .AddAutomatically       = true,
-            .RequestCustody         = false,
             .AduWrapping            = false,
             .AduUnwrapping          = false,
             .RegState               = BPLIB_PI_ACTIVE,
@@ -79,6 +78,13 @@ BPLib_PI_ChannelTable_t ChannelTable = {
                     .BlockNum           = 4,
                     .BlockProcFlags     = 0
                 },
+            .CustodyTransferBlkConfig =
+                {
+                    .IncludeBlock       = false,
+                    .CrcType            = BPLib_CRC_Type_CRC16,
+                    .BlockNum           = 5,
+                    .BlockProcFlags     = 0
+                },                
             .PayloadBlkConfig =
                 {
                     .IncludeBlock       = true,
@@ -91,7 +97,6 @@ BPLib_PI_ChannelTable_t ChannelTable = {
         /* Channel 1 */
         {
             .AddAutomatically       = false,
-            .RequestCustody         = false,
             .AduWrapping            = true,
             .AduUnwrapping          = false,
             .RegState               = BPLIB_PI_ACTIVE,
@@ -139,6 +144,13 @@ BPLib_PI_ChannelTable_t ChannelTable = {
                     .BlockNum           = 0,
                     .BlockProcFlags     = 0
                 },
+            .CustodyTransferBlkConfig =
+                {
+                    .IncludeBlock       = false,
+                    .CrcType            = BPLib_CRC_Type_CRC16,
+                    .BlockNum           = 5,
+                    .BlockProcFlags     = 0
+                }, 
             .PayloadBlkConfig =
                 {
                     .IncludeBlock       = true,
