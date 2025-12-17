@@ -70,6 +70,9 @@ void Test_BPNode_Maint_TaskMain_Nominal(void)
 {
     uint32 TaskId = 0;
 
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, BPNODE_MAX_EXP_WAKEUP_RATE);
+
     UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
 
     UtAssert_STUB_COUNT(BPLib_NC_CleanupStorage, 0);
@@ -85,6 +88,7 @@ void Test_BPNode_Maint_TaskMain_Cleanup(void)
     uint32 TaskId = 0;
 
     UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, 1);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, BPNODE_MAX_EXP_WAKEUP_RATE);
 
     UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
 
@@ -117,6 +121,9 @@ void Test_BPNode_Maint_TaskMain_QuietWakeup(void)
 void Test_BPNode_Maint_TaskMain_TimeErr(void)
 {
     uint32 TaskId = 0;
+
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, BPNODE_MAX_EXP_WAKEUP_RATE);
 
     /* Fail Time activities */
     UT_SetDeferredRetcode(UT_KEY(BPLib_TIME_MaintenanceActivities), 1, BPLIB_TIME_WRITE_ERROR);
