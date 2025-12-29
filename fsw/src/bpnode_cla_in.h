@@ -74,9 +74,8 @@ typedef struct
     uint8 PSP_Buffer[BPNODE_CLA_PSP_INPUT_BUFFER_SIZE];
     void* SB_Buffer;
 
-    size_t RateLimit;
     bool   ClearPipe;
-    BPLib_CLA_Type_t ClaType;
+    
 } BPNode_ClaInData_t;
 
 /*

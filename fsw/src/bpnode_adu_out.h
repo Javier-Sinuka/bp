@@ -64,7 +64,6 @@ typedef struct
     bool               AduWrapping;
     CFE_SB_MsgId_t     SendToMsgId;
     BPNode_AduOutBuf_t OutBuf;
-    size_t             RateLimit;
     size_t             BitsEgressed;
 } BPNode_AduOutData_t;
 

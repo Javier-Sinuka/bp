@@ -80,9 +80,7 @@ typedef struct
     /* CLA Out bundle/packet */
     BPNode_ClaOut_Buffer_t OutBuffer;
 
-    size_t            RateLimit;
-    BPLib_CLA_Type_t  ClaType;
-} BPNode_ClaOutData_t;
+  } BPNode_ClaOutData_t;
 
 
 /*
