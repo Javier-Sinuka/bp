@@ -105,17 +105,14 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
                 printf("\n=============================================\n");
                 printf("Timeout reached for CCS #%lu!\n", OpenCcsIdx);
                 printf("BPLib_TIME_GetMonotonicTime(): %lu\n", BPLib_TIME_GetMonotonicTime());
-                printf("OpenCcs.CollectionStartTime: %lu\n", OpenCcs.CollectionStartTime);
-                printf("TimeOpen: %lu\n", TimeOpen);
-                printf("CSTimeTrigger: %u\n", BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CSTimeTrigger);
-                printf("OpenCcs.InProgress: %d\n", OpenCcs.InProgress);
+                printf("OpenCcs.CollectionStartTime:   %lu\n", OpenCcs.CollectionStartTime);
+                printf("TimeOpen:                      %lu\n", TimeOpen);
+                printf("CSTimeTrigger:                 %u\n", BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CSTimeTrigger);
                 printf("=============================================\n\n");
 
                 BPLib_CT_LockOpenCcs();
                 BPLib_CT_BuildAndSendOpenCcs(&(BPNode_AppData.BplibInst), &OpenCcs);
                 BPLib_CT_UnlockOpenCcs();
-
-                printf("OpenCcs.InProgress: %d\n", OpenCcs.InProgress);
             }
         }
     }
