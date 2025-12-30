@@ -30,7 +30,6 @@
 #include "bpnode_app.h"
 #include "bpnode_maint.h"
 
-
 /*
 ** Function Definitions
 */
@@ -71,8 +70,13 @@ CFE_Status_t BPNode_Maint_TaskInit(uint32 TaskId)
 
 void BPNode_Maint_TaskMain(uint32 TaskId)
 {
-    BPLib_Status_t Status;
-    uint32 WorkNotifCount;
+    BPLib_Status_t      Status;
+    uint32              WorkNotifCount;
+    BPLib_CT_Context_t* Context;
+    size_t              OpenCcsIdx;
+    int64_t             TimeOpen;
+    BPLib_CT_OpenCcs_t  OpenCcs;
+    uint32_t            ContactId;
 
     /* Check if main task has indicated that storage should be cleaned up */
     if (BPNode_NotifGetCount(&BPNode_AppData.ChildTaskCleanStorNotif) > 0)
@@ -80,6 +84,40 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
         BPLib_NC_CleanupStorage(&(BPNode_AppData.BplibInst));
 
         BPNode_NotifUnset(&BPNode_AppData.ChildTaskCleanStorNotif);
+    }
+
+    /* See if any open CCSs need to be sent off */
+
+    Context = &(BPNode_AppData.BplibInst.Ct);
+    for (OpenCcsIdx = 0; OpenCcsIdx < BPLIB_CT_MAX_OPEN_CCS; OpenCcsIdx++)
+    {
+        OpenCcs = Context->OpenCcss[OpenCcsIdx];
+
+        /* Check whether in progress CCSs exceed the time trigger */
+        if (OpenCcs.InProgress == true && OpenCcs.CollectionStartTime != 0)
+        {
+            TimeOpen  = BPLib_TIME_GetMonotonicTime() - OpenCcs.CollectionStartTime;
+            ContactId = OpenCcs.ContactId;
+
+            /* Check if the open CCS due to be sent */
+            if (TimeOpen > BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CSTimeTrigger)
+            {
+                printf("\n=============================================\n");
+                printf("Timeout reached for CCS #%lu!\n", OpenCcsIdx);
+                printf("BPLib_TIME_GetMonotonicTime(): %lu\n", BPLib_TIME_GetMonotonicTime());
+                printf("OpenCcs.CollectionStartTime: %lu\n", OpenCcs.CollectionStartTime);
+                printf("TimeOpen: %lu\n", TimeOpen);
+                printf("CSTimeTrigger: %u\n", BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CSTimeTrigger);
+                printf("OpenCcs.InProgress: %d\n", OpenCcs.InProgress);
+                printf("=============================================\n\n");
+
+                BPLib_CT_LockOpenCcs(OpenCcsIdx);
+                BPLib_CT_BuildAndSendOpenCcs(&(BPNode_AppData.BplibInst), &OpenCcs);
+                BPLib_CT_UnlockOpenCcs(OpenCcsIdx);
+
+                printf("OpenCcs.InProgress: %d\n", OpenCcs.InProgress);
+            }
+        }
     }
 
     WorkNotifCount = BPNode_NotifGetCount(&BPNode_AppData.ChildStartWorkNotif);
