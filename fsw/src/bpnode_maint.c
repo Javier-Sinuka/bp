@@ -111,9 +111,9 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
                 printf("OpenCcs.InProgress: %d\n", OpenCcs.InProgress);
                 printf("=============================================\n\n");
 
-                BPLib_CT_LockOpenCcs(OpenCcsIdx);
+                BPLib_CT_LockOpenCcs();
                 BPLib_CT_BuildAndSendOpenCcs(&(BPNode_AppData.BplibInst), &OpenCcs);
-                BPLib_CT_UnlockOpenCcs(OpenCcsIdx);
+                BPLib_CT_UnlockOpenCcs();
 
                 printf("OpenCcs.InProgress: %d\n", OpenCcs.InProgress);
             }
