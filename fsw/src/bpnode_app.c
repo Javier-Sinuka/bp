@@ -450,6 +450,9 @@ void BPNode_AppExit(void)
 
     CFE_ES_WriteToSysLog("BPNode app terminating, error = %d", BPNode_AppData.RunStatus);
 
+    /* Signal to maintenance task to exit */
+    BPNode_AppData.MaintData.TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
+
     /* Signal for the children to stop work - This needs to be done here because
     ** cFS sends the child terminate signal from another thread, which
     ** creates the potential for a deadlock waiting on the child semaphores in the
@@ -483,9 +486,6 @@ void BPNode_AppExit(void)
     {
         BPNode_AppData.GenWorkerData[WorkerId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
     }
-
-    /* Signal to maintenance task to exit */
-    BPNode_AppData.MaintData.TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;
 
     /* Verify that all child tasks have shut down */
     BPLib_PL_PerfLogExit(BPNODE_PERF_ID);
