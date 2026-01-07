@@ -471,7 +471,7 @@ void BPNode_AppExit(void)
     for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
     {
         /* Change the BPLib contact state and clean up the contacts */
-        (void) BPLib_CLA_ContactStop(ContactId);
+        (void) BPLib_CLA_ContactStop(&BPNode_AppData.BplibInst, ContactId);
         (void) BPLib_CLA_ContactTeardown(&BPNode_AppData.BplibInst, ContactId);
 
         BPNode_AppData.ClaOutData[ContactId].TaskData.RunStatus = CFE_ES_RunStatus_APP_EXIT;

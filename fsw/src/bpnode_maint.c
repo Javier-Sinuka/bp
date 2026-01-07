@@ -110,9 +110,7 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
                 printf("CSTimeTrigger:                 %u\n", BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId].CSTimeTrigger);
                 printf("=============================================\n\n");
 
-                BPLib_CT_LockOpenCcs();
                 BPLib_CT_BuildAndSendOpenCcs(&(BPNode_AppData.BplibInst), &OpenCcs);
-                BPLib_CT_UnlockOpenCcs();
             }
         }
     }
