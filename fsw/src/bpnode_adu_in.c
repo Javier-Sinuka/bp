@@ -126,7 +126,7 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
         /* Check for ADUs to ingest */
         while (Status == CFE_SUCCESS &&
                 (BPNode_AppData.AduInData[ChanId].BitsIngressed <
-                BPNode_AppData.AduInData[ChanId].RateLimit))
+                BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.IngressBitsPerCycle))
         {
             BPLib_PL_PerfLogExit(BPNode_AppData.AduInData[ChanId].TaskData.PerfId);
 
@@ -146,13 +146,13 @@ void BPNode_AduIn_TaskMain(uint32 ChanId)
             }
         }
 
-        if (BPNode_AppData.AduInData[ChanId].BitsIngressed < BPNode_AppData.AduInData[ChanId].RateLimit)
+        if (BPNode_AppData.AduInData[ChanId].BitsIngressed < BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.IngressBitsPerCycle)
         {
             BPNode_AppData.AduInData[ChanId].BitsIngressed = 0;
         }
         else
         {
-            BPNode_AppData.AduInData[ChanId].BitsIngressed -= BPNode_AppData.AduInData[ChanId].RateLimit;
+            BPNode_AppData.AduInData[ChanId].BitsIngressed -= BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.IngressBitsPerCycle;
         }
     }
     else

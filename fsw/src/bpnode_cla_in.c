@@ -165,7 +165,7 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
     {
         while (Status != BPLIB_TIMEOUT &&
                 (BPNode_AppData.ClaInData[ContactId].BitsIngressed <
-                BPNode_AppData.ClaInData[ContactId].RateLimit))
+                BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.IngressBitsPerCycle))
         {
             Status = BPNode_ClaIn_ProcessBundleInput(ContactId, &BundleSize);
             if (Status == BPLIB_SUCCESS)
@@ -174,19 +174,19 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
             }
         }
 
-        if (BPNode_AppData.ClaInData[ContactId].BitsIngressed < BPNode_AppData.ClaInData[ContactId].RateLimit)
+        if (BPNode_AppData.ClaInData[ContactId].BitsIngressed < BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.IngressBitsPerCycle)
         {
             BPNode_AppData.ClaInData[ContactId].BitsIngressed = 0;
         }
         else
         {
-            BPNode_AppData.ClaInData[ContactId].BitsIngressed -= BPNode_AppData.ClaInData[ContactId].RateLimit;
+            BPNode_AppData.ClaInData[ContactId].BitsIngressed -= BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.IngressBitsPerCycle;
         }
     }
     else
     {
         if (BPNode_AppData.ClaInData[ContactId].ClearPipe == true &&
-            BPNode_AppData.ClaInData[ContactId].ClaType == BPLib_SB_CLA)
+            BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType == BPLib_SB_CLA)
         {
             /* Clear pipe */
             BPLib_PL_PerfLogExit(BPNode_AppData.ClaInData[ContactId].TaskData.PerfId);
@@ -219,7 +219,7 @@ int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize)
     Status      = CFE_PSP_SUCCESS;
     *BundleSize = 0;
 
-    switch (BPNode_AppData.ClaInData[ContId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -343,7 +343,7 @@ BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId)
     ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
     /* Nothing special needs to happen for an SB contact */
-    switch (BPNode_AppData.ClaInData[ContactId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -416,7 +416,7 @@ BPLib_Status_t BPNode_ClaIn_Start(uint32 ContactId)
     /* Default to a PSP status that will output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
-    switch (BPNode_AppData.ClaInData[ContactId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -475,7 +475,7 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId)
     /* Default to a PSP status that will output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
-    switch (BPNode_AppData.ClaInData[ContactId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA

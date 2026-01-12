@@ -118,7 +118,7 @@ void BPNode_AduOut_TaskMain(uint32 ChanId)
     {
         while (BpStatus == BPLIB_SUCCESS &&
                 (BPNode_AppData.AduOutData[ChanId].BitsEgressed <
-                BPNode_AppData.AduOutData[ChanId].RateLimit))
+                BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle))
         {
             /* Poll bundle from PI out queue */
             BpStatus = BPA_ADUP_Out(ChanId, BPNODE_DATA_TIMEOUT_MSEC, &AduSize);
@@ -128,13 +128,13 @@ void BPNode_AduOut_TaskMain(uint32 ChanId)
             }
         }
 
-        if (BPNode_AppData.AduOutData[ChanId].BitsEgressed < BPNode_AppData.AduOutData[ChanId].RateLimit)
+        if (BPNode_AppData.AduOutData[ChanId].BitsEgressed < BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle)
         {
             BPNode_AppData.AduOutData[ChanId].BitsEgressed = 0;
         }
         else
         {
-            BPNode_AppData.AduOutData[ChanId].BitsEgressed -= BPNode_AppData.AduOutData[ChanId].RateLimit;
+            BPNode_AppData.AduOutData[ChanId].BitsEgressed -= BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle;
         }
     }
 

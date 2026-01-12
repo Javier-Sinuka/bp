@@ -160,9 +160,6 @@ BPLib_Status_t BPA_ADUP_AddApplication(uint32_t ChanId)
     BPNode_AppData.AduInData[ChanId].AduUnwrapping = BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].AduUnwrapping;
     BPNode_AppData.AduOutData[ChanId].AduWrapping = BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].AduWrapping;
 
-    BPNode_AppData.AduOutData[ChanId].RateLimit = BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].EgressBitsPerCycle;
-    BPNode_AppData.AduInData[ChanId].RateLimit = BPNode_AppData.ConfigPtrs.ChanConfigPtr->Configs[ChanId].IngressBitsPerCycle;
-
     BPLib_NC_ReaderUnlock();
 
     return BPLIB_SUCCESS;

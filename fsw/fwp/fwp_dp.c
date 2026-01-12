@@ -352,7 +352,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_ContactSetupCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_ContactSetupCmd_t*) SBBufPtr;
 
-                BPLib_NC_ContactSetup(MsgPtr->Payload);
+                BPLib_NC_ContactSetup(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 

@@ -99,7 +99,7 @@ void Test_BPNode_AduOut_TaskMain_Nominal(void)
         UT_SetDataBuffer(UT_KEY(BPA_ADUP_Out), &AduSize, sizeof(AduSize), false);
     }
 
-    BPNode_AppData.AduOutData[ChanId].RateLimit = RateLimit * 8;
+    BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle = RateLimit * 8;
 
     UtAssert_VOIDCALL(BPNode_AduOut_TaskMain(ChanId));
 
@@ -130,7 +130,7 @@ void Test_BPNode_AduOut_TaskMain_OutErr(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_Out), BPLIB_TIMEOUT);
     BPNode_AppData.AduOutData[ChanId].BitsEgressed = 0;
-    BPNode_AppData.AduOutData[ChanId].RateLimit    = 1000;
+    BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle    = 1000;
 
     UtAssert_VOIDCALL(BPNode_AduOut_TaskMain(ChanId));
 
@@ -146,13 +146,13 @@ void Test_BPNode_AduOut_TaskMain_RateLimitedOver(void)
     /* Test setup */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
     BPNode_AppData.AduOutData[ChanId].BitsEgressed = OrigBitsEgressed;
-    BPNode_AppData.AduOutData[ChanId].RateLimit    = 1000;
+    BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle    = 1000;
 
     UtAssert_VOIDCALL(BPNode_AduOut_TaskMain(ChanId));
 
     UtAssert_EQ(size_t,
                 BPNode_AppData.AduOutData[ChanId].BitsEgressed,
-                OrigBitsEgressed - BPNode_AppData.AduOutData[ChanId].RateLimit);
+                OrigBitsEgressed - BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle);
 
     UtAssert_STUB_COUNT(BPA_ADUP_Out, 0);
 }
@@ -165,7 +165,7 @@ void Test_BPNode_AduOut_TaskMain_RateLimitedUnder(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_Out), BPLIB_TIMEOUT);
     BPNode_AppData.AduOutData[ChanId].BitsEgressed = 900;
-    BPNode_AppData.AduOutData[ChanId].RateLimit    = 1000;
+    BPNode_AppData.BplibInst.ChanCtxt[ChanId].Config.EgressBitsPerCycle    = 1000;
 
     UtAssert_VOIDCALL(BPNode_AduOut_TaskMain(ChanId));
 

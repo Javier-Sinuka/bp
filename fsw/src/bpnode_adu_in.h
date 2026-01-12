@@ -58,7 +58,6 @@ typedef struct
     uint32            NumRecvFromMsgIds;
     CFE_SB_MsgId_t    RecvFromMsgIds[BPNODE_MAX_CHAN_SUBSCRIPTION];
     uint32            MsgLims[BPNODE_MAX_CHAN_SUBSCRIPTION];
-    size_t            RateLimit;
     size_t            BitsIngressed;
 } BPNode_AduInData_t;
 

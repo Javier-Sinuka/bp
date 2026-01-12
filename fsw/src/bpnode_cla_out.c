@@ -152,7 +152,7 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     {
         while (Status == BPLIB_SUCCESS &&
                 (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < 
-                BPNode_AppData.ClaOutData[ContactId].RateLimit))
+                BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.EgressBitsPerCycle))
         {
             Status = BPNode_ClaOut_ProcessBundleOutput(ContactId, &BundleSize);
             if (Status == BPLIB_SUCCESS)
@@ -161,13 +161,13 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
             }
         }
 
-        if (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < BPNode_AppData.ClaOutData[ContactId].RateLimit)
+        if (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.EgressBitsPerCycle)
         {
             BPNode_AppData.ClaOutData[ContactId].BitsEgressed = 0;
         }
         else
         {
-            BPNode_AppData.ClaOutData[ContactId].BitsEgressed -= BPNode_AppData.ClaOutData[ContactId].RateLimit;
+            BPNode_AppData.ClaOutData[ContactId].BitsEgressed -= BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.EgressBitsPerCycle;
         }
     }
 
@@ -209,7 +209,7 @@ int32 BPNode_ClaOut_ProcessBundleOutput(uint32 ContId, size_t *MsgSize)
     /* Send egress bundle onto CL */
     if (Status == BPLIB_SUCCESS)
     {
-        switch (BPNode_AppData.ClaOutData[ContId].ClaType)
+        switch (BPNode_AppData.BplibInst.ContCtxt[ContId].Config.CLAType)
         {
             case BPLib_UDP_CLA:
                 #ifdef DEFAULT_UDP_CLA
@@ -277,7 +277,7 @@ BPLib_Status_t BPNode_ClaOut_Setup(uint32 ContactId)
     Status      = BPLIB_SUCCESS;
     ContactInfo = &(BPNode_AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId]);
 
-    switch (BPNode_AppData.ClaOutData[ContactId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -353,7 +353,7 @@ BPLib_Status_t BPNode_ClaOut_Start(uint32 ContactId)
     
     Status  = BPLIB_SUCCESS;
 
-    switch (BPNode_AppData.ClaOutData[ContactId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
@@ -400,7 +400,7 @@ BPLib_Status_t BPNode_ClaOut_Stop(uint32 ContactId)
     /* Default PSP status to output an error */
     PspStatus = CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
-    switch (BPNode_AppData.ClaOutData[ContactId].ClaType)
+    switch (BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.CLAType)
     {
         case BPLib_UDP_CLA:
             #ifdef DEFAULT_UDP_CLA
