@@ -80,7 +80,7 @@ typedef struct
     /* CLA Out bundle/packet */
     BPNode_ClaOut_Buffer_t OutBuffer;
 
-  } BPNode_ClaOutData_t;
+} BPNode_ClaOutData_t;
 
 
 /*
