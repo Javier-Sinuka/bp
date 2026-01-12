@@ -372,7 +372,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_ContactStopCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_ContactStopCmd_t*) SBBufPtr;
 
-                BPLib_NC_ContactStop(MsgPtr->Payload);
+                BPLib_NC_ContactStop(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 

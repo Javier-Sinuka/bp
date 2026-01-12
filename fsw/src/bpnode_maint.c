@@ -30,7 +30,6 @@
 #include "bpnode_app.h"
 #include "bpnode_maint.h"
 
-
 /*
 ** Function Definitions
 */
@@ -47,12 +46,12 @@ CFE_Status_t BPNode_MaintCreateTask(void)
     BPNode_AppData.MaintData.TaskData.ExitEid = BPNODE_MAINT_EXIT_CRT_EID;
     BPNode_AppData.MaintData.TaskData.TaskInitFunc = BPNode_Maint_TaskInit;
     BPNode_AppData.MaintData.TaskData.TaskMainFunc = BPNode_Maint_TaskMain;
-    
+
     strncpy(BPNode_AppData.MaintData.TaskData.Name, "Maintenance Task", OS_MAX_API_NAME);
 
     /* Spawn Maintenance child task */
     Status = CFE_ES_CreateChildTask(&BPNode_AppData.MaintData.TaskData.CfeTaskId,
-                            BPNODE_MAINT_BASE_NAME, BPNode_TaskMain, 0, BPNODE_GEN_WRKR_STACK_SIZE, 
+                            BPNODE_MAINT_BASE_NAME, BPNode_TaskMain, 0, BPNODE_GEN_WRKR_STACK_SIZE,
                             BPNODE_MAINTENANCE_PRIORITY, 0);
     if (Status != CFE_SUCCESS)
     {
@@ -72,7 +71,7 @@ CFE_Status_t BPNode_Maint_TaskInit(uint32 TaskId)
 void BPNode_Maint_TaskMain(uint32 TaskId)
 {
     BPLib_Status_t Status;
-    uint32 WorkNotifCount;
+    uint32         WorkNotifCount;
 
     /* Check if main task has indicated that storage should be cleaned up */
     if (BPNode_NotifGetCount(&BPNode_AppData.ChildTaskCleanStorNotif) > 0)
@@ -87,7 +86,7 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
     /* Activities that should only be done once per second */
     if (WorkNotifCount >= (BPNode_AppData.MaintData.LastGarbageCollectCycle + BPNODE_MAX_EXP_WAKEUP_RATE) ||
         WorkNotifCount < BPNode_AppData.MaintData.LastGarbageCollectCycle)
-    {    
+    {
         BPNode_AppData.MaintData.LastGarbageCollectCycle = WorkNotifCount;
 
         /* Update time as needed */
@@ -108,5 +107,8 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
         ** such as detecting system "idle" time and doing a bulk delete then.
         */
         BPLib_STOR_GarbageCollect(&BPNode_AppData.BplibInst);
+
+        /* See if any open CCSs need to be sent off */
+        BPLib_CT_CheckCcsTimeout(&BPNode_AppData.BplibInst);
     }
 }

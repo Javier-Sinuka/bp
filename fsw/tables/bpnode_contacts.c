@@ -56,13 +56,13 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .CLAType             = BPLib_UDP_CLA,
                 .ClaInAddr           = "0.0.0.0",
                 .ClaOutAddr          = "127.0.0.1",
-                .ClaInPort           = 4501,         
+                .ClaInPort           = 4501,
                 .ClaOutPort          = 4551,
-                .RetransmitTimeout   = 30000,   /* 30 secs */           
-                .CSTimeTrigger       = 103,           
-                .CSSizeTrigger       = 10,            
-                .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
-                .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
+                .RetransmitTimeout   = 30000,    /* 30 secs */
+                .CSTimeTrigger       = 60000,    /* milliseconds */
+                .CSSizeTrigger       = 10,
+                .IngressBitsPerCycle = 20000000, /* Ingress rate, 20 Mb per cycle */
+                .EgressBitsPerCycle  = 20000000  /* Egress rate, 20 Mb per cycle */
             },
             {
                 .DestEIDs = {
@@ -82,7 +82,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .ClaOutAddr             = "",
                 .ClaInPort              = 0,
                 .ClaOutPort             = 0,
-                .RetransmitTimeout      = 30000,   /* 30 secs */  
+                .RetransmitTimeout      = 30000,   /* 30 secs */
                 .CSTimeTrigger          = 0,
                 .CSSizeTrigger          = 0,
                 .IngressBitsPerCycle    = 20000000, /* Ingress rate, 20 Mb per cycle */
@@ -103,12 +103,12 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 },
                 .CLAType             = BPLib_UDP_CLA,
                 .ClaInAddr           = "0.0.0.0",
-                .ClaOutAddr          = "127.0.0.1", 
-                .ClaInPort           = 4502, 
+                .ClaOutAddr          = "127.0.0.1",
+                .ClaInPort           = 4502,
                 .ClaOutPort          = 4552,
-                .RetransmitTimeout   = 30000,   /* 30 secs */  
-                .CSTimeTrigger       = 103,           
-                .CSSizeTrigger       = 10,            
+                .RetransmitTimeout   = 30000,   /* 30 secs */
+                .CSTimeTrigger       = 103,
+                .CSSizeTrigger       = 10,
                 .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
                 .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
             }

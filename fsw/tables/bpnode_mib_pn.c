@@ -41,6 +41,7 @@ BPLib_NC_MibPerNodeConfig_t MIBConfigPNTable = {
         /* PARAM_SET_MAX_SEQUENCE NUM         */ 100000,   
         /* PARAM_SET_MAX_PAYLOAD_LENGTH       */ BPLIB_MAX_PAYLOAD_SIZE,
         /* PARAM_SET_MAX_BUNDLE_LENGTH        */ BPLIB_MAX_BUNDLE_LEN,
+        /* PARAM_SUPPORT_CUSTODY              */ true,
         /* PARAM_SET_MAX_LIFETIME             */ BPLIB_MAX_LIFETIME_ALLOWED
     }
 };
