@@ -50,6 +50,7 @@ typedef struct
 {
     BPNode_TaskData_t TaskData;         /** \brief Task data */
     bool              CleanStor;        /** \brief Flag for whether to clean storage */
+    uint32            LastGarbageCollectCycle;
 } BPNode_MaintData_t;
 
 
