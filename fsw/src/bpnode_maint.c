@@ -111,4 +111,11 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
         /* See if any open CCSs need to be sent off */
         BPLib_CT_CheckCcsTimeout(&BPNode_AppData.BplibInst);
     }
+
+    Status = BPLib_STOR_Egress(&BPNode_AppData.BplibInst, BPLIB_STOR_LOADBATCHSIZE);
+
+    if (Status != BPLIB_SUCCESS)
+    {
+        printf("boo err\n");
+    }
 }
