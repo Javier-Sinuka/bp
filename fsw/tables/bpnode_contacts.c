@@ -37,15 +37,15 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
                         .MaxAllocator = 0,
                         .MinAllocator = 0,
-                        .MaxNode      = 207,
-                        .MinNode      = 207,
+                        .MaxNode      = BPNODE_EID_NODE_NUM_FOR_CONTACT_0,
+                        .MinNode      = BPNODE_EID_NODE_NUM_FOR_CONTACT_0,
                         .MaxService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_0,
                         .MinService   = BPNODE_EID_SERVICE_NUM_FOR_CONTACT_0
                     }
                 },
                 .CLAType             = BPLib_UDP_CLA,
                 .ClaInAddr           = "0.0.0.0",
-                .ClaOutAddr          = "127.0.0.1",
+                .ClaOutAddr          = "10.1.5.198",
                 .ClaInPort           = 4501,
                 .ClaOutPort          = 4551,
                 .RetransmitTimeout   = 30000,    /* 30 secs */
