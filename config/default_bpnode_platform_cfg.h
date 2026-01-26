@@ -146,9 +146,9 @@
 #define BPNODE_NUM_JOBS_PER_CYCLE           (150000 / BPNODE_MAX_EXP_WAKEUP_RATE)
 
 /**
- * \brief Size of BPLib's Memory Pool, in bytes (8 GB)
+ * \brief Size of BPLib's Memory Pool, in bytes (16 MB)
  */
-#define BPNODE_MEM_POOL_LEN               ((size_t) 8000000000u)
+#define BPNODE_MEM_POOL_LEN               ((size_t) 16000000u)
 
 /**
  * \brief Maximum number of simultaneous unsorted BPLib generic worker jobs
