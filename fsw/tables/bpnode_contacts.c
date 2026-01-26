@@ -45,7 +45,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 },
                 .CLAType             = BPLib_UDP_CLA,
                 .ClaInAddr           = "0.0.0.0",
-                .ClaOutAddr          = "10.1.5.198",
+                .ClaOutAddr          = "127.0.0.1",
                 .ClaInPort           = 4501,
                 .ClaOutPort          = 4551,
                 .RetransmitTimeout   = 30000,    /* 30 secs */
