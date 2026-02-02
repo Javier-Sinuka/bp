@@ -39,6 +39,9 @@
 
 #define BPNODE_MAINT_BASE_NAME            "BPNODE.MAINT"  /** \brief Task base name */
 
+/** \brief Maximum number of bundles that can be loaded from storage per wakeup cycle */
+#define BPNODE_MAX_BUNDLES_LOADED       (BPLIB_STOR_LOADBATCHSIZE * BPLIB_MAX_NUM_CONTACTS * BPLIB_MAX_NUM_CHANNELS)
+
 /*
 ** Type Definitions
 */

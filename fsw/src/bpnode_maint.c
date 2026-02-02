@@ -111,4 +111,12 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
         /* See if any open CCSs need to be sent off */
         BPLib_CT_CheckCcsTimeout(&BPNode_AppData.BplibInst);
     }
+
+    /* Load bundles from storage into memory */
+    Status = BPLib_STOR_Egress(&BPNode_AppData.BplibInst, BPNODE_MAX_BUNDLES_LOADED);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPNODE_MAINT_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
+                "[Maintenance Task]: Error loading bundles from storage, RC = %d", Status);
+    }
 }
