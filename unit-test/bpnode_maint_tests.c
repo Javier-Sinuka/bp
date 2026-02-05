@@ -76,9 +76,7 @@ void Test_BPNode_Maint_TaskMain_Nominal(void)
     UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
 
     UtAssert_STUB_COUNT(BPLib_NC_CleanupStorage, 0);
-    UtAssert_STUB_COUNT(BPLib_TIME_MaintenanceActivities, 1);
-    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
-    UtAssert_STUB_COUNT(BPLib_STOR_GarbageCollect, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_RunMaintenanceActivities, 1);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
@@ -93,9 +91,7 @@ void Test_BPNode_Maint_TaskMain_Cleanup(void)
     UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
 
     UtAssert_STUB_COUNT(BPLib_NC_CleanupStorage, 1);
-    UtAssert_STUB_COUNT(BPLib_TIME_MaintenanceActivities, 1);
-    UtAssert_STUB_COUNT(BPLib_STOR_FlushPending, 1);
-    UtAssert_STUB_COUNT(BPLib_STOR_GarbageCollect, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_RunMaintenanceActivities, 1);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
@@ -117,25 +113,6 @@ void Test_BPNode_Maint_TaskMain_QuietWakeup(void)
     #endif
 }
 
-/* Test main task after failing time maintenance activities */
-void Test_BPNode_Maint_TaskMain_TimeErr(void)
-{
-    uint32 TaskId = 0;
-
-    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, 0);
-    UT_SetDeferredRetcode(UT_KEY(BPNode_NotifGetCount), 1, BPNODE_MAX_EXP_WAKEUP_RATE);
-
-    /* Fail Time activities */
-    UT_SetDeferredRetcode(UT_KEY(BPLib_TIME_MaintenanceActivities), 1, BPLIB_TIME_WRITE_ERROR);
-
-    UtAssert_VOIDCALL(BPNode_Maint_TaskMain(TaskId));
-
-    UtAssert_STUB_COUNT(BPLib_TIME_MaintenanceActivities, 1);
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    BPNode_Test_Verify_Event(0, BPNODE_TIME_WKP_ERR_EID, 
-                "[Maintenance Task]: Error doing time maintenance activities, RC = %d");
-}
-
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
 {
@@ -147,5 +124,4 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_Maint_TaskMain_Nominal);
     ADD_TEST(Test_BPNode_Maint_TaskMain_Cleanup);
     ADD_TEST(Test_BPNode_Maint_TaskMain_QuietWakeup);
-    ADD_TEST(Test_BPNode_Maint_TaskMain_TimeErr);
 }
