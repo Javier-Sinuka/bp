@@ -50,7 +50,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .ClaOutPort          = 4551,
                 .RetransmitTimeout   = 60000,    /* 60 secs */
                 .CSTimeTrigger       = 30000,    /* 30 secs */
-                .CSSizeTrigger       = 10,       /* Based on the length of the BSC sequence length array(s) */
+                .CSSizeTrigger       = (BPLIB_MINIMUM_ENCODED_CCS_LEN + 10),
                 .IngressBitsPerCycle = 20000000, /* Ingress rate, 20 Mb per cycle */
                 .EgressBitsPerCycle  = 20000000  /* Egress rate, 20 Mb per cycle */
             },
@@ -74,7 +74,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .ClaOutPort             = 0,
                 .RetransmitTimeout      = 60000,    /* 60 secs */
                 .CSTimeTrigger          = 30000,    /* 30 secs */
-                .CSSizeTrigger          = 10,       /* Based on the length of the BSC sequence length array(s) */
+                .CSSizeTrigger          = (BPLIB_MINIMUM_ENCODED_CCS_LEN + 10),
                 .IngressBitsPerCycle    = 20000000, /* Ingress rate, 20 Mb per cycle */
                 .EgressBitsPerCycle     = 20000000  /* Egress rate, 20 Mb per cycle */
             },
@@ -98,7 +98,7 @@ BPLib_CLA_ContactsTable_t ContactsTable = {
                 .ClaOutPort          = 4552,
                 .RetransmitTimeout   = 60000,    /* 60 secs */
                 .CSTimeTrigger       = 30000,    /* 30 secs */
-                .CSSizeTrigger       = 10,       /* Based on the length of the BSC sequence length array(s) */
+                .CSSizeTrigger       = (BPLIB_MINIMUM_ENCODED_CCS_LEN + 10),
                 .IngressBitsPerCycle = 20000000,      /* Ingress rate, 20 Mb per cycle */
                 .EgressBitsPerCycle  = 20000000       /* Egress rate, 20 Mb per cycle */
             }
