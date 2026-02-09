@@ -89,27 +89,7 @@ void BPNode_Maint_TaskMain(uint32 TaskId)
     {
         BPNode_AppData.MaintData.LastGarbageCollectCycle = WorkNotifCount;
 
-        /* Update time as needed */
-        Status = BPLib_TIME_MaintenanceActivities();
-
-        if (Status != BPLIB_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPNODE_TIME_WKP_ERR_EID, BPLib_EM_EventType_ERROR,
-                                "[Maintenance Task]: Error doing time maintenance activities, RC = %d", Status);
-        }
-
-        /* Flush any bundles pending storage - error event issued by bplib */
-        (void) BPLib_STOR_FlushPending(&BPNode_AppData.BplibInst);
-
-        /* Garbage Collect: Ideally, you should do this if nothing is busy. For B 7.0
-        ** Calling it once a second is enough, but this comes with the caveat that removing bundles
-        ** from storage will take several cycles. There may be optimizations that can be done here
-        ** such as detecting system "idle" time and doing a bulk delete then.
-        */
-        BPLib_STOR_GarbageCollect(&BPNode_AppData.BplibInst);
-
-        /* See if any open CCSs need to be sent off */
-        BPLib_CT_CheckCcsTimeout(&BPNode_AppData.BplibInst);
+        BPLib_NC_RunMaintenanceActivities(&BPNode_AppData.BplibInst);
     }
 
     /* Load bundles from storage into memory */
