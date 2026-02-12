@@ -8,5 +8,9 @@ With BPNode, cFS can participate in a Delay/Disruption Tolerant Network (DTN) as
 
 ## Software Required
 
-cFS Framework (cFE, OSAL, PSP)
+cFS Framework (cFE, OSAL, PSP)   
 An integrated bundle including the cFE, OSAL, and PSP can be obtained at https://github.com/nasa/cfs
+
+Node testing can be done using the [DTN Test Tools](https://github.com/nasa/dtn-tools/) 
+either as Python scrips on the command line or in OpenC3 COSMOS using the provided 
+[COSMOS definitions](https://github.com/nasa/bp/tree/main/cosmos).
