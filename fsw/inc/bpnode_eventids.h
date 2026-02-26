@@ -69,7 +69,6 @@
 #define BPNODE_ADU_IN_MAIN_PTR_CRT_EID          54
 #define BPNODE_ADU_IN_CR_PIPE_ERR_EID           55
 #define BPNODE_ADU_IN_CREATE_ERR_EID            56
-#define BPNODE_ADU_IN_TOO_BIG_ERR_EID           57
 
 /* Event IDs 58-59 reserved for future ADU In task event IDs */
 
@@ -89,12 +88,11 @@
 #define BPNODE_CLA_IN_MAIN_PTR_CRT_EID          74
 #define BPNODE_CLA_IN_FIND_NAME_ERR_EID         75
 #define BPNODE_CLA_IN_CFG_PORT_ERR_EID          76
-#define BPNODE_CLA_IN_CFG_IP_ERR_EID            76
-#define BPNODE_CLA_IN_CFG_DIR_ERR_EID           77
-#define BPNODE_CLA_IN_CFG_SET_RUN_ERR_EID       78
-#define BPNODE_CLA_IN_CFG_STOP_ERR_EID          79
-#define BPNODE_CLA_IN_CREATE_ERR_EID            80
-#define BPNODE_CLA_IN_RUN_ERR_EID               81
+#define BPNODE_CLA_IN_CFG_IP_ERR_EID            77
+#define BPNODE_CLA_IN_CFG_DIR_ERR_EID           78
+#define BPNODE_CLA_IN_CFG_SET_RUN_ERR_EID       79
+#define BPNODE_CLA_IN_CFG_STOP_ERR_EID          80
+#define BPNODE_CLA_IN_CREATE_ERR_EID            81
 #define BPNODE_CLA_IN_CREATE_PIPE_ERR_EID       82
 #define BPNODE_CLA_IN_SUB_ERR_EID               83
 #define BPNODE_CLA_IN_RECV_BUFF_ERR_EID         84

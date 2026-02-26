@@ -30,7 +30,7 @@
 
 /* Development Build Macro Definitions */
 
-#define BPNODE_BUILD_NUMBER    (6u) /*!< Development Build: Number of development builds (not commits) since baseline */
+#define BPNODE_BUILD_NUMBER    (0u) /*!< Development Build: Number of development builds (not commits) since baseline */
 #define BPNODE_BUILD_BASELINE  "equuleus-rc1" /*!< Development Build: git tag that is the base for the current development */
 #define BPNODE_BUILD_DEV_CYCLE "equuleus-rc2" /**< @brief Development: Release name for current development cycle */
 #define BPNODE_BUILD_CODENAME  "Equuleus" /**< @brief: Development: Code name for the current build */
@@ -41,7 +41,7 @@
 
 #define BPNODE_MAJOR_VERSION 7  /*!< @brief Major version number. */
 #define BPNODE_MINOR_VERSION 0  /*!< @brief Minor version number. */
-#define BPNODE_REVISION      2  /*!< @brief Revision version number. Value of 0 indicates a development version.*/
+#define BPNODE_REVISION      4  /*!< @brief Revision version number. Value of 0 indicates a development version.*/
 
 /*!
  * @brief Mission revision.
