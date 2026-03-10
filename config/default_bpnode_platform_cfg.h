@@ -60,6 +60,13 @@
                                            (BPLIB_MAX_NUM_CONTACTS * 2) + \
                                             BPNODE_NUM_GEN_WRKR_TASKS + 1)
 
+/**
+ *  \brief Only uncomment when testing, this provides debug information on the CLA and 
+ *         Generic Worker Task performance rates. It's very noisy but can be useful
+ *         when looking for areas to optimize data rate performance.
+ */
+//#define BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+
 /** 
  * @defgroup Child task stack sizes
  * @{
