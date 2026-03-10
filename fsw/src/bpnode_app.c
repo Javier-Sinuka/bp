@@ -418,10 +418,6 @@ CFE_Status_t BPNode_AppInit(void)
     /* App has initialized properly */
     BPNode_AppData.RunStatus = CFE_ES_RunStatus_APP_RUN;
 
-    BPLib_CLA_ContactSetup(&BPNode_AppData.BplibInst, 0);
-    BPLib_CLA_ContactStart(&BPNode_AppData.BplibInst, 0);
-    
-
     #ifdef DEFAULT_UDP_CLA
     BPLib_EM_SendEvent(BPNODE_INIT_INF_EID, BPLib_EM_EventType_INFORMATION,
                         "BPNode Initialized. Version %d.%d.%d.%d",
