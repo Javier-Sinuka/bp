@@ -150,6 +150,10 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
     /* Ingress bundles only when the contact has been started */
     if (Status == BPLIB_SUCCESS && RunState == BPLIB_CLA_STARTED)
     {
+        #ifdef BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+        int64_t StartTime = BPLib_TIME_GetMonotonicTime();
+        #endif
+
         while (Status == BPLIB_SUCCESS &&
                 (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < 
                 BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.EgressBitsPerCycle))
@@ -160,6 +164,11 @@ void BPNode_ClaOut_TaskMain(uint32 ContactId)
                 BPNode_AppData.ClaOutData[ContactId].BitsEgressed += (BundleSize * BPNODE_BITS_PER_BYTE);
             }
         }
+
+        #ifdef BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+        printf("Egressed %ld bits in %ld msec\n", BPNode_AppData.ClaOutData[ContactId].BitsEgressed, 
+                                  BPLib_TIME_GetMonotonicTime() - StartTime);
+        #endif
 
         if (BPNode_AppData.ClaOutData[ContactId].BitsEgressed < BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.EgressBitsPerCycle)
         {

@@ -121,6 +121,10 @@ void BPNode_GenWorker_TaskMain(uint32 WorkerId)
     }
     else
     {
+        #ifdef BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+        int64_t StartTime = BPLib_TIME_GetMonotonicTime();
+        #endif
+
         do
         {
             BPLib_PL_PerfLogExit(BPNode_AppData.GenWorkerData[WorkerId].TaskData.PerfId);
@@ -140,6 +144,11 @@ void BPNode_GenWorker_TaskMain(uint32 WorkerId)
                 break;
             }
         } while (BpStatus == BPLIB_SUCCESS && JobsRun < BPNODE_NUM_JOBS_PER_CYCLE);
+
+        #ifdef BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+        printf("Processed %ld jobs in %ld msec\n", JobsRun, 
+                                BPLib_TIME_GetMonotonicTime() - StartTime);
+        #endif
     }
 
     return;

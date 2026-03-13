@@ -163,6 +163,10 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
     /* Ingress bundles only when the contact has been started */
     if (Status == BPLIB_SUCCESS && RunState == BPLIB_CLA_STARTED)
     {
+        #ifdef BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+        int64_t StartTime = BPLib_TIME_GetMonotonicTime();
+        #endif
+
         while (Status != BPLIB_TIMEOUT &&
                 (BPNode_AppData.ClaInData[ContactId].BitsIngressed <
                 BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.IngressBitsPerCycle))
@@ -173,6 +177,11 @@ void BPNode_ClaIn_TaskMain(uint32 ContactId)
                 BPNode_AppData.ClaInData[ContactId].BitsIngressed += (BundleSize * BPNODE_BITS_PER_BYTE);
             }
         }
+
+        #ifdef BPNODE_INCLUDE_PERFORMANCE_DEBUGS
+        printf("Ingressed %ld bits in %ld msec\n", BPNode_AppData.ClaInData[ContactId].BitsIngressed, 
+                                      BPLib_TIME_GetMonotonicTime() - StartTime);
+        #endif
 
         if (BPNode_AppData.ClaInData[ContactId].BitsIngressed < BPNode_AppData.BplibInst.ContCtxt[ContactId].Config.IngressBitsPerCycle)
         {
