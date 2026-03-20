@@ -25,8 +25,8 @@
     APPEND_PARAMETER "spare_4" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_0_poll_0_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_0_poll_0_dest_eid" 32 UINT 0 0xFFFFFFFF 0
-    APPEND_PARAMETER "chan_0_poll_0_src_dir" 352 STRING "abcd"
-    APPEND_PARAMETER "chan_0_poll_0_dst_dir" 352 STRING ""
+    APPEND_PARAMETER "chan_0_poll_0_src_dir" 512 STRING "abcd"
+    APPEND_PARAMETER "chan_0_poll_0_dst_dir" 512 STRING ""
     APPEND_PARAMETER "chan_0_poll_0_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -37,8 +37,8 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_0_poll_1_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_0_poll_1_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_0_poll_1_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_0_poll_1_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_0_poll_1_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_0_poll_1_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_0_poll_1_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -49,8 +49,8 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_0_poll_2_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_0_poll_2_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_0_poll_2_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_0_poll_2_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_0_poll_2_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_0_poll_2_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_0_poll_2_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -61,8 +61,8 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_0_poll_3_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_0_poll_3_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_0_poll_3_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_0_poll_3_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_0_poll_3_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_0_poll_3_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_0_poll_3_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -73,15 +73,15 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_0_poll_4_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_0_poll_4_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_0_poll_4_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_0_poll_4_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_0_poll_4_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_0_poll_4_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_0_poll_4_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
     
     APPEND_PARAMETER "chan_0_sem_name" 160 STRING ""
     APPEND_PARAMETER "chan_0_dequeue_enabled" 8 UINT 0 0xFF 0
-    APPEND_PARAMETER "chan_0_move_dir" 512 STRING ""
+    APPEND_PARAMETER "chan_0_move_dir" 1024 STRING ""
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
     
@@ -106,8 +106,8 @@
     APPEND_PARAMETER "spare_8" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_1_poll_0_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_1_poll_0_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_1_poll_0_src_dir" 352 STRING ""
-    APPEND_PARAMETER "chan_1_poll_0_dst_dir" 352 STRING ""
+    APPEND_PARAMETER "chan_1_poll_0_src_dir" 512 STRING ""
+    APPEND_PARAMETER "chan_1_poll_0_dst_dir" 512 STRING ""
     APPEND_PARAMETER "chan_1_poll_0_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -118,8 +118,8 @@
     APPEND_PARAMETER "spare_10" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_1_poll_1_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_1_poll_1_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_1_poll_1_src_dir" 352 STRING ""
-    APPEND_PARAMETER "chan_1_poll_1_dst_dir" 352 STRING ""
+    APPEND_PARAMETER "chan_1_poll_1_src_dir" 512 STRING ""
+    APPEND_PARAMETER "chan_1_poll_1_dst_dir" 512 STRING ""
     APPEND_PARAMETER "chan_1_poll_1_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -130,8 +130,8 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_1_poll_2_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_1_poll_2_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_1_poll_2_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_1_poll_2_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_1_poll_2_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_1_poll_2_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_1_poll_2_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -142,8 +142,8 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_1_poll_3_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_1_poll_3_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_1_poll_3_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_1_poll_3_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_1_poll_3_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_1_poll_3_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_1_poll_3_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
@@ -154,20 +154,20 @@
     APPEND_PARAMETER "spare_6" 8 UINT 0 0 0
     APPEND_PARAMETER "chan_1_poll_4_cfdp_class" 32 UINT 0 0xFFFFFF 0
     APPEND_PARAMETER "chan_1_poll_4_dest_eid" 32 UINT 0 0xFFFF 0
-    APPEND_PARAMETER "chan_1_poll_4_src_dir" 352 STRING "efgh"
-    APPEND_PARAMETER "chan_1_poll_4_dst_dir" 352 STRING "ijkl"
+    APPEND_PARAMETER "chan_1_poll_4_src_dir" 512 STRING "efgh"
+    APPEND_PARAMETER "chan_1_poll_4_dst_dir" 512 STRING "ijkl"
     APPEND_PARAMETER "chan_1_poll_4_enabled" 8 UINT 0 0xFF 0
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
     
     APPEND_PARAMETER "chan_1_sem_name" 160 STRING ""
     APPEND_PARAMETER "chan_1_dequeue_enabled" 8 UINT 0 0xFF 0
-    APPEND_PARAMETER "chan_1_move_dir" 512 STRING ""
+    APPEND_PARAMETER "chan_1_move_dir" 1024 STRING ""
     APPEND_PARAMETER "spare_2" 8 UINT 0 0 0
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0
     
     
     APPEND_PARAMETER "outgoing_file_chunk_size" 16 UINT 0 0xFFFF 0  
-    APPEND_PARAMETER "tmp_dir" 352 STRING ""
-    APPEND_PARAMETER "fail_dir" 352 STRING ""
+    APPEND_PARAMETER "tmp_dir" 512 STRING ""
+    APPEND_PARAMETER "fail_dir" 512 STRING ""
     APPEND_PARAMETER "spare_2" 16 UINT 0 0 0

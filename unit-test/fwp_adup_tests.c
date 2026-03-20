@@ -121,9 +121,6 @@ void Test_BPA_ADUP_In_Nominal(void)
     uint8_t ChanId = 0;
     CFE_MSG_Size_t Size = 10;
 
-    /* Set global data */
-    BPNode_AppData.AduInData[ChanId].MaxBundlePayloadSize = 100;
-
     UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &Size, sizeof(Size), false);
 
     UtAssert_INT32_EQ(BPA_ADUP_In(&Buf, ChanId, &Size), BPLIB_SUCCESS);
@@ -132,37 +129,12 @@ void Test_BPA_ADUP_In_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 }
 
-/* Test BPA_ADUP_In when the payload is too big*/
-void Test_BPA_ADUP_In_SizeErr(void)
-{
-    CFE_SB_Buffer_t Buf;
-    uint8_t ChanId = 0;
-    CFE_MSG_Size_t Size = 100;
-
-    /* Set global data */
-    BPNode_AppData.AduInData[ChanId].MaxBundlePayloadSize = 10;
-
-    UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &Size, sizeof(Size), false);
-
-    UtAssert_INT32_EQ(BPA_ADUP_In(&Buf, ChanId, &Size), BPLIB_ERROR);
-
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPNODE_ADU_IN_TOO_BIG_ERR_EID);
-    UtAssert_STRINGBUF_EQ("[ADU In #%d]: Received an ADU too big to ingest, Size=%ld, MaxBundlePayloadSize=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
-
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
-    UtAssert_STUB_COUNT(BPLib_PI_Ingress, 0);
-}
-
 /* Test BPA_ADUP_In when ingress fails */
 void Test_BPA_ADUP_In_IngressErr(void)
 {
     CFE_SB_Buffer_t Buf;
     uint8_t ChanId = 0;
     CFE_MSG_Size_t Size = 10;
-
-    /* Set global data */
-    BPNode_AppData.AduInData[ChanId].MaxBundlePayloadSize = 100;
 
     UT_SetDataBuffer(UT_KEY(CFE_MSG_GetSize), &Size, sizeof(Size), false);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_Ingress), BPLIB_NULL_PTR_ERROR);
@@ -176,7 +148,7 @@ void Test_BPA_ADUP_In_IngressErr(void)
 void Test_BPA_ADUP_Out_Nominal(void)
 {
     uint8_t ChanId = 0;
-    size_t SizeVal = BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES;
+    size_t SizeVal = BPLIB_MAX_PAYLOAD_SIZE;
 
     UT_SetDataBuffer(UT_KEY(BPLib_PI_Egress), &SizeVal, sizeof(SizeVal), false);
 
@@ -191,7 +163,7 @@ void Test_BPA_ADUP_Out_Nominal(void)
 void Test_BPA_ADUP_Out_Wrapping(void)
 {
     uint8_t ChanId = 0;
-    size_t SizeVal = BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES;
+    size_t SizeVal = BPLIB_MAX_PAYLOAD_SIZE;
 
     UT_SetDataBuffer(UT_KEY(BPLib_PI_Egress), &SizeVal, sizeof(SizeVal), false);
 
@@ -249,7 +221,6 @@ void Test_BPA_ADUP_AddApplication_Nominal(void)
     TestChanTbl.Configs[ChanId].AddAutomatically = true;
     TestChanTbl.Configs[ChanId].AduUnwrapping = false;
     TestChanTbl.Configs[ChanId].AduWrapping = true;
-    TestChanTbl.Configs[ChanId].MaxBundlePayloadSize = 1234;
 
     BPNode_AppData.AduProxyTablePtr                = &TestAduTbl;
     BPNode_AppData.ConfigPtrs.ChanConfigPtr = &TestChanTbl;
@@ -267,8 +238,6 @@ void Test_BPA_ADUP_AddApplication_Nominal(void)
                             TestChanTbl.Configs[ChanId].AddAutomatically);
     UtAssert_INT32_EQ(BPNode_AppData.AduInData[ChanId].AduUnwrapping, 
                             TestChanTbl.Configs[ChanId].AduUnwrapping);       
-    UtAssert_INT32_EQ(BPNode_AppData.AduInData[ChanId].MaxBundlePayloadSize, 
-                            TestChanTbl.Configs[ChanId].MaxBundlePayloadSize);       
     UtAssert_INT32_EQ(BPNode_AppData.AduOutData[ChanId].AduWrapping, 
                             TestChanTbl.Configs[ChanId].AduWrapping);       
 
@@ -351,7 +320,6 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPA_ADUP_ValidateConfigTbl_InvMsgLim);
     
     ADD_TEST(Test_BPA_ADUP_In_Nominal);
-    ADD_TEST(Test_BPA_ADUP_In_SizeErr);
     ADD_TEST(Test_BPA_ADUP_In_IngressErr);
 
     ADD_TEST(Test_BPA_ADUP_Out_Nominal);

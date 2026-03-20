@@ -4,123 +4,8 @@ def bundle_ingress_errors(self):
     print("### Bundle Ingress test - Errors")
     print("###################################################################")
     '''
+    Error codes in:
     https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/main/inc/bplib_api_types.h?ref_type=heads
-    
-    CBOR Decode Errors
-    BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            -120 CBOR decode error: bundle too short
-    BPLIB_CBOR_DEC_BUNDLE_ENTER_ARRAY_ERR          -121 CBOR decode error: entry array
-    BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR           -122 CBOR decode error: max blocks
-    BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR           -123 CBOR decode error: entry array
-
-    BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR            -124 CBOR primary block decode error: entry array
-    BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR             -125 CBOR primary block decode error: exit array
-    BPLIB_CBOR_DEC_PRIM_VERSION_DEC_ERR            -126 CBOR primary block decode error: decode version field
-    BPLIB_CBOR_DEC_PRIM_WRONG_VERSION_ERR          -127 CBOR primary block decode error: wrong version field
-    BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR               -128 CBOR primary block decode error: decode flag field
-    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR             -129 CBOR primary block decode error: wrong flag field
-    BPLIB_CBOR_DEC_PRIM_CRC_TYPE_DEC_ERR           -130 CBOR primary block decode error: decode crc type field
-    BPLIB_CBOR_DEC_PRIM_DEST_EID_DEC_ERR           -131 CBOR primary block decode error: decode Dest EID field
-    BPLIB_CBOR_DEC_PRIM_SRC_EID_DEC_ERR            -132 CBOR primary block decode error: decode Src EID field
-    BPLIB_CBOR_DEC_PRIM_REPORT_EID_DEC_ERR         -133 CBOR primary block decode error: decode Report-To EID field
-    BPLIB_CBOR_DEC_PRIM_CREATE_TIME_DEC_ERR        -134 CBOR primary block decode error: decode create time field
-    BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR           -135 CBOR primary block decode error: decode lifetime field
-    BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR            -136 CBOR primary block decode error: decode crc value field
-
-    BPLIB_CBOR_DEC_CANON_BLOCK_INDEX_ERR           -137 CBOR canon block decode error: invalid block index
-    BPLIB_CBOR_DEC_CANON_ENTER_ARRAY_ERR           -138 CBOR canon block decode error: entry array
-    BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR            -139 CBOR canon block decode error: exit array
-    BPLIB_CBOR_DEC_CANON_BLOCK_TYPE_DEC_ERR        -140 CBOR canon block decode error: decode block type
-    BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR         -141 CBOR canon block decode error: decode block num
-    BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR        -142 CBOR canon block decode error: decode block proc flags
-    BPLIB_CBOR_DEC_CANON_CRC_TYPE_DEC_ERR          -143 CBOR canon block decode error: decode crc type
-    BPLIB_CBOR_DEC_CANON_ENTER_BYTE_STR_ERR        -144 CBOR canon block decode error: enter data byte string
-    BPLIB_CBOR_DEC_CANON_EXIT_BYTE_STR_ERR         -145 CBOR canon block decode error: exit data byte string
-    BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR           -146 CBOR canon block decode error: decode crc value field
-
-    BPLIB_CBOR_DEC_PREV_NODE_EID_DEC_ERR           -147 CBOR Prev Node block decode error: decode eid field
-
-    BPLIB_CBOR_DEC_AGE_BLOCK_DEC_ERR               -148 CBOR Age block decode error: decode eid field
-
-    BPLIB_CBOR_DEC_HOP_BLOCK_ENTER_ARRAY_ERR       -149 CBOR Hop Count block decode error: enter array
-    BPLIB_CBOR_DEC_HOP_BLOCK_EXIT_ARRAY_ERR        -150 CBOR Hop Count block decode error: exit array
-    BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR     -151 CBOR Hop Count block decode error: hop limit decode
-    BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR     -152 CBOR Hop Count block decode error: hop count decode
-    BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR       -153 CBOR Hop Count block decode error: invalid block data values
-    BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR          -154 CBOR Hop Count block decode error: hop limit exceeded
-    
-    BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           -155 CBOR canon block decode error: can't process block
-    BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         -156 CBOR decode error: bundle is too long
-    BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              -157 CBOR decode error: extra data after payload
-    BPLIB_CBOR_DEC_NO_PAYLOAD_ERR                  -158 CBOR decode error: no payload detected in bundle
-
-    BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR -160 CBOR decode types error: enter def array
-    BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR -161 CBOR decode types error: def array size
-    BPLIB_CBOR_DEC_TYPES_EXIT_DEF_ARRAY_QCBOR_ERR  -162 CBOR decode types error: exit def array
-    BPLIB_CBOR_DEC_TYPES_GET_UINT64_QCBOR_ERR      -163 CBOR decode types error: get uint64
-    BPLIB_CBOR_DEC_TYPES_EID_ENTER_OUTER_ARRAY_ERR -164 CBOR decode types error: EID enter outer array
-    BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR   -165 CBOR decode types error: EID scheme not implemented
-    BPLIB_CBOR_DEC_TYPES_EID_ENTER_SSP_ARRAY_ERR   -166 CBOR decode types error: EID enter SSP array
-    BPLIB_CBOR_DEC_TYPES_EID_IPN_NODE_DEC_ERR      -167 CBOR decode types error: EID IPN node num decode
-    BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR      -168 CBOR decode types error: EID IPN serv num decode
-    BPLIB_CBOR_DEC_TYPES_EID_EXIT_SSP_ARRAY_ERR    -169 CBOR decode types error: EID exit SSP array
-    BPLIB_CBOR_DEC_TYPES_EID_EXIT_OUTER_ARRAY_ERR  -170 CBOR decode types error: EID exit outer array
-
-    BPLIB_CBOR_DEC_TYPES_TIMESTAMP_ENTER_ARRAY_ERR -171 CBOR decode types error: timestamp enter array
-    BPLIB_CBOR_DEC_TYPES_TIMESTAMP_EXIT_ARRAY_ERR  -172 CBOR decode types error: timestamp exit array
-    BPLIB_CBOR_DEC_TYPES_TIMESTAMP_CREATE_DEC_ERR  -173 CBOR decode types error: timestamp create time decode
-    BPLIB_CBOR_DEC_TYPES_TIMESTAMP_SEQ_NUM_DEC_ERR -174 CBOR decode types error: timestamp seq num decode
-
-    BPLIB_CBOR_DEC_TYPES_CRC_ENTER_BYTE_STR_ERR    -175 CBOR decode types error: CRC Val enter byte-string
-    BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR            -176 CBOR decode types error: CRC Val length not 16
-    BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR            -177 CBOR decode types error: CRC Val length not 32
-    BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR  -178 CBOR decode types error: CRC Val type
-
-    Encode Errors
-    BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    -182 BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error
-    BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR    -183 BPLib_CBOR_CopyOrEncodePayload: Copy Size Error
-    BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR           -184 BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error
-    BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR       -185 BPLib_CBOR_EncodeExtensionBlock: Ext Block Index Error
-    BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR            -186 BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error
-    BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR      -187 BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error
-    BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR      -188 BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error
-    BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR      -189 BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error
-
-    BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR     -190 BPLib_CBOR_EncodeBundle: Output buf too small (check 1)
-    BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR     -191 BPLib_CBOR_EncodeBundle: Output buf too small (check 2)
-    BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR     -192 BPLib_CBOR_EncodeBundle: Output buf too small (check 3)
-    BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR     -193 BPLib_CBOR_EncodeBundle: Output buf too small (check 4)
-    
-    Bundle Interface Errors
-    BPLIB_BI_INVALID_BUNDLE_ERR                    -260
-    
-    
-    Testcase:
-    #Invalid bundle
-    #4. too large bundle
-    #5. invalid Primary Block data and a Valid EID
-    #6.	invalid Primary Block data and Invalid EID
-    #7. invalid Primary Block CRC
-    #8. Primary Block flags that are not checked
-    #9. Unsupported Extension Block (delete)
-    #10. Unsupported Block (remove)
-    #11. “Unintelligible” Canonical Block without a Payload Block
-    #12. “Unintelligible” Canonical Block with a Payload Block
-    #13. Canonical Block containing a bad CRC without a Payload Block
-    #14. Canonical Block containing a bad CRC with a Payload Block
-    #15. Valid DTN time, lifetime exceeded
-    #16. Invalid DTN time
-    #17. Creation Time = 0
-    #18. After the first build: Creation Time = 0, with Age block
-    #19. After the first build: Creation Time = 0 and no Age Block
-    #20. source that is not authorized
-    
-    #Storage errors
-    #21. no or too little space allocated for the bundle (or both?)
-    #22. no or too little space left available for the bundle (or both?)
-    #23. DST EID = Local EID (this is the destination) but an output queue to deliver the message does not exist (Maybe delete a message queue to an app? This will cause the system to be unstable). The system is configured to not allow storage in this case.
-    #24. DST EID = Local EID (this is the destination) but an output queue to deliver the message does not exist (Maybe delete a message queue to an app? This will cause the system to be unstable). The system is configured to allow storage in this case.
-    #25. Fragmented bundle
-    #26. At this point, all bundles that were sent should have been stored or discarded 
     '''
     ##*************************************************************************
     
@@ -176,44 +61,40 @@ def bundle_ingress_errors(self):
 
     # Initialize requirement status
     rqmnt_status = {
+        "DTN.5.00657":"U",
         "DTN.6.04030":"U",
-        #"DTN.6.04070":"U",
-        #"DTN.6.04080":"U", #paramSetMaxLifetime not set - not possible
-        #"DTN.6.04090":"U",
-        #"DTN.6.04100":"U",
-        #"DTN.6.04110":"U",
+        "DTN.6.04040":"U",
+        "DTN.6.04070":"U",
+        "DTN.6.04080":"U", 
+        "DTN.6.04090":"U",
+        "DTN.6.04100":"U",
+        "DTN.6.04110":"U",
+        "DTN.6.04150":"U",
         "DTN.6.04180":"U",
-        #"DTN.6.04195":"U", #creation timestamp cannot be compared to the current time - how?
+        "DTN.6.04195":"U", #creation timestamp cannot be compared to the current time
         "DTN.6.04314":"U", 
         "DTN.6.04318":"U",
         "DTN.6.04321":"U", 
+        "DTN.6.04610":"U", 
         "DTN.6.06000":"U",
         "DTN.6.06010":"U",
         "DTN.6.06012":"U",
         "DTN.6.06014":"U",
-        "DTN.6.06016":"U",
         "DTN.6.06040":"U",
         "DTN.6.06050":"U",
         "DTN.6.06060":"U",
-        #"DTN.6.06070":"U",
         "DTN.6.06080":"U",
         "DTN.6.06092":"U",
         "DTN.6.06102":"U",
         "DTN.6.06105":"U",
         "DTN.6.06110":"U",
-        "DTN.6.06120":"U",
         "DTN.6.06130":"U",
-        #"DTN.6.06140":"U",
         "DTN.6.06150":"U",
         "DTN.6.06151":"U",
-        "DTN.6.06160":"U",
         "DTN.6.06170":"U",
         "DTN.6.06172":"U",
         "DTN.6.06173":"U",
         "DTN.6.06174":"U",
-        #"DTN.6.06175":"U",
-        #"DTN.6.06176":"U",
-        #"DTN.6.06177":"U",
         "DTN.6.06180":"U",
         "DTN.6.06190":"U",
         "DTN.6.06200":"U",
@@ -225,88 +106,40 @@ def bundle_ingress_errors(self):
         "DTN.6.06270":"U",
         "DTN.6.06280":"U",
         "DTN.6.06282":"U",
-        #"DTN.6.06283":"U",
-        #"DTN.6.06290":"U",
-        #"DTN.6.06300":"U",
-        #"DTN.6.06310":"U",
-        #"DTN.6.06320":"U",
         "DTN.6.06330":"U",
-        #"DTN.6.06340":"U",
         "DTN.6.06350":"U",
         "DTN.6.06352":"U",
-        #"DTN.6.06353":"U",
         "DTN.6.06358":"U",
         "DTN.6.06360":"U",
-        #"DTN.6.06370":"U",
         "DTN.6.06380":"U",
         "DTN.6.06400":"U",
         "DTN.6.06410":"U",
-        #"DTN.6.06420":"U",
         "DTN.6.06440":"U",
-        #"DTN.6.06450":"U",
-        #"DTN.6.06480":"U",
-        #"DTN.6.06490":"U",
-        #"DTN.6.06492":"U",
-        #"DTN.6.06500":"U",
-        #"DTN.6.06501":"U",
-        #"DTN.6.06510":"U",
-        #"DTN.6.06520":"U",
-        #"DTN.6.06530":"U",
-        #"DTN.6.06540":"U",
-        #"DTN.6.06542":"U",
-        #"DTN.6.06544":"U",
-        #"DTN.6.06546":"U",
         "DTN.6.06552":"U",
-        #"DTN.6.06553":"U",
-        #"DTN.6.06554":"U",
-        #"DTN.6.06555":"U",
-        #"DTN.6.06560":"U",
-        #"DTN.6.06570":"U",
-        #"DTN.6.06580":"U",
-        #"DTN.6.06590":"U",
-        #"DTN.6.06600":"U",
-        #"DTN.6.06602":"U",
-        #"DTN.6.06604":"U",
-        #"DTN.6.06606":"U",
-        "DTN.6.06610":"I",
-        "DTN.6.06620":"I",
-        "DTN.6.06630":"I",
         "DTN.6.06640":"U",
         "DTN.6.06650":"U",
-        "DTN.6.06660":"A", #event message contents need analysis
-        "DTN.6.06670":"U",
         "DTN.6.12165":"U",
-        "DTN.6.13071":"U",
-        "DTN.6.13081":"U",
+        "DTN.6.12282":"U",
         "DTN.6.15031":"U",
         "DTN.6.16015":"U",
         "DTN.6.19160":"U",
+        "DTN.6.19170":"U",
         "DTN.6.19180":"U",
         "DTN.6.19190":"U",
         "DTN.6.19360":"U", 
         "DTN.6.19390":"U", 
-        "DTN.6.19410":"U", 
         "DTN.6.26010":"U",
         "DTN.6.26020":"U",
         "DTN.6.26030":"U",
         "DTN.6.26190":"U",
-        "DTN.6.26200":"U",
         "DTN.6.26210":"U",
-        "DTN.6.26220":"U",
         "DTN.6.26240":"U",
-        "DTN.6.26250":"U",
-        "DTN.6.26260":"U",
 
         #reset requirements
-        "DTN.6.12118":"U", 
         "DTN.6.12120":"U", 
         "DTN.6.12150":"U",
-        "DTN.6.12940":"U", 
-        "DTN.6.12950":"U", 
         "DTN.6.19090":"U", 
-        "DTN.6.20000":"U",
         "DTN.6.20010":"U",
-        "DTN.6.20030":"U",
         "DTN.6.20080":"U",
         "DTN.6.20090":"U",
     }
@@ -403,7 +236,7 @@ def bundle_ingress_errors(self):
             print("!!! ERROR - BUNDLE_COUNT_DISCARDED did not increment as expected")
             status = "F"
 
-        for rqmnt in ["DTN.6.04030", "DTN.6.04314"]:
+        for rqmnt in ["DTN.6.04030", "DTN.6.04150", "DTN.6.04314"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         if status == "F":
@@ -482,7 +315,7 @@ def bundle_ingress_errors(self):
         Primary block is unchanged, only payload in payload block
         '''
         
-        # Create bundle with payload_data codded with invalid CBOR
+        # Create bundle with payload_data coded with invalid CBOR
         payload_block_inv = copy.deepcopy(payload_block)
         payload_block_inv.payload = InvalidCBOR(payload_data,additional_info=add_info)
 
@@ -589,8 +422,7 @@ def bundle_ingress_errors(self):
         #wait()
 
     for rqmnt in [
-        "DTN.6.06000", "DTN.6.06010", "DTN.6.06012", "DTN.6.26190", 
-        "DTN.6.26200"
+        "DTN.6.06000", "DTN.6.06010", "DTN.6.06012", "DTN.6.26190"
         ]:
         TestUtils.set_requirement_status(rqmnt, status)
     
@@ -612,7 +444,7 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
 
-    for rqmnt in ["DTN.6.06000", "DTN.6.06014", "DTN.6.06016", "DTN.6.26210"]:
+    for rqmnt in ["DTN.6.06000", "DTN.6.06014", "DTN.6.26210"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
 
@@ -657,7 +489,7 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
     
-    for rqmnt in ["DTN.6.06350"]:
+    for rqmnt in ["DTN.5.00657", "DTN.6.06350"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     ## Verify BUNDLE_COUNT_DELETED_TOO_LONG
@@ -969,7 +801,7 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
     
-    for rqmnt in ["DTN.6.06000", "DTN.6.06102", "DTN.6.06670"]:
+    for rqmnt in ["DTN.6.06000", "DTN.6.06102"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     # Verify primary block error counts
@@ -1030,8 +862,8 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
 
-    for rqmnt in ["DTN.6.06120"]:
-        TestUtils.set_requirement_status(rqmnt, status)
+    #for rqmnt in ["DTN.6.06120"]:
+    #    TestUtils.set_requirement_status(rqmnt, status)
 
     # Verify canonical block error counts
     verify_canon_error_counts()
@@ -1172,9 +1004,7 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
    
-    for rqmnt in [
-        "DTN.6.06000", "DTN.6.06160", "DTN.6.06670", "DTN.6.26240", "DTN.6.26250"
-        ]:
+    for rqmnt in ["DTN.6.06000", "DTN.6.26240"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     # Verify primary block error counts
@@ -1320,8 +1150,7 @@ def bundle_ingress_errors(self):
     status = verify_telem_and_event()
     
     for rqmnt in [
-        "DTN.6.06000", "DTN.6.06230", "DTN.6.06358", "DTN.6.06360", 
-        "DTN.6.26240", "DTN.6.26250",        
+        "DTN.6.06000", "DTN.6.06230", "DTN.6.06358", "DTN.6.06360", "DTN.6.26240"        
         ]:
         TestUtils.set_requirement_status(rqmnt, status)
         
@@ -1354,7 +1183,7 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
     
-    for rqmnt in ["DTN.6.26010", "DTN.6.26260", "DTN.6.06380"]:
+    for rqmnt in ["DTN.6.26010", "DTN.6.06380"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     # Verify canonical block error counts
@@ -1391,8 +1220,8 @@ def bundle_ingress_errors(self):
         
     print("-----------------------------------------------------------------")
     print("8. Blocks processed in order") #26020
-    print("    Expected - BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR: -154")
-    print("    Expected - BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR: -157")    
+    print("    Expected - BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR: -158")
+    print("    Expected - BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR: -166")    
     print("-----------------------------------------------------------------")
     
     # Hop block with hop count error
@@ -1426,8 +1255,8 @@ def bundle_ingress_errors(self):
     print("Verify hop block error is reported")
     verify_telem_and_event()
     
-    HOP_BLOCK_EXCEEDED_ERR = "RC = -154"
-    if HOP_BLOCK_EXCEEDED_ERR not in tlm(f"DTNFSW-1 CFE_EVS_LONG_EVENT_MSG MESSAGE"):
+    HOP_BLOCK_EXCEEDED_ERR = "RC = -158"
+    if HOP_BLOCK_EXCEEDED_ERR not in tlm(f"{target} CFE_EVS_LONG_EVENT_MSG MESSAGE"):
         print(f"!!! ERROR - Error not {HOP_BLOCK_EXCEEDED_ERR} as expected")
         status = "F"
             
@@ -1440,8 +1269,8 @@ def bundle_ingress_errors(self):
     print("Verify payload block error is reported")
     verify_telem_and_event()
     
-    EXTRA_DATA_ERROR = "RC = -157"
-    if EXTRA_DATA_ERROR not in tlm(f"DTNFSW-1 CFE_EVS_LONG_EVENT_MSG MESSAGE"):
+    EXTRA_DATA_ERROR = "RC = -166"
+    if EXTRA_DATA_ERROR not in tlm(f"{target} CFE_EVS_LONG_EVENT_MSG MESSAGE"):
         print(f"!!! ERROR - Error not {EXTRA_DATA_ERROR} as expected")
         status = "F"
 
@@ -1729,7 +1558,7 @@ def bundle_ingress_errors(self):
     
     status = verify_telem_and_event()
             
-    for rqmnt in ["DTN.6.06210", "DTN.6.26220"]:
+    for rqmnt in ["DTN.6.06210"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     # Verify canonical block error counts
@@ -1817,15 +1646,7 @@ def bundle_ingress_errors(self):
     print("-----------------------------------------------------------------")
     print("15. Lifetime tests")
     print("-----------------------------------------------------------------")
-    '''
-    ###TBD REMOVE AFTER INITIAL TESTS
-    cfe_time_met = tlm(f"{target} CFE_TIME_HK SECONDS_MET")
-    pkt_recv_time = tlm(f"{target} CFE_TIME_HK RECEIVED_TIMESECONDS")
-    new_stcf = int(pkt_recv_time - cfe_time_met)
-    cmd(f"{target} CFE_TIME_CMD_SET_STCF with SECONDS {new_stcf}")
-    cmd(f"{target} CFE_TIME_CMD_SET_STATE with CLOCK_STATE 'VALID'")
-    ###########
-    '''
+    
     ## Set up receive only contact so bundle gets stored and not forwarded
     cmd(f"{target} BPNODE_CMD_CONTACT_STOP with CONTACT_ID 0")
     cmd(f"{target} BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 0")
@@ -1871,15 +1692,14 @@ def bundle_ingress_errors(self):
     for rqmnt in ["DTN.6.06172", "DTN.6.06174"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
-    
-    '''
-    TBD - Not in 7.0
-    
+       
     print(".................................................................")
     print("15.2 Node's maximum lifetime exceeded") #04070, 04314, 06172, 06176
     print(".................................................................")
     #TBD - DTNN-1346, DTNN-1349
-        
+    #BPNODE 650: [CLA In #0]: Error ingressing bundle, RC = -311. src_eid=ipn:101.1, creation_time=823710326161, seq_num=0
+    #BPLIB_BI_EXPIRED_BUNDLE_ERR -311
+    
     ## Load MIB PN Config table with short lifetime (60 sec)
     load_new_table('/cf/mib_short_life.tbl')
     
@@ -1898,7 +1718,7 @@ def bundle_ingress_errors(self):
 
     get_initial_counts()
     del_exp_cnt = tlm(f"{target} {mib_counts_pkt} BUNDLE_COUNT_DELETED_EXPIRED")
-    del_traf_pared_cnt = tlm(f"{target} {mib_counts_pkt} BUNDLE_COUNT_DELETED_TRAFFIC_PARED")
+    #del_traf_pared_cnt = tlm(f"{target} {mib_counts_pkt} BUNDLE_COUNT_DELETED_TRAFFIC_PARED")
     
     print(f"BUNDLE_COUNT_DELETED_EXPIRED: {del_exp_cnt}")
 
@@ -1913,9 +1733,9 @@ def bundle_ingress_errors(self):
     else:
         status = "F"
     
-    for rqmnt in ["DTN.6.04070", "DTN.6.04314", "DTN.6.06172"]:
+    for rqmnt in ["DTN.6.04040", "DTN.6.04070", "DTN.6.04080", "DTN.6.04314", "DTN.6.06172"]:
         TestUtils.set_requirement_status(rqmnt, status)
-
+    '''
     # Verify BUNDLE_COUNT_DELETED_TRAFFIC_PARED
     if wait(f"{target} {mib_counts_pkt} BUNDLE_COUNT_DELETED_TRAFFIC_PARED == {del_traf_pared_cnt+1}", 6):
         status = "P"
@@ -1924,11 +1744,11 @@ def bundle_ingress_errors(self):
         
     for rqmnt in ["DTN.6.06176"]:
         TestUtils.set_requirement_status(rqmnt, status)
-    
+    '''
     
     ## Restore MIB PN Config table 
     load_new_table('/cf/bpnode_mib_pn.tbl')
-    '''
+    
 
     print(".................................................................")
     print("15.3 Bundle Age >= Lifetime") #06173, 06174
@@ -1970,11 +1790,10 @@ def bundle_ingress_errors(self):
     else:
         status = "F"
     
-    for rqmnt in ["DTN.6.06173", "DTN.6.06174"]:
+    for rqmnt in ["DTN.6.04100", "DTN.6.04110", "DTN.6.06173", "DTN.6.06174"]:
         TestUtils.set_requirement_status(rqmnt, status)
 
-    '''
-    TBD - Future
+    
     print(".................................................................")
     print("15.4 Invalid Creation timestamp in the future") #04195
     print(".................................................................")
@@ -2024,7 +1843,7 @@ def bundle_ingress_errors(self):
     
     for rqmnt in ["DTN.6.04314"]:
         TestUtils.set_requirement_status(rqmnt, status)
-    '''
+    
     
     print("-----------------------------------------------------------------")
     print("20. Storage errors")
@@ -2036,20 +1855,61 @@ def bundle_ingress_errors(self):
     #24. DST EID = Local EID (this is the destination) but an output queue to deliver the message does not exist (Maybe delete a message queue to an app? This will cause the system to be unstable). The system is configured to allow storage in this case.
     #25. Fragmented bundle
     
+    print(".................................................................")
+    print(" 20.1  Debug event with duplicate bundles")    
+    print(".................................................................")
+    #bundle uniqueness is currently a function of (creation time, sequence number, and source EID)
+    #BUNDLE_COUNT_REDUNDANT should increment TBD
+    #DTN.6.04610	BPA Storage shall issue a debug event whenever it deletes a bundle from storage.
+    
+    load_new_table('/cf/contact_rx_only.tbl')
+
+    cmd(f"{target} BPNODE_CMD_CONTACT_STOP with CONTACT_ID 0")
+    cmd(f"{target} BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 0")
+    cmd(f"{target} BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0")
+    cmd(f"{target} BPNODE_CMD_CONTACT_START with CONTACT_ID 0")
+    wait(2)
+    
+    bundle_inv = Bundle(pri_block=primary_block, canon_blocks=[payload_block])
+    
+    # Enable BPNODE debug events
+    cmd(f"{target} CFE_EVS_CMD_ENABLE_APP_EVENT_TYPE with APP_NAME 'BPNODE', BIT_MASK 1")
+    wait(2)
+    
+    # Send same bundle twice
+    data_sender.write(bundle_inv.to_bytes())
+    data_sender.write(bundle_inv.to_bytes())
+    wait(4)
+    
+    BPLIB_STOR_DUPL_DBG_EID = 615
+    status = TestUtils.verify_event("BPNODE", BPLIB_STOR_DUPL_DBG_EID, "DEBUG")
+    for rqmnt in ["DTN.6.04610"]:
+        TestUtils.set_requirement_status(rqmnt, status)
+    
+    # Disable BPNODE debug events
+    cmd(f"{target} CFE_EVS_CMD_DISABLE_APP_EVENT_TYPE with APP_NAME 'BPNODE', BIT_MASK 1")
+
+    cmd(f"{target} BPNODE_CMD_CONTACT_STOP with CONTACT_ID 0")
+    cmd(f"{target} BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 0")
+    wait(2)
+    
 
     print("-----------------------------------------------------------------")
     print("21. Contact Directive errors")
     print("-----------------------------------------------------------------")
     
     # Maximum number of contacts BPNode is configured for
-    # $dtnfsw_globals_num_contacts = 1
+    # $dtnfsw_globals_num_contacts = 3
     print(".................................................................")
-    print(" 21.1 CONTACT_ID = 1")    
+    print(" 21.1 CONTACT_ID = 3")    
     print(".................................................................")
-    TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 1", TestUtils.INVALID_CMD_TYPE)   
-    TestUtils.send_command("BPNODE_CMD_CONTACT_START with CONTACT_ID 1", TestUtils.INVALID_CMD_TYPE)
-    TestUtils.send_command("BPNODE_CMD_CONTACT_STOP with CONTACT_ID 1", TestUtils.INVALID_CMD_TYPE)
-    TestUtils.send_command("BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 1", TestUtils.INVALID_CMD_TYPE)
+    rqmnt = "DTN.6.12282"    
+    status = TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 3", TestUtils.INVALID_CMD_TYPE)   
+    TestUtils.set_requirement_status(rqmnt, status)
+    
+    TestUtils.send_command("BPNODE_CMD_CONTACT_START with CONTACT_ID 3", TestUtils.INVALID_CMD_TYPE)
+    TestUtils.send_command("BPNODE_CMD_CONTACT_STOP with CONTACT_ID 3", TestUtils.INVALID_CMD_TYPE)
+    TestUtils.send_command("BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 3", TestUtils.INVALID_CMD_TYPE)
     
     '''
     print(".................................................................")
@@ -2059,9 +1919,7 @@ def bundle_ingress_errors(self):
     # TBD Build 7.1
     TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0", TestUtils.INVALID_CMD_TYPE)
     
-    rqmnt = "DTN.6.12282"    
     status = TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 1", TestUtils.INVALID_CMD_TYPE)
-    TestUtils.set_requirement_status(rqmnt, status)
     '''
     
     print("-----------------------------------------------------------------")
@@ -2145,15 +2003,27 @@ def bundle_ingress_errors(self):
     print(".................................................................")
     print("22.5 Duplicate dest EID - valid") #04321
     print(".................................................................")
-    load_new_table("/cf/cont_dup_dest.tbl") 
+    # Expected: INFO BPNODE 664: Duplicate destination EIDs detected in contact table, ipn:[200-200].[64-64]
+    # Table accepted
     
-    rqmnt = "DTN.6.04321"
+    # Get the timestamp of the last event and use it to search for later events 
+    last_event_time_str = tlm(f"{target} CFE_EVS_LONG_EVENT_MSG PACKET_TIME")[0:-6]
+
+    load_new_table("/cf/cont_dup_dst.tbl")
+    
     status = "P"
-    #DTN.6.04321	Upon receiving a contact-setup request from AA Node Configuration, if the given set of destination EIDs for an "output queue" contains duplicate destination EIDs, BPA Storage shall issue a warning event.
-    if TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0") == "F" or \
-       TestUtils.verify_event("BPNODE", 512, "INFO") == "F": #EID TBD DTNN-1348
+    
+    # Search for expected WARNING event in eventlog
+    # verify_event() can't be used - it shows the latest event and so will miss this
+    # Note: WARNING is mapped to INFO
+    if not TestUtils.find_event_in_log("BPNODE", 664, "INFO", last_event_time_str):
+        status = "F"
+
+    # Verify CONTACT_SETUP directive is accepted with the faulty table
+    if TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0") == "F":
         status = "F"
         
+    rqmnt = "DTN.6.04321"
     TestUtils.set_requirement_status(rqmnt, status)
     
     ##TBD
@@ -2163,34 +2033,58 @@ def bundle_ingress_errors(self):
     print("-----------------------------------------------------------------")
     print("23. Contacts table errors")
     print("-----------------------------------------------------------------")
-    rqmnt = "DTN.6.13071"
+    #rqmnt = "DTN.6.13071"
 
     print(".................................................................")
-    print("23.1 Invalid dest EID (max<min)")
+    print("23.1 Invalid dest EID - IPNSSPFORMAT=3")
     print(".................................................................")
-    status = TestUtils.validate_invalid_table("/cf/cont_inv_dest.tbl") 
-    TestUtils.set_requirement_status(rqmnt, status)
+    status = TestUtils.validate_invalid_table("/cf/cont_bad_dst1.tbl") 
+    #TestUtils.set_requirement_status(rqmnt, status)
     
     # Verify contact continues to perform normally since invalid table was not loaded
     TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0") 
 
-   
+    print(".................................................................")
+    print("23.2 Invalid dest EID - IPNSSPFORMAT=1")
+    print(".................................................................")
+    status = TestUtils.validate_invalid_table("/cf/cont_bad_dst2.tbl") 
+    #TestUtils.set_requirement_status(rqmnt, status)
+    
+    print(".................................................................")
+    print("23.3 Invalid dest EID - SCHEME=1 (DTN)")
+    print(".................................................................")
+    status = TestUtils.validate_invalid_table("/cf/cont_bad_dst3.tbl") 
+    #TestUtils.set_requirement_status(rqmnt, status)
+    
+    print(".................................................................")
+    print("23.4 Invalid dest EID - SCHEME=3")
+    print(".................................................................")
+    status = TestUtils.validate_invalid_table("/cf/cont_bad_dst4.tbl") 
+    #TestUtils.set_requirement_status(rqmnt, status)
+    
+    print(".................................................................")
+    print("23.5 Invalid dest EID (max<min)")
+    print(".................................................................")
+    status = TestUtils.validate_invalid_table("/cf/cont_bad_dst5.tbl") 
+    #TestUtils.set_requirement_status(rqmnt, status)
+    
+  
     print("-----------------------------------------------------------------")
     print("24. MIB PN table errors")
     print("-----------------------------------------------------------------")
-    rqmnt = "DTN.6.13081"
+    #rqmnt = "DTN.6.13081"
     
     print(".................................................................")
     print("24.1 Bundle length 0")
     print(".................................................................")
     status = TestUtils.validate_invalid_table('/cf/mib_pn_blen_0.tbl') 
-    TestUtils.set_requirement_status(rqmnt, status)
+    #TestUtils.set_requirement_status(rqmnt, status)
 
     print(".................................................................")
     print("24.2 Payload length > Bundle length")
     print(".................................................................")
     status = TestUtils.validate_invalid_table('/cf/mib_pn_invplen.tbl') 
-    TestUtils.set_requirement_status(rqmnt, status)
+    #TestUtils.set_requirement_status(rqmnt, status)
     
 
     print("=================================================================")

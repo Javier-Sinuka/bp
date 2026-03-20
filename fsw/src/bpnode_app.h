@@ -48,6 +48,7 @@
 #include "bpnode_cla_in.h"
 #include "bpnode_cla_out.h"
 #include "bpnode_gen_worker.h"
+#include "bpnode_maint.h"
 #include "bpnode_notif.h"
 #include "fwp.h"
 
@@ -63,6 +64,11 @@
 #define BPNODE_ADU_OUT_SEM_EXIT_WAIT_MSEC   (2000u) /** \brief Wait time for ADU Out exit semaphore take, in milliseconds */
 #define BPNODE_GEN_WRKR_SEM_EXIT_WAIT_MSEC  (2000u) /** \brief Wait time for Generic Worker exit semaphore take, in milliseconds */
 #define BPNODE_CHILD_STRTWORKNOTIF_NAME     "BPNODE_CHLDSTRT"
+#define BPNODE_CHILD_INIT_NOTIF_NAME        "BPNODE_CHLDINIT"
+#define BPNODE_CHILD_EXIT_NOTIF_NAME        "BPNODE_CHLDEXIT"
+#define BPNODE_CHILD_STOR_NOTIF_NAME        "BPNODE_CHLDSTOR"
+#define BPNODE_CHILD_INIT_WAIT_MSEC         (2000u)
+#define BPNODE_CHILD_EXIT_WAIT_MSEC         (2000u)
 
 #define BPNODE_BITS_PER_BYTE                (8u)    /** \brief Number of bits in one byte */
 /**
@@ -70,30 +76,33 @@
 */
 typedef struct
 {
-    uint32 RunStatus;                       /**< \brief Run status for main processing loop */
+    uint32 RunStatus;                       /** \brief Run status for main processing loop */
 
-    CFE_SB_PipeId_t CommandPipe;            /**< \brief Pipe Id for command pipe */
-    CFE_SB_PipeId_t WakeupPipe;             /**< \brief Pipe Id for wakeup pipe */
+    CFE_SB_PipeId_t CommandPipe;            /** \brief Pipe Id for command pipe */
+    CFE_SB_PipeId_t WakeupPipe;             /** \brief Pipe Id for wakeup pipe */
 
     BPLib_NC_ConfigPtrs_t ConfigPtrs;
     BPA_ADUP_Table_t* AduProxyTablePtr;
 
     CFE_TBL_Handle_t TableHandles[BPNODE_NUMBER_OF_TABLES];
 
-    /* Telemetry HK Packet structures*/
-    BPNode_AduInData_t  AduInData [BPLIB_MAX_NUM_CHANNELS]; /**< \brief Global data for ADU In tasks */
-    BPNode_AduOutData_t AduOutData[BPLIB_MAX_NUM_CHANNELS]; /**< \brief Global data for ADU Out tasks */
-    BPA_ADUP_State_t    AduState[BPLIB_MAX_NUM_CHANNELS];   /**< \brief Global ADU Proxy configurations */
-
     /* Child Task State */
+    BPNode_AduInData_t  AduInData [BPLIB_MAX_NUM_CHANNELS];          /** \brief Global data for ADU In tasks */
+    BPNode_AduOutData_t AduOutData[BPLIB_MAX_NUM_CHANNELS];          /** \brief Global data for ADU Out tasks */
+    BPA_ADUP_State_t    AduState[BPLIB_MAX_NUM_CHANNELS];            /** \brief Global ADU Proxy configurations */
     BPNode_ClaInData_t     ClaInData [BPLIB_MAX_NUM_CONTACTS];       /** \brief Global data for CLA In tasks */
     BPNode_ClaOutData_t    ClaOutData[BPLIB_MAX_NUM_CONTACTS];       /** \brief Global data for CLA Out tasks */
     BPNode_GenWorkerData_t GenWorkerData[BPNODE_NUM_GEN_WRKR_TASKS]; /** \brief Global data for Generic Worker tasks */
-    BPNode_Notif_t         ChildStartWorkNotif;                      /** \brief Shared notification for starting child task work */
+    BPNode_MaintData_t     MaintData;                                /** \brief Global data for maintenance task */
 
+    BPNode_Notif_t         ChildStartWorkNotif;                      /** \brief Shared notification for starting child task work */
+    BPNode_Notif_t         ChildTaskInitNotif;                       /** \brief Shared notification for verifying child task initialization */
+    BPNode_Notif_t         ChildTaskExitNotif;                       /** \brief Shared notification for verifying child task shutdown */
+    BPNode_Notif_t         ChildTaskCleanStorNotif;                  /** \brief Shared notification for cleaning storage */
+    
     /* BPLib Instance State */
     BPLib_Instance_t            BplibInst;
-    uint8                       pool_mem[BPNODE_MEM_POOL_LEN];
+    void                       *MemPool;
 } BPNode_AppData_t;
 
 /*

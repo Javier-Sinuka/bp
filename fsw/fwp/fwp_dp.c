@@ -34,8 +34,6 @@
 #include "bpnode_msgids.h"
 #include "bpnode_msg.h"
 
-#include "bplib_nc_directives.h"
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -85,15 +83,11 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_NoopCmd_t)))
             {
                 char VersionString[BPNODE_CFG_MAX_VERSION_STR_LEN];
-                char LastOfficialRelease[BPNODE_CFG_MAX_VERSION_STR_LEN];
 
-                (void) snprintf(LastOfficialRelease, BPNODE_CFG_MAX_VERSION_STR_LEN, "v%u.%u.%u",
+                (void) snprintf(VersionString, BPNODE_CFG_MAX_VERSION_STR_LEN, "v%u.%u.%u",
                                 BPNODE_MAJOR_VERSION,
                                 BPNODE_MINOR_VERSION,
                                 BPNODE_REVISION);
-
-                CFE_Config_GetVersionString(VersionString, BPNODE_CFG_MAX_VERSION_STR_LEN, "BPNode",
-                                            BPNODE_VERSION, BPNODE_BUILD_CODENAME, LastOfficialRelease);
 
                 BPLib_EM_SendEvent(BPNODE_NOOP_INF_EID, BPLib_EM_EventType_INFORMATION,
                                     "No-op command. %s", VersionString);
@@ -105,7 +99,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
         case BPNODE_ADD_ALL_APPLICATIONS_CC:
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_AddAllApplicationsCmd_t)))
             {
-                BPLib_NC_AddAllApplications();
+                BPLib_NC_AddAllApplications(&BPNode_AppData.BplibInst);
             }
             break;
 
@@ -208,7 +202,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_AddApplicationCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_AddApplicationCmd_t*) SBBufPtr;
 
-                BPLib_NC_AddApplication(MsgPtr->Payload);
+                BPLib_NC_AddApplication(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 
@@ -228,7 +222,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_SetRegistrationStateCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_SetRegistrationStateCmd_t*) SBBufPtr;
 
-                BPLib_NC_SetRegistrationState(MsgPtr->Payload);
+                BPLib_NC_SetRegistrationState(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 
@@ -358,7 +352,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_ContactSetupCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_ContactSetupCmd_t*) SBBufPtr;
 
-                BPLib_NC_ContactSetup(MsgPtr->Payload);
+                BPLib_NC_ContactSetup(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 
@@ -368,7 +362,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_ContactStartCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_ContactStartCmd_t*) SBBufPtr;
 
-                BPLib_NC_ContactStart(MsgPtr->Payload);
+                BPLib_NC_ContactStart(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 
@@ -378,7 +372,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                 const BPNode_ContactStopCmd_t* MsgPtr;
                 MsgPtr = (const BPNode_ContactStopCmd_t*) SBBufPtr;
 
-                BPLib_NC_ContactStop(MsgPtr->Payload);
+                BPLib_NC_ContactStop(&BPNode_AppData.BplibInst, MsgPtr->Payload);
             }
             break;
 
@@ -449,6 +443,14 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             }
             break;
 
+        case BPNODE_CLEAN_STORAGE_CC:
+            if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_CleanStorageCmd_t)))
+            {
+                /* Flag maintenance task to perform storage cleanup operation */
+                BPNode_NotifSet(&(BPNode_AppData.ChildTaskCleanStorNotif));
+            }
+            break;
+
         case BPNODE_SEND_NODE_MIB_CONFIG_HK_CC:
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_SendNodeMibConfigHkCmd_t)))
             {
@@ -490,7 +492,7 @@ void BPA_DP_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
         case BPNODE_SEND_CHANNEL_CONTACT_STAT_HK_CC:
             if (BPA_DP_VerifyCmdLength(&SBBufPtr->Msg, sizeof(BPNode_SendChannelContactStatHkCmd_t)))
             {
-                BPLib_NC_SendChannelContactStatHk();
+                BPLib_NC_SendChannelContactStatHk(&BPNode_AppData.BplibInst);
             }
 
             break;

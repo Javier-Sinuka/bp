@@ -36,7 +36,6 @@ VERTICAL
   LABELVALUEDESC <%= target_name %>  CFE_TBL_REG OWNER_APP_NAME "Owner Application Name:"
   SUBSETTING 1 WIDTH 300
   LABELVALUEDESC <%= target_name %>  CFE_TBL_REG CRITICAL  "Critical:"
-  LABELVALUEDESC <%= target_name %>  CFE_TBL_REG BYTE_ALIGN_4 "Bye Align 4:"
   
   
   

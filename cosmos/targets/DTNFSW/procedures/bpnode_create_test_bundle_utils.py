@@ -4,6 +4,7 @@ from dtntools.dtngen.blocks import (
     PrevNodeBlock,
     BundleAgeBlock,
     HopCountBlock,
+    CustodyTransferBlock,
     PrimaryBlock,
     UnknownBlock
 )
@@ -29,6 +30,7 @@ def bpnode_create_test_bundle_util(dest_node_num, dest_service_num,
                                    age=None,
                                    hop_count=None,
                                    payload_bytes=None,
+                                   cteb_data=None,
                                    unknown=False):
     """Create a test bundle."""
 
@@ -85,6 +87,18 @@ def bpnode_create_test_bundle_util(dest_node_num, dest_service_num,
             crc=CRCFlag.CALCULATE,
         )
         canonical_blocks.append(hop_count_block)
+
+    if (cteb_data != None):
+        cteb_block = CustodyTransferBlock(
+            blk_type=BlockType.AUTO,
+            blk_num=4,
+            control_flags=0,
+            crc_type=crc_type,
+            cteb_data=cteb_data,
+            crc=CRCFlag.CALCULATE
+        )
+        canonical_blocks.append(cteb_block)
+
     if (unknown == True):
         unknown_block = UnknownBlock(
             elements=

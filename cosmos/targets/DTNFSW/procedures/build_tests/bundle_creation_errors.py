@@ -14,35 +14,31 @@ def bundle_creation_errors(self):
     rqmnt_status = {
         "DTN.5.00030":"U", 
         "DTN.6.02414":"U", 
+        "DTN.6.05190":"U", 
         "DTN.6.05232":"U", 
         "DTN.6.05236":"U", 
+        "DTN.6.08493":"U", 
         "DTN.6.12451":"U",
-        "DTN.6.12644":"U",
         "DTN.6.19160":"U", 
         "DTN.6.19170":"U",
         "DTN.6.19180":"U",
         "DTN.6.19190":"U",
-        "DTN.6.26195":"U", 
         "DTN.ES.04130":"U", 
 
         #reset requirements
-        "DTN.6.12118":"U", 
         "DTN.6.12120":"U", 
         "DTN.6.12150":"U",
-        "DTN.6.12940":"U", 
-        "DTN.6.12950":"U", 
         "DTN.6.19090":"U", 
-        "DTN.6.20000":"U",
         "DTN.6.20010":"U",
-        "DTN.6.20030":"U",
         "DTN.6.20080":"U",
         "DTN.6.20090":"U",
     }
 
+    '''
     prompt("Copy these table(s) to FSW build/exe/cpu1/cf folder:\n\n" + 
            " - chan0_psize_10.tbl\n"
           )
-          
+    '''      
     mib_counts_pkt = "BPNODE_NODE_MIB_COUNTERS_HK"
     chan_stat_pkt  = "BPNODE_CHAN_CON_STAT_HK"
            
@@ -55,7 +51,7 @@ def bundle_creation_errors(self):
     BPLIB_NC_STOP_APP_ERR_EID       = 574
     BPLIB_PI_REMOVE_STATE_DBG_EID   = 684
     
-    BPNODE_ADU_IN_TOO_BIG_ERR_EID   = 27
+    BPLIB_PI_ADU_LEN_ERR_EID        = 697
     
     add_app    = "BPNODE_CMD_ADD_APPLICATION"
     start_app  = "BPNODE_CMD_START_APPLICATION"
@@ -121,8 +117,8 @@ def bundle_creation_errors(self):
     print("-----------------------------------------------------------")
     TestUtils.send_command(f"{start_app} with CHAN_ID 2", TestUtils.INVALID_CMD_TYPE)
     status = TestUtils.verify_event("BPNODE", BPLIB_NC_START_APP_ERR_EID, "ERROR")
-    rqmnt = "DTN.6.12644"
-    TestUtils.set_requirement_status(rqmnt, status)
+    #rqmnt = "DTN.6.12644"
+    #TestUtils.set_requirement_status(rqmnt, status)
 
     print("-----------------------------------------------------------")
     print(" 1.3 Stop Application with invalid channel ID")
@@ -188,8 +184,8 @@ def bundle_creation_errors(self):
 
     TestUtils.send_command(f"{start_app} with CHAN_ID 1", TestUtils.INVALID_CMD_TYPE)
     status = TestUtils.verify_event("BPNODE", BPLIB_NC_START_APP_ERR_EID, "ERROR")
-    rqmnt = "DTN.6.12644"
-    TestUtils.set_requirement_status(rqmnt, status)
+    #rqmnt = "DTN.6.12644"
+    #TestUtils.set_requirement_status(rqmnt, status)
     
     ##***********************************************************************
 
@@ -256,18 +252,37 @@ def bundle_creation_errors(self):
     ##***********************************************************************
 
     print("=================================================================")
-    print(" 6. ADU > maximum bundle payload size")
+    print(" 6. MIB parameters")
     print("=================================================================")
     
-    ## Load channel table with very small payload size
-    load_new_table('/cf/chan0_psize_10.tbl')
-
-    ## Restart channel 0 after table update
-    cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 0")
-    wait(1)
-    cmd(f"{target} BPNODE_CMD_ADD_APPLICATION with CHAN_ID 0")
-    wait(1)
-    cmd(f"{target} BPNODE_CMD_START_APPLICATION with CHAN_ID 0")
+    print("----------------------------------------------------------------")
+    print(" 6.1 PARAM_SET_MAX_PAYLOAD_LENGTH too large")
+    print("----------------------------------------------------------------")
+    #define BPLIB_MAX_BUNDLE_LEN 17000
+    #define BPLIB_MAX_PAYLOAD_SIZE 16384
+    #PARAM_SET_MAX_PAYLOAD_LENGTH<=BPLIB_MAX_PAYLOAD_SIZE and <PARAM_SET_MAX_BUNDLE_LENGTH
+    #BPNODE 533: Set MIB item #2 to 16384
+    #BPNODE 570: Failed to set MIB item #2 to 16385, RC=-42
+    
+    mib_cmd = "BPNODE_CMD_SET_MIB_ITEM with \
+        EID_MAXNODE 100, EID_MINNODE 100, EID_MAXSERVICE 0, EID_MINSERVICE 0, \
+        MIB_ITEM 'PARAM_SET_MAX_PAYLOAD_LENGTH', VALUE 16385"
+    status = TestUtils.send_command(mib_cmd, TestUtils.INVALID_CMD_TYPE)
+    
+    for rqmnt in ["DTN.6.05190"]:
+        TestUtils.set_requirement_status(rqmnt, status)
+    
+    print("=================================================================")
+    print(" 6.2 ADU > maximum bundle payload size")
+    print("=================================================================")
+    
+    ## Start Application 1 (already added at atartup)
+    cmd(f"{target} {start_app} with CHAN_ID 0")
+    wait(2)
+    
+    ## Set MAX_PAYLOAD_LENGTH very small in MIB PN table 
+    cmd(f"{target} BPNODE_CMD_SET_MIB_ITEM with EID_MAXNODE 100, EID_MINNODE 100, \
+        EID_MAXSERVICE 0, EID_MINSERVICE 0, MIB_ITEM 'PARAM_SET_MAX_PAYLOAD_LENGTH', VALUE 100")    
     wait(1)
     
     ## Send an ADU
@@ -277,8 +292,9 @@ def bundle_creation_errors(self):
     wait(1)
 
     ## Verify error indication
-    status = TestUtils.verify_event("BPNODE", BPNODE_ADU_IN_TOO_BIG_ERR_EID, "ERROR")
-    for rqmnt in ["DTN.6.05236", "DTN.5.00030"]:
+    #BPNODE 697: [ADU In #0]: Received an ADU too big to ingest, Size=844, PARAM_SET_MAX_PAYLOAD_LENGTH=100    
+    status = TestUtils.verify_event("BPNODE", BPLIB_PI_ADU_LEN_ERR_EID, "ERROR")
+    for rqmnt in ["DTN.6.05236", "DTN.6.08493", "DTN.5.00030"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     ## Verify BUNDLE_COUNT_GENERATED_REJECTED increments
@@ -286,7 +302,7 @@ def bundle_creation_errors(self):
     exp_val = rejected_cnt+1
     
     status = TestUtils.verify_item(mib_counts_pkt, item_name, exp_val)
-    for rqmnt in ["DTN.6.05232"]:
+    for rqmnt in ["DTN.6.02414", "DTN.6.05232"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     ##***********************************************************************

@@ -48,15 +48,15 @@ class DTNGenUtils:
 
         warnings.simplefilter("always")
 
-        #print("Define new primary and payload blocks")
-        primary_block = PrimaryBlock(
+        ## Define primary and payload blocks
+        primary_block_settings = PrimaryBlockSettings(
             version=7,
             control_flags=BundlePCFlags.MUST_NOT_FRAGMENT,
             crc_type=CRCType.CRC16_X25,
             dest_eid=EID({"uri": 2, "ssp": {"node_num": dest_node, "service_num": dest_service}}),
             src_eid=EID({"uri": 2, "ssp": {"node_num": 101, "service_num": 1}}),
             rpt_eid=EID({"uri": 2, "ssp": {"node_num": 100, "service_num": 1}}),
-            creation_timestamp=CreationTimestamp({"time": DtnTimeNowMs(), "sequence": 0}),
+            creation_timestamp={"time": "current", "sequence": {"start": 0}},
             lifetime=3600000,
             crc=CRCFlag.CALCULATE,
         )
@@ -70,16 +70,16 @@ class DTNGenUtils:
             crc=CRCFlag.CALCULATE,
         )
 
-        #print("Creating the new set of bundles")
+        ## Generate bundles
         generated_bundles = []
         for x in range(num_bundles):
             generated_bundles.append(Bundle(
-                pri_block=primary_block,
+                pri_block=primary_block_settings.generate(x),
                 canon_blocks=[payload_block]
-                )
+            )
         )
-
-        #print("Writing the generated bundles to json files")
+        
+        ## Write generated bundles to json files
         for idx, x in enumerate(generated_bundles):
             x.to_json_file(f'/bundles/{dest_node}/generated_bundle_{idx+1}.json')
 

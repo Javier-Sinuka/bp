@@ -31,15 +31,13 @@
 */
 
 #include "cfe.h"
-
+#include "bpnode_task.h"
 
 /*
 ** Macro Definitions
 */
 
-#define BPNODE_GEN_WRKR_SEM_BASE_NAME        "BPN_GEN_WRKR_SEM" /** \brief Semaphore base name */
-#define BPNODE_GEN_WRKR_BASE_NAME            "BPNODE.GEN_WRKR"  /** \brief Task base name */
-#define BPNODE_GEN_WRKR_SEM_INIT_WAIT_MSEC   (2000u)            /** \brief Wait time for init semaphore take, in milliseconds */
+#define BPNODE_GEN_WRKR_BASE_NAME            "BPNODE.WRKR"  /** \brief Task base name */
 
 /*
 ** Type Definitions
@@ -50,12 +48,8 @@
 */
 typedef struct
 {
-    CFE_ES_TaskId_t TaskId;
-    osal_id_t       InitSemId;
-    osal_id_t       ExitSemId;
-    uint32          PerfId;
-    uint32          RunStatus;
-    int32           BPLibWorkerId;
+    BPNode_TaskData_t TaskData;
+    int32             BPLibWorkerId;
 } BPNode_GenWorkerData_t;
 
 
@@ -67,7 +61,7 @@ typedef struct
  * \brief Create Generic Worker Task(s)
  *
  *  \par Description
- *       Initialize init semaphore, then create the child task(s)
+ *       Initialize the task data and spawn all generic worker child task(s)
  *
  *  \par Assumptions, External Events, and Notes:
  *       - Note: This is the only function in this file called by the main task, all other
@@ -77,13 +71,14 @@ typedef struct
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-int32 BPNode_GenWorkerCreateTasks(void);
+CFE_Status_t BPNode_GenWorkerCreateTasks(void);
 
 /**
  * \brief Initialize provided Generic Worker task
  *
  *  \par Description
- *       Initialize provided Generic Worker task
+ *       Initialize provided Generic Worker task. This function is called as a 
+ *       function pointer from BPNode_TaskInit
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
@@ -94,31 +89,18 @@ int32 BPNode_GenWorkerCreateTasks(void);
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-int32 BPNode_GenWorker_TaskInit(uint8 *WorkerId);
+CFE_Status_t BPNode_GenWorker_TaskInit(uint32 WorkerId);
 
 /**
  * \brief Generic Worker Main Task
  *
  *  \par Description
- *       Generic Worker task main loop.
+ *       Generic Worker main task operations. This function is called as a function 
+ *       pointer from BPNode_TaskMain
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  */
-void BPNode_GenWorker_AppMain(void);
-
-/**
- * \brief Exit provided Generic Worker task
- *
- *  \par Description
- *       Exit Generic Worker task gracefully
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \param[in] WorkerId Worker ID for this task
- */
-void BPNode_GenWorker_TaskExit(uint8 WorkerId);
-
+void BPNode_GenWorker_TaskMain(uint32 WorkerId);
 
 #endif /* BPNODE_GEN_WORKER_H */

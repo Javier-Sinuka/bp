@@ -5,6 +5,7 @@ load_utility("<%= target_name %>/procedures/bpnode_create_test_bundle_utils.py")
 load_utility("<%= target_name %>/procedures/bpnode_channel_mgmt_utils.py")
 load_utility("<%= target_name %>/procedures/bpnode_check_eid_equality.py")
 load_utility("<%= target_name %>/procedures/load_new_table.py")
+load_utility("<%= target_name %>/procedures/start_contacts.py")
 
 # Application Tests
 load_utility("<%= target_name %>/procedures/integration_test_groups/application_directives/integration_test_bpnode_auto_adu_ingest.py")
@@ -28,7 +29,9 @@ load_utility("<%= target_name %>/procedures/integration_test_groups/contact_dire
 load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_contact_ingress_05_crc_none.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_contact_ingress_06_crc_32.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_contact_ingress_07_max_blk_err.py")
-# load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_sb_contact_flow.py")
+load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_contact_ingress_08_expiration.py")
+load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_contact_ingress_09_custody.py")
+load_utility("<%= target_name %>/procedures/integration_test_groups/contact_directives/integration_test_bpnode_sb_contact_flow.py")
 
 # Counter Directives
 load_utility("<%= target_name %>/procedures/integration_test_groups/counter_directives/integration_test_bpnode_reset_all_counters.py")
@@ -69,6 +72,7 @@ load_utility("<%= target_name %>/procedures/integration_test_groups/routine_dire
 # Storage Directives
 load_utility("<%= target_name %>/procedures/integration_test_groups/storage_directives/integration_test_bpnode_add_storage_allocation.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/storage_directives/integration_test_bpnode_clear_volatile.py")
+load_utility("<%= target_name %>/procedures/integration_test_groups/storage_directives/integration_test_bpnode_clean_storage.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/storage_directives/integration_test_bpnode_initialize_bundle_storage.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/storage_directives/integration_test_bpnode_rebuild_bundle_metadata.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/storage_directives/integration_test_bpnode_remove_storage_allocation.py")
@@ -78,6 +82,7 @@ load_utility("<%= target_name %>/procedures/integration_test_groups/storage_dire
 load_utility("<%= target_name %>/procedures/integration_test_groups/integration_test_bpnode_restart.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/integration_test_fsw_aliveness.py")
 load_utility("<%= target_name %>/procedures/integration_test_groups/integration_test_dtn_time.py")
+load_utility("<%= target_name %>/procedures/integration_test_groups/integration_test_bpnode_storage.py")
 
 class FSW_Integration_Test_Suite(Suite):
   def __init__(self):
@@ -99,6 +104,7 @@ class FSW_Integration_Test_Suite(Suite):
       self.add_group(integration_test_bpnode_add_mib_array_key)
       self.add_group(integration_test_bpnode_add_storage_allocation)
       self.add_group(integration_test_bpnode_clear_volatile)
+      self.add_group(integration_test_bpnode_clean_storage)      
       self.add_group(integration_test_bpnode_contact_flow)
       self.add_group(integration_test_bpnode_contact_ingress_01)
       self.add_group(integration_test_bpnode_contact_ingress_02)
@@ -107,10 +113,13 @@ class FSW_Integration_Test_Suite(Suite):
       self.add_group(integration_test_bpnode_contact_ingress_05)
       self.add_group(integration_test_bpnode_contact_ingress_06)
       self.add_group(integration_test_bpnode_contact_ingress_07)
+      self.add_group(integration_test_bpnode_contact_ingress_08)
+      self.add_group(integration_test_bpnode_contact_ingress_09)      
       self.add_group(integration_test_bpnode_contact_setup)
       self.add_group(integration_test_bpnode_contact_start)
       self.add_group(integration_test_bpnode_contact_stop)
       self.add_group(integration_test_bpnode_contact_teardown)
+      self.add_group(integration_test_bpnode_storage)
       self.add_group(integration_test_bpnode_init_bundle_storage)
       self.add_group(integration_test_bpnode_noop)
       self.add_group(integration_test_bpnode_rebuild_bundle_metadata)
@@ -126,7 +135,7 @@ class FSW_Integration_Test_Suite(Suite):
       self.add_group(integration_test_bpnode_reset_counter)
       self.add_group(integration_test_bpnode_reset_error_counters)
       self.add_group(integration_test_bpnode_reset_source_counters)
-#       self.add_group(integration_test_bpnode_sb_contact_flow)
+      self.add_group(integration_test_bpnode_sb_contact_flow)
       self.add_group(integration_test_bpnode_send_channel_contact_stat_hk)
       self.add_group(integration_test_bpnode_send_node_mib_config)
       self.add_group(integration_test_bpnode_send_node_mib_counters_hk)
@@ -163,7 +172,7 @@ class FSW_Integration_Test_Suite(Suite):
       # Wait for one TO packet to be received
       wait_check(f"<%= target_name %> TO_LAB_HK RECEIVED_COUNT == {exp_to_lab_pkt_count}", 10)
 
-      # Set up and start contacts 1 and 2
+      # Set up and start all contacts
       for contact_num in range(<%= $dtnfsw_globals_num_contacts %>):
         # Get current state
         cmd("<%= target_name %> BPNODE_CMD_SEND_CHANNEL_CONTACT_STAT_HK")

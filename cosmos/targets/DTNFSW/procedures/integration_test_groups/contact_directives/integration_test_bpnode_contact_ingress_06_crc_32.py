@@ -27,20 +27,6 @@ BPNODE_PORT = <%= dtnfsw_get_cla_in_port(target_name, 0) %>
 LOCAL_IP = "0.0.0.0"
 LOCAL_PORT = <%= dtnfsw_get_cla_out_port(target_name, 0) %>
 
-# EID Configuration
-DEST_NODE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_node %>
-DEST_SERVICE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_service %>
-SRC_NODE_NUM = 300
-SRC_SERVICE_NUM = 1
-
-LOCAL_NODE_EID = EID(
-    {
-        "uri": 2,
-        "ssp": {"node_num": <%= $dtnfsw_globals_channel_dest_eid_node %>,
-                "service_num": <%= $dtnfsw_globals_local_service_num %>}
-    }
-)
-
 class integration_test_bpnode_contact_ingress_06(Group):
     """
     Test Group
@@ -50,6 +36,20 @@ class integration_test_bpnode_contact_ingress_06(Group):
         """
         Nominal test
         """
+
+        # EID Configuration
+        DEST_NODE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_node %>
+        DEST_SERVICE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_service %>
+        SRC_NODE_NUM = 300
+        SRC_SERVICE_NUM = 1
+
+        LOCAL_NODE_EID = EID(
+            {
+                "uri": 2,
+                "ssp": {"node_num": <%= $dtnfsw_globals_channel_dest_eid_node %>,
+                        "service_num": <%= $dtnfsw_globals_local_service_num %>}
+            }
+        )
 
         data_receiver = UdpRxSocket(LOCAL_IP, LOCAL_PORT)
         data_sender = UdpTxSocket(BPNODE_IP, BPNODE_PORT)

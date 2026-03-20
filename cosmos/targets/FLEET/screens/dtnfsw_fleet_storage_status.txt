@@ -1,0 +1,34 @@
+SCREEN AUTO AUTO 1.0
+
+<% require 'dtnfsw_target_num_color' %>
+<% require 'dtnfsw_globals' %>
+<% require 'fleet_globals' %>
+
+VERTICAL
+  TITLE "Fleet Memory In Use (kB)" Courier 20 Normal true
+  <% (1..$fleet_globals_num_dtnfsw_targets).each do |cpu_index| %>
+    HORIZONTAL
+      LABELVALUE <%= dtnfsw_target_name_from_cpu_num(cpu_index) %> BPNODE_STORAGE_HK BYTES_MEM_IN_USE
+    END
+  <% end %>
+END
+
+VERTICAL
+  TITLE "Fleet Storage In Use (bytes)" Courier 20 Normal true
+  <% (1..$fleet_globals_num_dtnfsw_targets).each do |cpu_index| %>
+    HORIZONTAL
+      LABELVALUE <%= dtnfsw_target_name_from_cpu_num(cpu_index) %> BPNODE_STORAGE_HK KB_STORAGE_IN_USE
+    END
+  <% end %>
+END
+
+VERTICAL
+  TITLE "Fleet Available Storage Status (bytes)" Courier 20 Normal true
+  <% (1..$fleet_globals_num_dtnfsw_targets).each do |cpu_index| %>
+    HORIZONTAL
+      LABEL <%= dtnfsw_target_name_from_cpu_num(cpu_index) %>    
+      VALUERANGEBAR <%= dtnfsw_target_name_from_cpu_num(cpu_index) %> BPNODE_NODE_MIB_REPORTS_HK KBYTES_COUNT_STORAGE_AVAILABLE 0 4000000
+    END
+  <% end %>
+END
+

@@ -41,20 +41,19 @@ def dtnfsw_get_port_num_tlm(cpu_num_input)
 end
 
 # -------------------------------------------------------------------------------------------------
-# Get the CLA in port based on the target name and the contact ID
+# Get the default CLA in port based on the target name and the contact ID
 # -------------------------------------------------------------------------------------------------
 def dtnfsw_get_cla_in_port(target_name, contact_id)
-    port_num = 0
-    port_num_base = 4501
-  
-    cpu_num = dtnfsw_cpu_num_from_target_name(target_name)
-  
-    if ((cpu_num != nil) && (contact_id >= 0) && (contact_id < $dtnfsw_globals_num_contacts))
-      port_num = port_num_base + (cpu_num - 1)    
-    end
-  
-    return port_num  
+  port_num = 0
+
+  if (contact_id == 0)
+    port_num = 4501
+  elsif (contact_id == 2)
+    port_num = 4502
   end
+  
+  return port_num  
+end
   
 
 # -------------------------------------------------------------------------------------------------
@@ -62,13 +61,12 @@ def dtnfsw_get_cla_in_port(target_name, contact_id)
 # -------------------------------------------------------------------------------------------------
 def dtnfsw_get_cla_out_port(target_name, contact_id)
   port_num = 0
-  port_num_base = 4551
 
-  cpu_num = dtnfsw_cpu_num_from_target_name(target_name)
-
-  if ((cpu_num != nil) && (contact_id >= 0) && (contact_id < $dtnfsw_globals_num_contacts))
-    port_num = port_num_base + (cpu_num - 1)    
+  if (contact_id == 0)
+    port_num = 4551
+  elsif (contact_id == 2)
+    port_num = 4552
   end
-
+  
   return port_num  
 end

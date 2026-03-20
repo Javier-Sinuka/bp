@@ -57,7 +57,7 @@ BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
 BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
 BPLib_STOR_StorageTable_t   TestStorTbl;
 
-#define UT_MAX_CFE_SENDEVENT_DEPTH 10
+#define UT_MAX_CFE_SENDEVENT_DEPTH 20
 #define UT_MAX_TRANSLATE_DEPTH     13
 
 CFE_EVS_SendEvent_context_t context_CFE_EVS_SendEvent[UT_MAX_CFE_SENDEVENT_DEPTH];
@@ -169,6 +169,24 @@ void UT_Handler_BPA_ADUP_In(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubC
     }
 }
 
+/* Handler to set configuration pointers to test configurations */
+void UT_BPLib_NC_Init_Handler(void *UserObj, UT_EntryKey_t FuncKey,
+                                                const UT_StubContext_t *Context)
+{
+    BPNode_AppData.AduProxyTablePtr              = &TestAduTbl;
+    BPNode_AppData.ConfigPtrs.AuthConfigPtr      = &TestAuthTbl;
+    BPNode_AppData.ConfigPtrs.ChanConfigPtr      = &TestChanTbl;
+    BPNode_AppData.ConfigPtrs.ContactsConfigPtr  = &TestContactsTbl;
+    BPNode_AppData.ConfigPtrs.CrsConfigPtr       = &TestCrsTbl;
+    BPNode_AppData.ConfigPtrs.CustodianConfigPtr = &TestCustodianTbl;
+    BPNode_AppData.ConfigPtrs.CustodyConfigPtr   = &TestCustodyTbl;
+    BPNode_AppData.ConfigPtrs.LatConfigPtr       = &TestLatencyTbl;
+    BPNode_AppData.ConfigPtrs.MibPnConfigPtr     = &TestMibPnTbl;
+    BPNode_AppData.ConfigPtrs.MibPsConfigPtr     = &TestMibPsTbl;
+    BPNode_AppData.ConfigPtrs.ReportConfigPtr    = &TestReportTbl;
+    BPNode_AppData.ConfigPtrs.StorConfigPtr      = &TestStorTbl;
+}
+
 void BPNode_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
 {
     /* Check the string */
@@ -255,6 +273,7 @@ void BPNode_UT_Setup(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_CLA_GetContactRunState), UT_Handler_BPLib_CLA_GetContactRunState, NULL);
     UT_SetHandlerFunction(UT_KEY(BPA_ADUP_Out), UT_Handler_BPA_ADUP_Out, NULL);
     UT_SetHandlerFunction(UT_KEY(BPA_ADUP_In), UT_Handler_BPA_ADUP_In, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_NC_Init), UT_BPLib_NC_Init_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_CLA_Egress), UT_Handler_BPLib_CLA_Egress, NULL);
 
     BPNode_AppData.AduProxyTablePtr              = &TestAduTbl;

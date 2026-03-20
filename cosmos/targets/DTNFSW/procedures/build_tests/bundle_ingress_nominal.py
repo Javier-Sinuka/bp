@@ -14,28 +14,19 @@ def bundle_ingress_nominal(self):
 
     # Initialize requirement status
     rqmnt_status = {
-        #"DTN.6.04280":"U", 
         #"DTN.6.04290":"U", 
         "DTN.6.04316":"U", 
         #"DTN.6.04317":"U", 
         #"DTN.6.04420":"U", 
         #"DTN.6.04422":"U", 
         "DTN.6.06430":"I", 
+        "DTN.6.06500":"U", 
         "DTN.6.06552":"U", 
         #"DTN.6.06553":"U", 
-        "DTN.6.06610":"I", 
-        "DTN.6.06620":"I", 
-        "DTN.6.06630":"I", 
         "DTN.6.12062":"U", 
         "DTN.6.12290":"U", 
-        "DTN.6.12295":"U", 
-        "DTN.6.12360":"U", 
         "DTN.6.12362":"U", 
-        "DTN.6.12364":"U",
-        "DTN.6.12370":"U", 
         "DTN.6.12372":"U", 
-        "DTN.6.12374":"U",
-        "DTN.6.13071":"U", 
         "DTN.6.15001":"U", 
         "DTN.6.15013":"U", 
         "DTN.6.15014":"U", 
@@ -46,7 +37,7 @@ def bundle_ingress_nominal(self):
         #"DTN.6.15131":"U",
         "DTN.6.15141":"U", 
         "DTN.6.15143":"U", 
-        #"DTN.6.15155":"U", 
+        "DTN.6.15155":"U", 
         #"DTN.6.15161":"U", 
         #"DTN.6.15195":"U", 
         #"DTN.6.15235":"U",
@@ -58,20 +49,13 @@ def bundle_ingress_nominal(self):
         "DTN.6.19260":"U", 
         "DTN.6.19360":"U", 
         "DTN.6.19390":"U", 
-        "DTN.6.19410":"U", 
         "DTN.6.23090":"U",
-        "DTN.6.25010":"I",
 
         #reset requirements
-        "DTN.6.12118":"U", 
         "DTN.6.12120":"U", 
         "DTN.6.12150":"U",
-        "DTN.6.12940":"U", 
-        "DTN.6.12950":"U", 
         "DTN.6.19090":"U", 
-        "DTN.6.20000":"U",
         "DTN.6.20010":"U",
-        "DTN.6.20030":"U",
         "DTN.6.20080":"U",
         "DTN.6.20090":"U",
     }
@@ -82,29 +66,38 @@ def bundle_ingress_nominal(self):
            " - cont_irate_lim.tbl"
           )
 
-    ## Destination EID configuration (to Channel 0 configured for Contact 0)
-    dest_node    = 200
-    dest_service = 64
-    '''
-    ## Destination EID configuration (to Channel 1 configured for ADU delivery)
-    dest_node    = 100
-    dest_service = 53
-    '''
+    ## Destination EID configuration (for Contact 0)
+    dest_node_0    = 200
+    dest_service_0 = 64
+
+    ## Destination EID configuration (for Contact 2)
+    dest_node_2    = 600
+    dest_service_2 = 12
+
     ## Address/port configuration
     dest_ip   = DTN_NODE_IP_ADDR
-    dest_port = 4501
+    dest_port_0 = 4501 # Contact 0
+    dest_port_2 = 4502 # Contact 2
+        
+    ## Configure/connect Data Senders
+    data_sender_0 = UdpTxSocket(dest_ip, dest_port_0) 
+    data_sender_0.connect()
+    
+    data_sender_2 = UdpTxSocket(dest_ip, dest_port_2) 
+    data_sender_2.connect()
+    
 
-    ## Configure and connect Data Sender
-    data_sender = UdpTxSocket(dest_ip, dest_port) #, bps_limit=10E6, inter_msg_delay=1)
-    data_sender.connect()
-    
-    mib_counts_pkt = "BPNODE_NODE_MIB_COUNTERS_HK"
-    mib_reports_pkt = "BPNODE_NODE_MIB_REPORTS_HK"
-    chan_stat_pkt = "BPNODE_CHAN_CON_STAT_HK"
-    
     cmd(f"{target} BPNODE_CMD_RESET_ALL_COUNTERS")
-    #cmd(f"{target} CFE_EVS_CMD_ENABLE_EVENT_TYPE with BIT_MASK 15")
 
+    mib_counts_pkt  = "BPNODE_NODE_MIB_COUNTERS_HK"
+    mib_reports_pkt = "BPNODE_NODE_MIB_REPORTS_HK"
+    chan_stat_pkt   = "BPNODE_CHAN_CON_STAT_HK"
+    
+    setup_cont    = "BPNODE_CMD_CONTACT_SETUP"
+    start_cont    = "BPNODE_CMD_CONTACT_START"
+    stop_cont     = "BPNODE_CMD_CONTACT_STOP"
+    teardown_cont = "BPNODE_CMD_CONTACT_TEARDOWN"
+    
     ## Print MIB Reports packet
     TestUtils.print_mib_reports_pkt()
     
@@ -123,11 +116,11 @@ def bundle_ingress_nominal(self):
     # - Destination node in contact table is not bundle destination
     load_new_table('/cf/contact_rx_only.tbl')
     
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0")    
+    status = TestUtils.send_command(f"{setup_cont} with CONTACT_ID 0")    
 
     for rqmnt in [
-        "DTN.6.12290", "DTN.6.12295", "DTN.6.13071", "DTN.6.15001", 
-        "DTN.6.15281", "DTN.6.19360", "DTN.6.19390", "DTN.6.19410"
+        "DTN.6.12290", "DTN.6.15001", 
+        "DTN.6.15281", "DTN.6.19360", "DTN.6.19390"
         ]:
         TestUtils.set_requirement_status(rqmnt, status)
    
@@ -144,8 +137,8 @@ def bundle_ingress_nominal(self):
     print("1.2 Start contact")
     print("-----------------------------------------------------------")
     
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_START with CONTACT_ID 0")
-    for rqmnt in ["DTN.6.12362", "DTN.6.12364"]:
+    status = TestUtils.send_command(f"{start_cont} with CONTACT_ID 0")
+    for rqmnt in ["DTN.6.12362"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_0") == 'STARTED':
@@ -164,15 +157,33 @@ def bundle_ingress_nominal(self):
     print("Generating bundles ...")
     num_bundles = 10
     payload = b'\xAA'*1000
-    DTNGenUtils.generate_bundles(dest_node, dest_service, num_bundles, payload)
+    DTNGenUtils.generate_bundles(dest_node_0, dest_service_0, num_bundles, payload)
 
     print("Sending bundles to DTN Node ...")
-    DTNGenUtils.send_bundles(num_bundles, dest_node, data_sender)
+    DTNGenUtils.send_bundles(num_bundles, dest_node_0, data_sender_0)
     print(f" ... sent {num_bundles} bundles to DTN Node")
 
-
+    print("...................................")
+    print("1.3.1 Verify ingress rate telemetry")
+    print("...................................")
+    status = "F"
+   
+    if wait(f"{target} {mib_reports_pkt} BUNDLE_INGRESS_RATE_BUNDLES_PER_SEC > 0", 6) and \
+       wait(f"{target} {mib_reports_pkt} BUNDLE_INGRESS_RATE_BITS_PER_SEC > 0", 6): status = "P"
+       
+    print("BUNDLE_INGRESS_RATE_BUNDLES_PER_SEC:",
+        tlm(f"{target} {mib_reports_pkt} BUNDLE_INGRESS_RATE_BUNDLES_PER_SEC"))
+    print("BUNDLE_INGRESS_RATE_BITS_PER_SEC:",
+        tlm(f"{target} {mib_reports_pkt} BUNDLE_INGRESS_RATE_BITS_PER_SEC"))
+    
+    if status == "F":            
+        print("ERROR - BUNDLE_INGRESS_RATE BUNDLES_PER_SEC/BITS_PER_SEC=0")
+        
+    for rqmnt in ["DTN.6.06500"]:
+        TestUtils.set_requirement_status(rqmnt, status)
+        
     print("............................................")
-    print("1.3.1 Verify bundles are received and stored")
+    print("1.3.2 Verify bundles are received and stored")
     print("............................................")
 
     status = "P"
@@ -187,7 +198,7 @@ def bundle_ingress_nominal(self):
         status = "F"
     
     for rqmnt in [
-            "DTN.6.04316", "DTN.6.06552", "DTN.6.12360", "DTN.6.15041", 
+            "DTN.6.04316", "DTN.6.06552", "DTN.6.15041", 
             "DTN.6.15051", "DTN.6.15281", "DTN.6.23090",             
             ]:
         TestUtils.set_requirement_status(rqmnt, status)
@@ -197,9 +208,9 @@ def bundle_ingress_nominal(self):
     print("1.4 Stop contact")
     print("-----------------------------------------------------------")
 
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_STOP with CONTACT_ID 0")
+    status = TestUtils.send_command(f"{stop_cont} with CONTACT_ID 0")
     
-    for rqmnt in ["DTN.6.19210", "DTN.6.12372", "DTN.6.12374"]:
+    for rqmnt in ["DTN.6.19210", "DTN.6.12372"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_0") == 'STOPPED':
@@ -219,7 +230,7 @@ def bundle_ingress_nominal(self):
     received_cnt = tlm (f"{target} {mib_counts_pkt} BUNDLE_COUNT_RECEIVED")
 
     print("Sending bundles to DTN Node ...")
-    DTNGenUtils.send_bundles(num_bundles, dest_node, data_sender)
+    DTNGenUtils.send_bundles(num_bundles, dest_node_0, data_sender_0)
     print(f" ... sent {num_bundles} bundles to DTN Node")
     
     wait_packet (target, mib_counts_pkt, 2, 10)
@@ -230,7 +241,7 @@ def bundle_ingress_nominal(self):
         print("!!! ERROR - Bundles reception did not stop as expected")
         status = "F"
     
-    for rqmnt in ["DTN.6.12370", "DTN.6.15141", "DTN.6.15143"]:
+    for rqmnt in ["DTN.6.15141", "DTN.6.15143"]:
         TestUtils.set_requirement_status(rqmnt, status)
 
     
@@ -238,7 +249,7 @@ def bundle_ingress_nominal(self):
     print("1.6 Teardown contact")
     print("-----------------------------------------------------------")
  
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 0")
+    status = TestUtils.send_command(f"{teardown_cont} with CONTACT_ID 0")
       
     if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_0") == 'TORNDOWN':
         status = "P"
@@ -250,74 +261,181 @@ def bundle_ingress_nominal(self):
         TestUtils.set_requirement_status(rqmnt, status)
         
     #******************************************************************
-    '''
+    
     print("===========================================================")
-    print("2. CONTACT 1")
+    print("2. Contact 1 and 2 Directives")
     print("===========================================================")
-    
-    # NOTE: Contact 1 is designed for SB CLA and can't be reconfigured at this time
-    
-    ## Verify contact 1 directives are accepted
+      
+    ## Verify contact directives are accepted and executed
 
-    print("-----------------------------------------------------------")
-    print("2.1 Set up contact")
-    print("-----------------------------------------------------------")
+    for cont in [1, 2]:
         
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 1")
-    for rqmnt in [
-        "DTN.6.12290", "DTN.6.12295", "DTN.6.13071", "DTN.6.15001", 
-        "DTN.6.15281", "DTN.6.19360", "DTN.6.19390", "DTN.6.19410"
-        ]:
-        TestUtils.set_requirement_status(rqmnt, status)
-   
-    print("-----------------------------------------------------------")
-    print("2.2 Start contact")
-    print("-----------------------------------------------------------")
-    
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_START with CONTACT_ID 1")
-    for rqmnt in ["DTN.6.12362", "DTN.6.12364"]:
-        TestUtils.set_requirement_status(rqmnt, status)
+        print("-----------------------------------------------------------")
+        print(f"2.{cont} CONTACT {cont}")
+        print("-----------------------------------------------------------")
         
-    print("-----------------------------------------------------------")
-    print("2.3 Stop contact")
-    print("-----------------------------------------------------------")
+        print(".....................................")
+        print("CONTACT_SETUP")
+        print(".....................................")
+            
+        status = TestUtils.send_command(f"{setup_cont} with CONTACT_ID {cont}")
+        for rqmnt in [
+            "DTN.6.12290", "DTN.6.15001", 
+            "DTN.6.15281", "DTN.6.19360", "DTN.6.19390"
+            ]:
+            TestUtils.set_requirement_status(rqmnt, status)
+       
+        if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_{cont}") == 'SETUP':
+            status = "P"
+        else:
+            print(f"ERROR - CON_STAT_RUN_STATE_{cont} not SETUP")
+            status = "F"        
+        
+        for rqmnt in ["DTN.6.19210"]:
+            TestUtils.set_requirement_status(rqmnt, status)
 
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_STOP with CONTACT_ID 1")    
-    for rqmnt in ["DTN.6.19210", "DTN.6.12372", "DTN.6.12374"]:
-        TestUtils.set_requirement_status(rqmnt, status)
-    
-    print("-----------------------------------------------------------")
-    print("2.4 Teardown contact")
-    print("-----------------------------------------------------------")
- 
-    status = TestUtils.send_command("BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 1")
-    
+        print(".....................................")
+        print("CONTACT_START")
+        print(".....................................")
+        
+        status = TestUtils.send_command(f"{start_cont} with CONTACT_ID {cont}")
+        for rqmnt in ["DTN.6.12362"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+            
+        if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_{cont}") == 'STARTED':
+            status = "P"
+        else:
+            print(f"ERROR - CON_STAT_RUN_STATE_{cont} not STARTED")
+            status = "F"        
+        
+        for rqmnt in ["DTN.6.19210"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+
+        print(".....................................")
+        print("CONTACT_STOP")
+        print(".....................................")
+
+        status = TestUtils.send_command(f"{stop_cont} with CONTACT_ID {cont}")    
+        for rqmnt in ["DTN.6.19210", "DTN.6.12372"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+        
+        if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_{cont}") == 'STOPPED':
+            status = "P"
+        else:
+            print(f"ERROR - CON_STAT_RUN_STATE_{cont} not STOPPD")
+            status = "F"        
+        
+        for rqmnt in ["DTN.6.19210"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+
+        print(".....................................")
+        print("CONTACT_TEARDOWN")
+        print(".....................................")
+     
+        status = TestUtils.send_command(f"{teardown_cont} with CONTACT_ID {cont}")
+          
+        if tlm(f"{target} {chan_stat_pkt} CON_STAT_RUN_STATE_{cont}") == 'TORNDOWN':
+            status = "P"
+        else:
+            print(f"ERROR - CON_STAT_RUN_STATE_{cont} not TORNDOWN")
+            status = "F"        
+        
+        for rqmnt in ["DTN.6.19210"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+        
     #******************************************************************
       
     print("===========================================================")
-    print("3. CONTACT 0 and 1")
+    print("3. Simultaneous contacts")
     print("===========================================================")
     
-    if TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0") == "F" or \
-       TestUtils.send_command("BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 1") == "F":
-        print("ERROR - could not set up simultaneous contacts")
+    print("..........")
+    print("SETUP")
+    print("..........")
+    for cont in range (3):
+        if TestUtils.send_command(f"{setup_cont} with CONTACT_ID {cont}") == "F":
+            print(f"ERROR - could not set up contact {cont}")
         
-    if TestUtils.send_command("BPNODE_CMD_CONTACT_START with CONTACT_ID 0") == "F" or \
-       TestUtils.send_command("BPNODE_CMD_CONTACT_START with CONTACT_ID 1") == "F":
-        print("ERROR - could not start simultaneous contacts")
+    print("..........")
+    print("START")
+    print("..........")
+    for cont in range (3):
+        if TestUtils.send_command(f"{start_cont} with CONTACT_ID {cont}") == "F":
+            print(f"ERROR - could not start contact {cont}")
 
-    if TestUtils.send_command("BPNODE_CMD_CONTACT_STOP with CONTACT_ID 0") == "F" or \
-       TestUtils.send_command("BPNODE_CMD_CONTACT_STOP with CONTACT_ID 1") == "F":
-        print("ERROR - could not stop simultaneous contacts")
+    print("..........")
+    print("STOP")
+    print("..........")
+    for cont in range (3):
+        if TestUtils.send_command(f"{stop_cont} with CONTACT_ID {cont}") == "F":
+            print(f"ERROR - could not stop contact {cont}")
 
-    if TestUtils.send_command("BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 0") == "F" or \
-       TestUtils.send_command("BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 1") == "F":
-        print("ERROR - could not tear down simultaneous contacts")
+    print("..........")
+    print("TEARDOWN")
+    print("..........")
+    for cont in range (3):
+        if TestUtils.send_command(f"{teardown_cont} with CONTACT_ID {cont}") == "F":
+            print(f"ERROR - could not teardown contact {cont}")
 
-    #TBD "DTN.6.15155" - receive bundles from multiple incoming simultaneous contacts
+ 
+    print("-----------------------------------------------------------")
+    print("3.1 Bundles receipt from simultaneous contacts - 0 and 2")
+    print("-----------------------------------------------------------")
     
+    # Contact 1 is for SB CLA OUT - not applicable for bundle receipt
+     
+    received_cnt = tlm (f"{target} {mib_counts_pkt} BUNDLE_COUNT_RECEIVED")
+    stored_cnt = tlm (f"{target} {mib_reports_pkt} BUNDLE_COUNT_STORED")
+
+    ## Enable contacts 0 and 2
+    for cont in [0,2]:
+        cmd(f"{target} {setup_cont} with CONTACT_ID {cont}")
+        cmd(f"{target} {start_cont} with CONTACT_ID {cont}")
+        
+    print(".............................")
+    print("Send bundles to both contacts")
+    print(".............................")
+
+    num_bundles_0 = 10
+    num_bundles_2 = 15
+    payload = b'\xAA'*1000
+    DTNGenUtils.generate_bundles(dest_node_0, dest_service_0, num_bundles_0, payload)
+    DTNGenUtils.generate_bundles(dest_node_2, dest_service_2, num_bundles_2, payload)
+
+    print("Sending bundles to contact 0 port ...")
+    DTNGenUtils.send_bundles(num_bundles_0, dest_node_0, data_sender_0)
+    print(f" ... sent {num_bundles_0} dest_node_0 bundles")
+
+    print("Sending bundles to contact 2 port ...")
+    DTNGenUtils.send_bundles(num_bundles_2, dest_node_2, data_sender_2)
+    print(f" ... sent {num_bundles_2} dest_node_2 bundles")
+
+    print("........................................................")
+    print("Verify bundles for both contacts are received and stored")
+    print("........................................................")
+
+    status = "P"
+    
+    item_name = "BUNDLE_COUNT_RECEIVED"
+    exp_val = received_cnt+num_bundles_0+num_bundles_2
+    if TestUtils.verify_item(mib_counts_pkt, item_name, exp_val) == "F":
+        status = "F"
+
+    item_name = "BUNDLE_COUNT_STORED"
+    exp_val = stored_cnt+num_bundles_0+num_bundles_2
+    if TestUtils.verify_item(mib_reports_pkt, item_name, exp_val) == "F":
+        status = "F"
+    
+    for rqmnt in ["DTN.6.15155"]:
+        TestUtils.set_requirement_status(rqmnt, status)
+    
+    # Teardown both contacts
+    for cont in [0,2]:
+        cmd(f"{target} {stop_cont} with CONTACT_ID {cont}")
+        cmd(f"{target} {teardown_cont} with CONTACT_ID {cont}")
+
     #******************************************************************
-    '''
+    
     print("===========================================================")
     print("4. Ingress Rate")
     print("===========================================================")
@@ -326,26 +444,26 @@ def bundle_ingress_nominal(self):
     load_new_table('/cf/cont_irate_lim.tbl')
 
     ## Start contact
-    cmd(f"{target} BPNODE_CMD_CONTACT_SETUP")
+    cmd(f"{target} {setup_cont} with CONTACT_ID 0")
     wait(1)
-    cmd(f"{target} BPNODE_CMD_CONTACT_START")
+    cmd(f"{target} {start_cont} with CONTACT_ID 0")
     wait(1)
     
     ## Send bundles
     num_bundles = 1
     payload = b'\xAA'*1000
-    DTNGenUtils.generate_bundles(dest_node, dest_service, num_bundles, payload)
+    DTNGenUtils.generate_bundles(dest_node_0, dest_service_0, num_bundles, payload)
 
     received_cnt = tlm (f"{target} {mib_counts_pkt} BUNDLE_COUNT_RECEIVED")
-    num_loops=200
+    num_loops=50
     print(f"Sending {num_loops*num_bundles} bundles to DTN Node ...")
     with disable_instrumentation():
         for _ in range(num_loops):
-            DTNGenUtils.send_bundles(1, dest_node, data_sender)
+            DTNGenUtils.send_bundles(1, dest_node_0, data_sender_0)
     
-    ## Verify bundles are received at low rate - expected ~20 sec
-    elapsed = wait_check(f"{target} {mib_counts_pkt} BUNDLE_COUNT_RECEIVED == {received_cnt+num_bundles*num_loops}", 30)
-    if elapsed > 15 and elapsed < 30:
+    ## Verify bundles are received at low rate - expected ~45 sec
+    elapsed = wait_check(f"{target} {mib_counts_pkt} BUNDLE_COUNT_RECEIVED == {received_cnt+num_bundles*num_loops}", 60)
+    if elapsed > 40 and elapsed < 50:
         print("!!! Bundle ingress rate low as expected")
         status = "P"
     else:
@@ -355,13 +473,13 @@ def bundle_ingress_nominal(self):
     for rqmnt in ["DTN.6.15013", "DTN.6.15073"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
-    #TBD - 15014 exceed the rate limit, the CLA shall send a warning event DTNN-1309
+    #TBD - 15014 exceed the rate limit, the CLA shall send a warning event DTNN-1369
     #TBD - 19260 translate all Event Management event messages event types to host event types 
 
     ## Stop and teardown contact
-    cmd(f"{target} BPNODE_CMD_CONTACT_STOP")
+    cmd(f"{target} {stop_cont} with CONTACT_ID 0")
     wait(1)
-    cmd(f"{target} BPNODE_CMD_CONTACT_TEARDOWN")
+    cmd(f"{target} {teardown_cont} with CONTACT_ID 0")
     wait(1)
     
     #******************************************************************
@@ -392,6 +510,10 @@ def bundle_ingress_nominal(self):
     ## Print Storage packet
     TestUtils.print_storage_pkt()
     
+    ## Disconnect data senders
+    data_sender_0.disconnect()
+    data_sender_2.disconnect()
+
     #******************************************************************
 
     ###################################################################

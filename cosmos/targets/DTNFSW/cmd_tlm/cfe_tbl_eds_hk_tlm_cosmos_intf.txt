@@ -19,8 +19,8 @@
    APPEND_ITEM LAST_UPDATE_TIME_SECONDS 32 UINT "Unsigned 32 bit integer"
    APPEND_ITEM LAST_UPDATE_TIME_SUBSECONDS 32 UINT "Unsigned 32 bit integer"
    APPEND_ITEM LAST_UPDATED_TABLE 320 STRING "Name of the last table updated"
-   APPEND_ITEM LAST_FILE_LOADED 512 STRING "Path and Name of last table image file loaded"
-   APPEND_ITEM LAST_FILE_DUMPED 512 STRING "Path and Name of last file dumped to"
+   APPEND_ITEM LAST_FILE_LOADED <%= $dtnfsw_globals_cfe_max_path_len %> STRING "Path and Name of last table image file loaded"
+   APPEND_ITEM LAST_FILE_DUMPED <%= $dtnfsw_globals_cfe_max_path_len %> STRING "Path and Name of last file dumped to"
    APPEND_ITEM LAST_TABLE_LOADED 320 STRING "Name of the last table loaded"
 
 

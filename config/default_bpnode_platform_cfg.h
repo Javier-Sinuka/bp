@@ -51,6 +51,21 @@
  */
 #define BPNODE_NUM_GEN_WRKR_TASKS         (1)
 
+/**
+ *  \brief Total number of child tasks in BPNode
+ *         There is an In and an Out task for each contact and for each channel, one task
+ *         per generic worker, and one maintenance task.
+ */
+#define BPNODE_TOTAL_NUM_CHILD_TASKS      ((BPLIB_MAX_NUM_CHANNELS * 2) + \
+                                           (BPLIB_MAX_NUM_CONTACTS * 2) + \
+                                            BPNODE_NUM_GEN_WRKR_TASKS + 1)
+
+/**
+ *  \brief Only uncomment when testing, this provides debug information on the CLA and 
+ *         Generic Worker Task performance rates. It's very noisy but can be useful
+ *         when looking for areas to optimize data rate performance.
+ */
+//#define BPNODE_INCLUDE_PERFORMANCE_DEBUGS
 
 /** 
  * @defgroup Child task stack sizes
@@ -138,9 +153,9 @@
 #define BPNODE_NUM_JOBS_PER_CYCLE           (150000 / BPNODE_MAX_EXP_WAKEUP_RATE)
 
 /**
- * \brief Size of BPLib's Memory Pool, in bytes
+ * \brief Size of BPLib's Memory Pool, in bytes (16 MB)
  */
-#define BPNODE_MEM_POOL_LEN               (16000000u)
+#define BPNODE_MEM_POOL_LEN               ((size_t) 16000000u)
 
 /**
  * \brief Maximum number of simultaneous unsorted BPLib generic worker jobs
@@ -190,6 +205,10 @@
  */
 #define BPNODE_ADU_IN_PRIORITY_BASE  (BPNODE_ADU_OUT_PRIORITY_BASE + BPLIB_MAX_NUM_CHANNELS)
 
+/**
+ * \brief Maintenance task priority
+ */
+#define BPNODE_MAINTENANCE_PRIORITY (BPNODE_ADU_IN_PRIORITY_BASE + BPLIB_MAX_NUM_CHANNELS)
 
 /** @} */
 

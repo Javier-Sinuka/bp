@@ -1,9 +1,9 @@
 # Send bundles to DTN Node during long duration or subsystem test
 #
-# Example usage: bundles_send(1000, 5, 2, "10.2.14.233", 4558, 1)
+# Example usage: bundles_send(103, 1, 1000, 5, 2, "10.2.14.233", 4558, 1)
 #
 
-def bundles_send(payload_size = None, lifetime_in_sec = None, total_send_loops = None, send_to_ip = None, send_to_port = None, rate_limit = None):
+def bundles_send(dest_number= None, dest_service= None, payload_size = None, lifetime_in_sec = None, total_send_loops = None, send_to_ip = None, send_to_port = None, rate_limit = None):
 
     import codecs
     import time
@@ -41,6 +41,12 @@ def bundles_send(payload_size = None, lifetime_in_sec = None, total_send_loops =
 
     from dtntools.dtncla.udp import UdpRxSocket, UdpTxSocket
 
+    if dest_number is None:
+        dest_number = 103
+    
+    if dest_service is None:
+        dest_service = 1
+    
     if payload_size is None:
         payload_size = 1000
     
@@ -69,7 +75,7 @@ def bundles_send(payload_size = None, lifetime_in_sec = None, total_send_loops =
         version=7,
         control_flags=BundlePCFlags.MUST_NOT_FRAGMENT,
         crc_type=CRCType.CRC16_X25,
-        dest_eid=EID({"uri": 2, "ssp": {"node_num": 103, "service_num": 1}}),
+        dest_eid=EID({"uri": 2, "ssp": {"node_num": dest_number, "service_num": dest_service}}),
         src_eid=EID({"uri": 2, "ssp": {"node_num": 101, "service_num": 1}}),
         rpt_eid=EID({"uri": 2, "ssp": {"node_num": 100, "service_num": 1}}),
         creation_timestamp={

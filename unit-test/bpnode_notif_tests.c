@@ -35,6 +35,11 @@ void UT_Handler_OS_CondVarTimedWait(void *UserObj, UT_EntryKey_t FuncKey, const 
     BPNode_AppData.ChildStartWorkNotif.Count++;
 }
 
+void UT_Handler_OS_CondVarTimedWait_2(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    BPNode_AppData.ChildTaskInitNotif.Count++;
+}
+
 
 /*
 ** Function Definitions
@@ -63,6 +68,23 @@ void Test_BPNode_NotifSet_Nominal(void)
 void Test_BPNode_NotifSet_Null(void)
 {
     BPNode_NotifSet(NULL);
+
+    UtAssert_STUB_COUNT(OS_CondVarLock, 0);
+} 
+
+/* Test BPNode_NotifUnset unsets the internal flag */
+void Test_BPNode_NotifUnset_Nominal(void)
+{
+    BPNode_NotifSet(&BPNode_AppData.ChildStartWorkNotif);
+    UtAssert_UINT32_EQ(BPNode_AppData.ChildStartWorkNotif.Count, 1);
+    BPNode_NotifUnset(&BPNode_AppData.ChildStartWorkNotif);
+    UtAssert_UINT32_EQ(BPNode_AppData.ChildStartWorkNotif.Count, 0);
+} 
+
+/* Test BPNode_NotifUnset when null is passed in */
+void Test_BPNode_NotifUnset_Null(void)
+{
+    BPNode_NotifUnset(NULL);
 
     UtAssert_STUB_COUNT(OS_CondVarLock, 0);
 } 
@@ -142,6 +164,67 @@ void Test_BPNode_NotifWait_Ready(void)
     UtAssert_INT32_EQ(Status, OS_SUCCESS);
 }
 
+/* Test BPNode_NotifWaitExact when it runs nominally */
+void Test_BPNode_NotifWaitExact_Nominal(void)
+{
+    int32 Status;
+    uint32 ValueExpected = 4;
+    int32 Timeout = 100;
+
+    BPNode_AppData.ChildTaskInitNotif.Count = 3;
+    UT_SetHandlerFunction(UT_KEY(OS_CondVarTimedWait), UT_Handler_OS_CondVarTimedWait_2, NULL);
+
+    Status = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, ValueExpected, Timeout);
+
+    UtAssert_INT32_EQ(Status, OS_SUCCESS);
+} 
+
+/* Test BPNode_NotifWaitExact when there's a timeout */
+void Test_BPNode_NotifWaitExact_Timeout(void)
+{
+    int32 Status;
+    uint32 ValueExpected = 4;
+    int32 Timeout = 100;
+
+    BPNode_AppData.ChildTaskInitNotif.Count = 3;
+    
+    UT_SetDefaultReturnValue(UT_KEY(OS_CondVarTimedWait), OS_ERROR_TIMEOUT);
+
+    Status = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, ValueExpected, Timeout);
+
+    UtAssert_INT32_EQ(Status, OS_ERROR_TIMEOUT);
+} 
+
+/* Test BPNode_NotifWaitExact when there's an unexpected error */
+void Test_BPNode_NotifWaitExact_Err(void)
+{
+    int32 Status;
+    uint32 ValueExpected = 4;
+    int32 Timeout = 100;
+
+    BPNode_AppData.ChildTaskInitNotif.Count = 3;
+
+    UT_SetDefaultReturnValue(UT_KEY(OS_CondVarTimedWait), OS_ERROR);
+
+    Status = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, ValueExpected, Timeout);
+
+    UtAssert_INT32_EQ(Status, OS_ERROR);
+}
+
+/* Test BPNode_NotifWaitExact when the notification has already been issued */
+void Test_BPNode_NotifWaitExact_Ready(void)
+{
+    int32 Status;
+    uint32 ValueExpected = 4;
+    int32 Timeout = 100;
+
+    BPNode_AppData.ChildTaskInitNotif.Count = 4;
+
+    Status = BPNode_NotifWaitExact(&BPNode_AppData.ChildTaskInitNotif, ValueExpected, Timeout);
+
+    UtAssert_INT32_EQ(Status, OS_SUCCESS);
+}
+
 /* Register the test cases to execute with the unit test tool */
 void UtTest_Setup(void)
 {
@@ -152,6 +235,9 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_NotifSet_Nominal);
     ADD_TEST(Test_BPNode_NotifSet_Null);
 
+    ADD_TEST(Test_BPNode_NotifUnset_Nominal);
+    ADD_TEST(Test_BPNode_NotifUnset_Null);
+
     ADD_TEST(Test_BPNode_NotifGetCount_Nominal);
     ADD_TEST(Test_BPNode_NotifGetCount_Null);
 
@@ -159,4 +245,9 @@ void UtTest_Setup(void)
     ADD_TEST(Test_BPNode_NotifWait_Ready);
     ADD_TEST(Test_BPNode_NotifWait_Timeout);
     ADD_TEST(Test_BPNode_NotifWait_Err);
+
+    ADD_TEST(Test_BPNode_NotifWaitExact_Nominal);
+    ADD_TEST(Test_BPNode_NotifWaitExact_Ready);
+    ADD_TEST(Test_BPNode_NotifWaitExact_Timeout);
+    ADD_TEST(Test_BPNode_NotifWaitExact_Err);
 }

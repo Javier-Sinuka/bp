@@ -27,37 +27,47 @@ class integration_test_bpnode_contact_flow(Group):
 
     def test_bpnode_contact_loopback(self):
         """
-        Nominal test
+        Nominal test for basic loopback on contacts 0 and 2
         """
 
-        # Port / Address Configs
+        # General configs
         DOCKER_LOCALHOST_TX = "172.17.0.1"
-        PORT_NUM_TX = <%= dtnfsw_get_cla_in_port(target_name, 0) %>
         LOCALHOST_RX = "0.0.0.0"
-        PORT_NUM_RX = <%= dtnfsw_get_cla_out_port(target_name, 0) %>
+
+        # Contact 0 configs
+        PORT_NUM_TX_0 = <%= dtnfsw_get_cla_in_port(target_name, 0) %>
+        PORT_NUM_RX_0 = <%= dtnfsw_get_cla_out_port(target_name, 0) %>
+        DEST_NODE_NUM_0 = <%= $dtnfsw_globals_contact_0_dest_eid_node %>
+        DEST_SERVICE_NUM_0 = <%= $dtnfsw_globals_contact_0_dest_eid_service %>
+
+        # Contact 2 configs
+        PORT_NUM_TX_2 = <%= dtnfsw_get_cla_in_port(target_name, 2) %>
+        PORT_NUM_RX_2 = <%= dtnfsw_get_cla_out_port(target_name, 2) %>
+        DEST_NODE_NUM_2 = <%= $dtnfsw_globals_contact_2_dest_eid_node %>
+        DEST_SERVICE_NUM_2 = <%= $dtnfsw_globals_contact_2_dest_eid_service %>
 
         # EID Configuration
-        DEST_NODE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_node %>
-        DEST_SERVICE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_service %>
         SRC_NODE_NUM = 300
         SRC_SERVICE_NUM = 1
 
         # Make sure port numbers were set properly
-        check_expression(f"{PORT_NUM_RX} != 0")
-        check_expression(f"{PORT_NUM_TX} != 0")
+        check_expression(f"{PORT_NUM_TX_0} != 0")
+        check_expression(f"{PORT_NUM_RX_0} != 0")
+        check_expression(f"{PORT_NUM_TX_2} != 0")
+        check_expression(f"{PORT_NUM_RX_2} != 0")
 
         # Store the previous counter val, used to calculated expected/next value
         current_bundle_recv_count = tlm(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_COUNT_RECEIVED")
-        expected_bundle_recv_count = current_bundle_recv_count + 1
+        expected_bundle_recv_count = current_bundle_recv_count + 2
         current_bundle_delvr_count = tlm(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_COUNT_FORWARDED")
-        expected_bundle_delvr_count = current_bundle_delvr_count + 1
+        expected_bundle_delvr_count = current_bundle_delvr_count + 2
 
         # Create out test bundle
         primary_block = PrimaryBlock(
             version=7,
             control_flags=BundlePCFlags.MUST_NOT_FRAGMENT,
             crc_type=CRCType.CRC16_X25,
-            dest_eid=EID({"uri": 2, "ssp": {"node_num": DEST_NODE_NUM, "service_num": DEST_SERVICE_NUM}}),
+            dest_eid=EID({"uri": 2, "ssp": {"node_num": DEST_NODE_NUM_0, "service_num": DEST_SERVICE_NUM_0}}),
             src_eid=EID({"uri": 2, "ssp": {"node_num": SRC_NODE_NUM, "service_num": SRC_SERVICE_NUM}}),
             rpt_eid=EID({"uri": 1, "ssp": 0}), # This is equivalent to dtn:none
             creation_timestamp=CreationTimestamp({"time": 755533838904, "sequence": 0}),
@@ -74,46 +84,64 @@ class integration_test_bpnode_contact_flow(Group):
             crc=CRCFlag.CALCULATE,
         )
 
-        # Use them to create a bundle object
-        bundle = Bundle(
+        # Encode first bundle
+        bundle_0 = Bundle(
             pri_block=primary_block,
             canon_blocks=[
                 payload_block,
             ],
         )
+        encoded_bundle_0 = bundle_0.to_bytes()
 
-        # Encode the bundle
-        # tx_bundle = bytes([0x41] * int(1024))
-        encoded_bundle = bundle.to_bytes()
+        # Encode second bundle
+        primary_block.dest_eid.ssp = {"node_num": DEST_NODE_NUM_2, "service_num": DEST_SERVICE_NUM_2}
+
+        bundle_2 = Bundle(
+            pri_block=primary_block,
+            canon_blocks=[
+                payload_block,
+            ],
+        )  
+        encoded_bundle_2 = bundle_2.to_bytes()      
 
         # Connect to CLA #0 In/Out sockets
-        data_sender = UdpTxSocket(DOCKER_LOCALHOST_TX, PORT_NUM_TX)
-        data_receiver = UdpRxSocket(LOCALHOST_RX, PORT_NUM_RX)
+        data_sender_0 = UdpTxSocket(DOCKER_LOCALHOST_TX, PORT_NUM_TX_0)
+        data_receiver_0 = UdpRxSocket(LOCALHOST_RX, PORT_NUM_RX_0)
+
+        # Connect to CLA #2 In/Out sockets
+        data_sender_2 = UdpTxSocket(DOCKER_LOCALHOST_TX, PORT_NUM_TX_2)
+        data_receiver_2 = UdpRxSocket(LOCALHOST_RX, PORT_NUM_RX_2)
 
         try:
             # Connect the data sender and receiver tools
-            data_receiver.connect()
-            data_sender.connect()
+            data_receiver_0.connect()
+            data_sender_0.connect()
+            data_receiver_2.connect()
+            data_sender_2.connect()
 
-            # Write data to the CLA In task
-            data_sender.write(encoded_bundle)
-            Group.print(f"Sending bundle of {len(encoded_bundle)} bytes")
+            # Write the bundle to both CLAs 0 and 2
+            data_sender_0.write(encoded_bundle_0)
+            data_sender_2.write(encoded_bundle_2)
+            Group.print(f"Sending two bundles of {len(encoded_bundle_0)} bytes")
 
             # Wait for data to be sent back by CLA Out task
-            # rx_bundle = rx_sock.read(timeout=6)
             Group.print("Waiting for bundle to be returned...")
-            looped_back_bundle = data_receiver.read()
-            Group.print(f"Received bundle of {len(looped_back_bundle)} bytes")
+            looped_back_bundle_0 = data_receiver_0.read()
+            looped_back_bundle_2 = data_receiver_2.read()
+            Group.print(f"Received two bundles of {len(looped_back_bundle_0)} bytes")
 
             # Check that the right data was returned by the CLA Out task
-            check_expression(f"{looped_back_bundle} != None")
+            check_expression(f"{looped_back_bundle_0} != None")
 
-            print(f"Sent Bundle: {Bundle.from_bytes(encoded_bundle).to_json()}")
-            print(f"Received Bundle: {Bundle.from_bytes(looped_back_bundle).to_json()}")
+            print(f"Sent Bundles: {Bundle.from_bytes(encoded_bundle_0).to_json()}")
+            print(f"Received Bundles: {Bundle.from_bytes(looped_back_bundle_0).to_json()}")
 
-            check_expression(f"'{len(looped_back_bundle)}' == '{len(encoded_bundle)}'")
-            check_expression(f"'{looped_back_bundle == encoded_bundle}' == 'True'")
-            check_expression(f"'{Bundle.from_bytes(looped_back_bundle).to_json() == Bundle.from_bytes(encoded_bundle).to_json()}' == 'True'")
+            check_expression(f"'{len(looped_back_bundle_0)}' == '{len(encoded_bundle_0)}'")
+            check_expression(f"'{len(looped_back_bundle_2)}' == '{len(encoded_bundle_2)}'")
+            check_expression(f"'{looped_back_bundle_0 == encoded_bundle_0}' == 'True'")
+            check_expression(f"'{looped_back_bundle_2 == encoded_bundle_2}' == 'True'")
+            check_expression(f"'{Bundle.from_bytes(looped_back_bundle_0).to_json() == Bundle.from_bytes(encoded_bundle_0).to_json()}' == 'True'")
+            check_expression(f"'{Bundle.from_bytes(looped_back_bundle_2).to_json() == Bundle.from_bytes(encoded_bundle_2).to_json()}' == 'True'")
 
             # Check that the BPNode telemetry incremented as expected
             wait_check(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_COUNT_RECEIVED == {expected_bundle_recv_count}", 10)
@@ -126,8 +154,10 @@ class integration_test_bpnode_contact_flow(Group):
 
         finally:
             # Clean up connections
-            data_receiver.disconnect()
-            data_sender.disconnect()
+            data_receiver_0.disconnect()
+            data_sender_0.disconnect()
+            data_receiver_2.disconnect()
+            data_sender_2.disconnect()
 
 
 
@@ -378,7 +408,10 @@ class integration_test_bpnode_contact_flow(Group):
         - Runs when Group Setup button is pressed
         - Runs before all scripts when Group Start is pressed
         """
-        pass
+        # Start channel 0 if it hasn't been already
+        cmd(f"<%= target_name %> BPNODE_CMD_ADD_APPLICATION with CHAN_ID 0")
+        cmd(f"<%= target_name %> BPNODE_CMD_START_APPLICATION with CHAN_ID 0")
+        wait_check(f"<%= target_name %> BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_0 == 'STARTED'", 10) 
 
     def teardown(self):
         """

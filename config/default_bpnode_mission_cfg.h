@@ -36,13 +36,19 @@
 
 #include "bpnode_interface_cfg.h"
 
-#define BPNODE_CLA_UDP_DRIVER
+// #define CAPSTONE_BUILD
 
-#ifdef BPNODE_CLA_UDP_DRIVER
-    #define BPNODE_CLA_PSP_DRIVER_NAME          "udpsock_intf"       /*IODriver udpsock_intf driver name*/
-#else
-    #define BPNODE_CLA_PSP_DRIVER_NAME          "unsock_intf"       /*IODriver unsock_intf driver name*/
-#endif
+/**
+ * \brief Determines whether the UDP CLAs are built. Building without the UDP CLA,
+ *        in the current form of the code, will cause an error and the software
+ *        will crash
+ */
+#define DEFAULT_UDP_CLA
+
+/**
+ * \brief IODriver udpsock_intf driver name
+ */
+#define BPNODE_CLA_PSP_DRIVER_NAME "udpsock_intf"
 
 /**
  * \brief Default EID Service Number to egress bundles over channel 0
@@ -63,5 +69,25 @@
  * \brief Default EID Service Number to egress bundles to contact 0
  */
 #define BPNODE_EID_SERVICE_NUM_FOR_CONTACT_0 64
+
+/**
+ * \brief Default EID Node Number to egress bundles to contact 1
+ */
+#define BPNODE_EID_NODE_NUM_FOR_CONTACT_1 400
+
+/**
+ * \brief Default EID Service Number to egress bundles to contact 1
+ */
+#define BPNODE_EID_SERVICE_NUM_FOR_CONTACT_1 42
+
+/**
+ * \brief Default EID Node Number to egress bundles to contact 2
+ */
+#define BPNODE_EID_NODE_NUM_FOR_CONTACT_2 600
+
+/**
+ * \brief Default EID Service Number to egress bundles to contact 2
+ */
+#define BPNODE_EID_SERVICE_NUM_FOR_CONTACT_2 12
 
 #endif /* BPNODE_MISSION_CFG_H */

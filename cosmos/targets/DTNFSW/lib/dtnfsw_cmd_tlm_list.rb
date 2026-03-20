@@ -172,6 +172,7 @@ $DTNFSW_CMD_TLM_LIST = {
             "BPNODE_CMD_ADD_STORAGE_ALLOCATION",
             "BPNODE_CMD_REMOVE_STORAGE_ALLOCATION",
             "BPNODE_CMD_PERFORM_SELF_TEST",
+            "BPNODE_CMD_CLEAN_STORAGE",
             "BPNODE_CMD_SEND_NODE_MIB_CONFIG_HK",
             "BPNODE_CMD_SEND_SOURCE_MIB_CONFIG_HK",
             "BPNODE_CMD_SEND_NODE_MIB_COUNTERS_HK",
@@ -202,6 +203,12 @@ $DTNFSW_CMD_TLM_LIST = {
             "INVALID_SHORT_BPNODE_CMD_RESET_COUNTER",
             "INVALID_SHORT_BPNODE_CMD_RESET_SOURCE_COUNTERS",
             "INVALID_SHORT_BPNODE_CMD_RESET_ERROR_COUNTERS",
+        ]
+    ),
+    "BPNODE_BUNDLE_RX" => FswMsgInfo.new(
+        base_stream_id: 0x183A,
+        packet_names: [
+            "BPNODE_BUNDLE_RX"
         ]
     ),
     "CF_CMD" => FswMsgInfo.new(
@@ -433,12 +440,12 @@ $DTNFSW_CMD_TLM_LIST = {
             "BPACC_FUN_HK",
         ]
     ),
-    # "SB_CLA_OUT" => FswMsgInfo.new(
-    #     base_stream_id: 0x08B1,
-    #     packet_names: [
-    #         "SB_CLA_OUT",
-    #     ]
-    # ),
+    "SB_CLA_OUT" => FswMsgInfo.new(
+        base_stream_id: 0x08B1,
+        packet_names: [
+            "SB_CLA_OUT",
+        ]
+    ),
 }
 
 

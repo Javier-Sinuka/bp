@@ -57,7 +57,7 @@ void Test_BPA_TABLEP_TableInit_InfoUpdated_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_Register), CFE_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_Load), CFE_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_GetAddress), CFE_TBL_INFO_UPDATED);
-    UtAssert_EQ(CFE_Status_t, BPA_TABLEP_TableInit(), CFE_SUCCESS);
+    UtAssert_EQ(BPLib_Status_t, BPA_TABLEP_TableInit(), BPLIB_SUCCESS);
 }
 
 void Test_BPA_TABLEP_TableInit_Success_Nominal(void)
@@ -65,14 +65,14 @@ void Test_BPA_TABLEP_TableInit_Success_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_Register), CFE_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_Load), CFE_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_GetAddress), CFE_SUCCESS);
-    UtAssert_EQ(CFE_Status_t, BPA_TABLEP_TableInit(), CFE_SUCCESS);
+    UtAssert_EQ(BPLib_Status_t, BPA_TABLEP_TableInit(), CFE_SUCCESS);
 }
 
 void Test_BPA_TABLEP_TableInit_Error(void)
 {
     uint8_t ErrorLoop;
     uint16_t ExpectedStubCount;
-    CFE_Status_t Status;
+    BPLib_Status_t Status;
 
     ExpectedStubCount = 0;
 
@@ -85,9 +85,10 @@ void Test_BPA_TABLEP_TableInit_Error(void)
 
         /* Reset return values so only the n-th call fails */
         UT_SetDefaultReturnValue(UT_KEY(CFE_TBL_Register), CFE_SUCCESS);
-
+        
         /* Make the n-th call fail */
         UT_SetDeferredRetcode(UT_KEY(CFE_TBL_Register), ErrorLoop + 1, CFE_TBL_ERR_DUPLICATE_DIFF_SIZE);
+        UT_SetDefaultReturnValue(UT_KEY(BPA_CFE_Status_Translate), CFE_TBL_ERR_DUPLICATE_DIFF_SIZE);
 
         /* Run the function under test */
         Status = BPA_TABLEP_TableInit();
@@ -98,8 +99,8 @@ void Test_BPA_TABLEP_TableInit_Error(void)
         /* Show that something is being called */
         UtAssert_STUB_COUNT(CFE_TBL_Register, ExpectedStubCount);
 
-        /* Verify that the correct event was issued */
-        BPNode_Test_Verify_Event(ErrorLoop, BPNODE_TBL_REG_ERR_EID, "Error registering configuration: %s, RC = 0x%08lX");
+        /* Verify the event is issued */
+        UtAssert_STUB_COUNT(BPLib_EM_SendEvent, ErrorLoop + 1);
     }
 }
 
@@ -138,9 +139,8 @@ void Test_BPA_TABLEP_SingleTableInit_Register_Error(void)
     /* Verify the return code is as expected */
     UtAssert_EQ(CFE_Status_t, Status, CFE_TBL_ERR_INVALID_OPTIONS);
 
-    /* Verify the event issued is as expected */
-    BPNode_Test_Verify_Event(0, BPNODE_TBL_REG_ERR_EID,
-                                "Error registering configuration: %s, RC = 0x%08lX");
+    /* Verify the event is issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
 
     /* Show that no other TBL function was run */
     UtAssert_STUB_COUNT(CFE_TBL_Load, 0);
@@ -164,9 +164,8 @@ void Test_BPA_TABLEP_SingleTableInit_Load_Error(void)
     /* Verify the return code is as expected */
     UtAssert_EQ(CFE_Status_t, Status, CFE_TBL_ERR_INVALID_OPTIONS);
 
-    /* Verify the event issued is as expected */
-    BPNode_Test_Verify_Event(0, BPNODE_TBL_LD_ERR_EID,
-                                "Error loading configuration: %s, RC = 0x%08lX");
+    /* Verify the event is issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
 
     /* Show that no other TBL function was run */
     UtAssert_STUB_COUNT(CFE_TBL_GetAddress, 0);
@@ -189,9 +188,8 @@ void Test_BPA_TABLEP_SingleTableInit_GetAddress_Error(void)
     /* Verify the return code is as expected */
     UtAssert_EQ(CFE_Status_t, Status, CFE_TBL_ERR_INVALID_OPTIONS);
 
-    /* Verify the event issued is as expected */
-    BPNode_Test_Verify_Event(0, BPNODE_TBL_ADDR_ERR_EID,
-                                "Error getting configuration address: %s, RC = 0x%08lX");
+    /* Verify the event is issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
 }
 
 void Test_BPA_TABLEP_TableUpdate_InfoUpdated_Nominal(void)

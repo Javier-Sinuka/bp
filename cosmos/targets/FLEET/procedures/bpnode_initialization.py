@@ -1,5 +1,5 @@
 #
-# Procedure: Initialize BPNode telemetry and set cFS time
+# Procedure: Initialize BPNode telemetry and set cFS time, reset counters and remove Channel 0
 # 
 # Example usage: bpnode_initialization("DTNFSW-2")
 #
@@ -30,3 +30,16 @@ def bpnode_initialization(target = None):
 
     wait_check(f"{target} CFE_TIME_HK CLOCK_STATE_API == 'VALID'", 6)
     wait_check(f"{target} CFE_TIME_HK SECONDS_STCF == {new_stcf}", 6)
+    
+    ## Reset all counters
+    cmd(f"{target} BPNODE_CMD_RESET_ALL_COUNTERS")    
+    wait(1)
+    cmd(f"{target} CF_CMD_RESET")
+    wait(1)
+
+    ## Stop and remove Channel 0
+    cmd(f"{target} BPNODE_CMD_STOP_APPLICATION with CHAN_ID 0")
+    wait(1)
+    cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 0")
+    wait(1)
+

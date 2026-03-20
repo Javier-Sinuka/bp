@@ -32,36 +32,13 @@
  * Generated stub function for BPNode_GenWorkerCreateTasks()
  * ----------------------------------------------------
  */
-int32 BPNode_GenWorkerCreateTasks(void)
+CFE_Status_t BPNode_GenWorkerCreateTasks(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPNode_GenWorkerCreateTasks, int32);
+    UT_GenStub_SetupReturnBuffer(BPNode_GenWorkerCreateTasks, CFE_Status_t);
 
     UT_GenStub_Execute(BPNode_GenWorkerCreateTasks, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPNode_GenWorkerCreateTasks, int32);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPNode_GenWorker_AppMain()
- * ----------------------------------------------------
- */
-void BPNode_GenWorker_AppMain(void)
-{
-
-    UT_GenStub_Execute(BPNode_GenWorker_AppMain, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPNode_GenWorker_TaskExit()
- * ----------------------------------------------------
- */
-void BPNode_GenWorker_TaskExit(uint8 WorkerId)
-{
-    UT_GenStub_AddParam(BPNode_GenWorker_TaskExit, uint8, WorkerId);
-
-    UT_GenStub_Execute(BPNode_GenWorker_TaskExit, Basic, NULL);
+    return UT_GenStub_GetReturnValue(BPNode_GenWorkerCreateTasks, CFE_Status_t);
 }
 
 /*
@@ -69,13 +46,25 @@ void BPNode_GenWorker_TaskExit(uint8 WorkerId)
  * Generated stub function for BPNode_GenWorker_TaskInit()
  * ----------------------------------------------------
  */
-int32 BPNode_GenWorker_TaskInit(uint8 *WorkerId)
+CFE_Status_t BPNode_GenWorker_TaskInit(uint32 WorkerId)
 {
-    UT_GenStub_SetupReturnBuffer(BPNode_GenWorker_TaskInit, int32);
+    UT_GenStub_SetupReturnBuffer(BPNode_GenWorker_TaskInit, CFE_Status_t);
 
-    UT_GenStub_AddParam(BPNode_GenWorker_TaskInit, uint8 *, WorkerId);
+    UT_GenStub_AddParam(BPNode_GenWorker_TaskInit, uint32, WorkerId);
 
     UT_GenStub_Execute(BPNode_GenWorker_TaskInit, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPNode_GenWorker_TaskInit, int32);
+    return UT_GenStub_GetReturnValue(BPNode_GenWorker_TaskInit, CFE_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPNode_GenWorker_TaskMain()
+ * ----------------------------------------------------
+ */
+void BPNode_GenWorker_TaskMain(uint32 WorkerId)
+{
+    UT_GenStub_AddParam(BPNode_GenWorker_TaskMain, uint32, WorkerId);
+
+    UT_GenStub_Execute(BPNode_GenWorker_TaskMain, Basic, NULL);
 }

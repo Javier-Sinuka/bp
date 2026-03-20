@@ -31,16 +31,14 @@
 */
 
 #include "cfe.h"
-
+#include "bpnode_task.h"
+#include "bplib.h"
 
 /*
 ** Macro Definitions
 */
 
-#define BPNODE_ADU_OUT_SEM_BASE_NAME        "BPN_ADU_OUT"    /** \brief Semaphore base name */
-#define BPNODE_ADU_OUT_BASE_NAME            "BPNODE.ADU_OUT" /** \brief Task base name */
-#define BPNODE_ADU_OUT_SEM_INIT_WAIT_MSEC   (2000u)          /** \brief Wait time for init semaphore take, in milliseconds */
-#define BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES    (1048u)
+#define BPNODE_ADU_OUT_BASE_NAME            "BPNODE.ADU_TX" /** \brief Task base name */
 
 
 /*
@@ -53,7 +51,7 @@
 typedef struct 
 {
     CFE_MSG_TelemetryHeader_t TelemetryHeader;
-    uint8 Payload[BPNODE_ADU_OUT_MAX_ADU_OUT_BYTES];
+    uint8 Payload[BPLIB_MAX_PAYLOAD_SIZE];
 } BPNode_AduOutBuf_t;
 
 
@@ -62,15 +60,11 @@ typedef struct
 */
 typedef struct
 {
-    CFE_ES_TaskId_t TaskId;
-    osal_id_t       InitSemId;
-    osal_id_t       ExitSemId;
-    uint32          PerfId;
-    uint32          RunStatus;
-    bool            AduWrapping;
-    CFE_SB_MsgId_t  SendToMsgId;
-    BPNode_AduOutBuf_t  OutBuf;
-    size_t          RateLimit;
+    BPNode_TaskData_t  TaskData;
+    bool               AduWrapping;
+    CFE_SB_MsgId_t     SendToMsgId;
+    BPNode_AduOutBuf_t OutBuf;
+    size_t             BitsEgressed;
 } BPNode_AduOutData_t;
 
 
@@ -82,7 +76,7 @@ typedef struct
  * \brief Create ADU Out Task(s)
  *
  *  \par Description
- *       Initialize init semaphore, then create the child task(s)
+ *       Initialize the task data and spawn all ADU Out child task(s)
  *
  *  \par Assumptions, External Events, and Notes:
  *       - Note: This is the only function in this file called by the main task, all other
@@ -92,13 +86,14 @@ typedef struct
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-int32 BPNode_AduOutCreateTasks(void);
+CFE_Status_t BPNode_AduOutCreateTasks(void);
 
 /**
  * \brief Initialize provided ADU Out task
  *
  *  \par Description
- *       Initialize provided ADU Out task
+ *       Initialize provided ADU Out task. This function is called as a function pointer
+ *       from BPNode_TaskInit
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
@@ -109,31 +104,18 @@ int32 BPNode_AduOutCreateTasks(void);
  *  \retval #CFE_SUCCESS \copybrief CFE_SUCCESS
  *  \retval OSAL or cFE error code
  */
-int32 BPNode_AduOut_TaskInit(uint32 *ChanId);
+CFE_Status_t BPNode_AduOut_TaskInit(uint32 ChanId);
 
 /**
  * \brief ADU Out Main Task
  *
  *  \par Description
- *       ADU Out task main loop. Extract ADUs from bundles and deliver to destination app.
+ *       ADU Out main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  */
-void BPNode_AduOut_AppMain(void);
-
-/**
- * \brief Exit provided ADU Out task
- *
- *  \par Description
- *       Exit ADU Out task gracefully
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \param[in] ChanId Channel ID for this task
- */
-void BPNode_AduOut_TaskExit(uint32 ChanId);
-
+void BPNode_AduOut_TaskMain(uint32 ChanId);
 
 #endif /* BPNODE_ADU_OUT_H */

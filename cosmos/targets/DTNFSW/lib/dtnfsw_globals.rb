@@ -74,8 +74,7 @@ $dtnfsw_globals_num_channels = 2
 # -------------------------------------------------------------------------------------------------
 # Maximum number of contacts BPNode is configured for
 # -------------------------------------------------------------------------------------------------
-# $dtnfsw_globals_num_contacts = 2
-$dtnfsw_globals_num_contacts = 1
+$dtnfsw_globals_num_contacts = 3
 
 # -------------------------------------------------------------------------------------------------
 # Maximum number of EID patterns that can map to a source MIB set index
@@ -188,13 +187,25 @@ $dtnfsw_globals_contact_0_dest_eid_service = 64
 # Destination EID's node number for contact 1 egress
 # Ref: BPNODE_EID_NODE_NUM_FOR_CONTACT_1
 # -------------------------------------------------------------------------------------------------
-# $dtnfsw_globals_contact_1_dest_eid_node = 400
+$dtnfsw_globals_contact_1_dest_eid_node = 400
 
 # -------------------------------------------------------------------------------------------------
-# Destination EID's service number for contact 0 egress
-# Ref: BPNODE_EID_SERVICE_NUM_FOR_CONTACT_0
+# Destination EID's service number for contact 1 egress
+# Ref: BPNODE_EID_SERVICE_NUM_FOR_CONTACT_1
 # -------------------------------------------------------------------------------------------------
-# $dtnfsw_globals_contact_1_dest_eid_service = 42
+$dtnfsw_globals_contact_1_dest_eid_service = 42
+
+# -------------------------------------------------------------------------------------------------
+# Destination EID's node number for contact 2 egress
+# Ref: BPNODE_EID_NODE_NUM_FOR_CONTACT_2
+# -------------------------------------------------------------------------------------------------
+$dtnfsw_globals_contact_2_dest_eid_node = 600
+
+# -------------------------------------------------------------------------------------------------
+# Destination EID's service number for contact 2 egress
+# Ref: BPNODE_EID_SERVICE_NUM_FOR_CONTACT_2
+# -------------------------------------------------------------------------------------------------
+$dtnfsw_globals_contact_2_dest_eid_service = 12
 
 # -------------------------------------------------------------------------------------------------
 # Destination EID's node number for egress to the local node
@@ -219,3 +230,9 @@ $dtnfsw_globals_local_service_num = 0
 # Ref: BPNODE_MEM_POOL_LEN
 # -------------------------------------------------------------------------------------------------
 $dtnfsw_globals_mem_pool_len = 8000000
+
+# -------------------------------------------------------------------------------------------------
+# Maximum path length (in bits not bytes)
+# Ref: CFE_MISSION_MAX_PATH_LEN
+# -------------------------------------------------------------------------------------------------
+$dtnfsw_globals_cfe_max_path_len = (128 * 8)

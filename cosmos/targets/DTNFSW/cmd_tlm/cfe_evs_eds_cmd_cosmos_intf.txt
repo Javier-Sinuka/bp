@@ -63,10 +63,10 @@
    APPEND_PARAMETER EVENT_ID 16 UINT 0 65535 0 "Event ID to use in the command"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_EVS_CMD_WRITE_APP_DATA_FILE',  1,  17, "Telecommand Message") %>
-   APPEND_PARAMETER APP_DATA_FILENAME 512 STRING "" "Filename where application data is to be written"
+   APPEND_PARAMETER APP_DATA_FILENAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "Filename where application data is to be written"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_EVS_CMD_WRITE_LOG_DATA_FILE',  1,  18, "Telecommand Message") %>
-   APPEND_PARAMETER LOG_FILENAME 512 STRING "" "Filename where log data is to be written"
+   APPEND_PARAMETER LOG_FILENAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "Filename where log data is to be written"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_EVS_CMD_SET_LOG_MODE',  1,  19, "Telecommand Message") %>
    APPEND_PARAMETER LOG_MODE 8 UINT 0 1 0 "Mode to use in the command"

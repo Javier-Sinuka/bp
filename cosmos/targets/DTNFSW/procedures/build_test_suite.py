@@ -6,6 +6,7 @@ load_utility(f"<%= target_name %>/procedures/build_tests/DTN_FSW_BD_0421_Bundle_
 load_utility(f"<%= target_name %>/procedures/build_tests/DTN_FSW_BD_0441_Bundle_Ingress.py")
 load_utility(f"<%= target_name %>/procedures/build_tests/DTN_FSW_BD_0461_ADU_Delivery.py")
 load_utility(f"<%= target_name %>/procedures/build_tests/DTN_FSW_BD_0601_Lifetime_Expiration.py")
+load_utility(f"<%= target_name %>/procedures/build_tests/DTN_FSW_BD_0641_Custody_Transfer.py")
 
 class BuildTestSuite(TestSuite):
     def __init__(self):
@@ -16,8 +17,7 @@ class BuildTestSuite(TestSuite):
         self.add_test(DTN_FSW_BD_0441_Bundle_Ingress)
         self.add_test(DTN_FSW_BD_0461_ADU_Delivery)
         self.add_test(DTN_FSW_BD_0601_Lifetime_Expiration)
-        
-        self.running_scripts = []
+        self.add_test(DTN_FSW_BD_0641_Custody_Transfer)
 
     def setup(self):
         import os
@@ -56,15 +56,13 @@ class BuildTestSuite(TestSuite):
         print("Starting event logger")
         curtime = str(datetime.now()).replace('-','').replace(':','').replace(' ','_')[:-7]
         eventlog_filename = "/eventlogs/eventlog_" + curtime + ".txt"
-        print ("Eventlog filename: ", eventlog_filename)
-        stash_set('eventlog', eventlog_filename)
+        print("Eventlog filename: ", eventlog_filename)
         id = script_run(f"<%= target_name %>/procedures/write_event_log.py")
-        self.running_scripts.append(id)
-
+        stash_set('eventlog', eventlog_filename)
+        stash_set('eventlog_id', id)
+        
     def teardown(self):
         print("Teardown")
-        
-        # Stop running scripts
-        for id in running_scripts:
-            self.running_script_stop(id)
-
+        id = stash_get('eventlog_id')
+        print("Stopping eventlogger, id: ", id)
+        running_script_stop(id)

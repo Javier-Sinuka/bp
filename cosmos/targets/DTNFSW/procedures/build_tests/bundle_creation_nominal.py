@@ -19,23 +19,26 @@ def bundle_creation_nominal(self):
         "DTN.ES.04220":"U", 
         "DTN.ES.04230":"U", 
         "DTN.6.01000":"U", 
+        "DTN.6.01005":"U", 
         "DTN.6.01070":"U", 
-        "DTN.6.02000":"U", 
         "DTN.6.02100":"U", 
         "DTN.6.02200":"U", 
-        "DTN.6.02290":"U", 
+        "DTN.6.02310":"U", 
+        "DTN.6.02332":"U", 
         "DTN.6.02402":"U", 
         "DTN.6.02410":"U", 
         "DTN.6.02420":"U", 
+        "DTN.6.02690":"U", 
         "DTN.6.03151":"U", 
-        "DTN.6.04280":"U", 
+        "DTN.6.03171":"U", 
+        "DTN.6.03173":"U", 
+        "DTN.6.04220":"U", 
         "DTN.6.04290":"U", 
         "DTN.6.04316":"U", 
         #"DTN.6.04317":"U",
         "DTN.6.04630":"U", 
         "DTN.6.05200":"U", 
         "DTN.6.05210":"U", 
-        "DTN.6.05220":"U", 
         "DTN.6.07030":"U", 
         "DTN.6.08491":"U", 
         #"DTN.6.08492":"U",
@@ -46,15 +49,7 @@ def bundle_creation_nominal(self):
         "DTN.6.12453":"U", 
         "DTN.6.12460":"U", 
         "DTN.6.12642":"U", 
-        "DTN.6.12645":"U", 
         "DTN.6.12660":"U", 
-        "DTN.6.12670":"U", 
-        #"DTN.6.12710":"U",
-        "DTN.6.12971":"U", 
-        "DTN.6.13051":"U", 
-        "DTN.6.13091":"U", 
-        "DTN.6.19000":"U", 
-        "DTN.6.19010":"U", 
         "DTN.6.19020":"U", 
         "DTN.6.19030":"U", 
         #"DTN.6.19040":"U", 
@@ -64,39 +59,40 @@ def bundle_creation_nominal(self):
         "DTN.6.19230":"U", 
         "DTN.6.19360":"U", 
         "DTN.6.19390":"U", 
-        "DTN.6.19410":"U", 
-        #"DTN.6.20115":"U", 
         "DTN.6.23090":"U",
-        "DTN.6.25010":"U",
         
         #Bundle construction
         "DTN.6.02030":"U", 
-        "DTN.6.02050":"U", 
-        "DTN.6.02340":"U",
-        "DTN.6.02350":"U",
-        "DTN.6.02360":"U",
-        "DTN.6.02370":"U",
         "DTN.6.02080":"U",
         "DTN.6.02110":"U",
-        "DTN.6.02210":"U",
         "DTN.6.02180":"U",
         "DTN.6.02190":"U",
         "DTN.6.02130":"U",
         "DTN.6.02140":"U",
-        "DTN.6.02310":"U", 
+        "DTN.6.02210":"U",
+        "DTN.6.02305":"U", 
         "DTN.6.02331":"U", 
-        "DTN.6.02332":"U", 
         "DTN.6.02333":"U", 
         "DTN.6.02334":"U", 
         "DTN.6.02335":"U",
-        "DTN.6.02270":"U", 
-        "DTN.6.02020":"U", 
+        "DTN.6.02336":"U",
+        "DTN.6.02340":"U",
+        "DTN.6.02350":"U",
+        "DTN.6.02351":"U",  
+        "DTN.6.02360":"U",
+        "DTN.6.02370":"U",
         "DTN.6.02400":"U", 
         "DTN.6.02402":"U", 
         #"DTN.6.02403":"U",
-        "DTN.6.02305":"U", 
-        "DTN.6.02336":"U",
         "DTN.6.06390":"U",
+        "DTN.6.07200":"U",
+        "DTN.6.08060":"U",
+        "DTN.6.08493":"I",
+        "DTN.6.12230":"U", 
+        "DTN.6.12431":"U", 
+        "DTN.6.12440":"U", 
+        "DTN.6.12453":"U",
+        "DTN.6.12460":"U",
         "DTN.6.12470":"U", 
         "DTN.6.12480":"U", 
         #"DTN.6.12490":"U", 
@@ -108,19 +104,18 @@ def bundle_creation_nominal(self):
         "DTN.6.12570":"U", 
         "DTN.6.12580":"U", 
         "DTN.6.12590":"U", 
-        "DTN.6.17010":"U",  
+        "DTN.6.19040":"U",
         "DTN.6.23061":"U",  
         "DTN.6.23062":"U",  
         "DTN.6.23063":"U",  
         "DTN.6.26000":"U", 
-        "DTN.6.26040":"I", 
+        "DTN.6.26040":"U", 
         "DTN.6.26050":"U", 
         "DTN.6.26070":"U", 
         "DTN.6.27000":"U", 
-        #"DTN.6.27010":"U", 
         #"DTN.6.27020":"U",
         "DTN.6.27040":"U", 
-        "DTN.6.27050":"U", 
+        #"DTN.6.27050":"U", #7.2 Needs security block
         "DTN.6.27060":"U", 
         "DTN.6.27090":"U", 
         "DTN.6.27100":"U", 
@@ -150,6 +145,7 @@ def bundle_creation_nominal(self):
         "DTN.6.27380":"U", 
         "DTN.6.27390":"U", 
         "DTN.6.27400":"U", 
+        "DTN.6.27410":"U", 
         "DTN.6.27420":"U", 
         "DTN.6.27430":"U", 
         "DTN.6.27440":"U", 
@@ -165,12 +161,8 @@ def bundle_creation_nominal(self):
         "DTN.6.12118":"U", 
         "DTN.6.12120":"U", 
         "DTN.6.12150":"U",
-        "DTN.6.12940":"U", 
-        "DTN.6.12950":"U", 
         "DTN.6.19090":"U", 
-        "DTN.6.20000":"U",
         "DTN.6.20010":"U",
-        "DTN.6.20030":"U",
         "DTN.6.20080":"U",
         "DTN.6.20090":"U",        
     }
@@ -221,22 +213,13 @@ def bundle_creation_nominal(self):
         data_receiver.connect()
        
         ##--------------------------------------------------------
-        ## Start receive only contact so bundles are stored 
         ## Send ADU - CFE_SB_CMD_SEND_SB_STATS command
         ##--------------------------------------------------------        
-        
-        # Load receive only contacts table
-        load_new_table('/cf/contact_rx_only.tbl')
         
         status = "P"
         for rqmnt in ["DTN.ES.04110", "DTN.ES.04120"]:
             TestUtils.set_requirement_status(rqmnt, status)
 
-        # Setup and start contact
-        cmd(f"{target} BPNODE_CMD_CONTACT_SETUP with CONTACT_ID 0")
-        wait(2)
-        cmd(f"{target} BPNODE_CMD_CONTACT_START with CONTACT_ID 0")    
-        
         # Send ADU command
         dtn_time_now_ms = DtnTimeNowMs()  # for bundle timestamp verification later
         cmd("DTNFSW-1 CFE_SB_CMD_SEND_SB_STATS")
@@ -271,8 +254,8 @@ def bundle_creation_nominal(self):
             status = "F"
 
         for rqmnt in [
-            "DTN.6.02410", "DTN.6.02420", "DTN.6.04280", "DTN.6.04290", 
-            "DTN.6.04316", "DTN.6.23090", "DTN.6.25010"
+            "DTN.6.02410", "DTN.6.02420", "DTN.6.04290", 
+            "DTN.6.04316", "DTN.6.23090"
             ]:
             TestUtils.set_requirement_status(rqmnt, status)
 
@@ -285,20 +268,13 @@ def bundle_creation_nominal(self):
             status = "F"
         
         for rqmnt in [
-            "DTN.6.01000", "DTN.6.02000", "DTN.6.02402", "DTN.6.05200", 
-            "DTN.6.05210", "DTN.6.05220", "DTN.6.12450", "DTN.6.12642", 
-            "DTN.6.12971", "DTN.6.19000", "DTN.6.19010", "DTN.6.19020", 
-            "DTN.6.19230"
+            "DTN.6.01000", "DTN.6.02402", "DTN.6.05200", 
+            "DTN.6.05210", "DTN.6.12450", "DTN.6.12642", 
+            "DTN.6.19020", "DTN.6.19230"
             ]:
             TestUtils.set_requirement_status(rqmnt, status)
             
         
-        # Stop and Teardown contact
-        cmd(f"{target} BPNODE_CMD_CONTACT_STOP with CONTACT_ID 0")
-        wait(2)
-        cmd(f"{target} BPNODE_CMD_CONTACT_TEARDOWN with CONTACT_ID 0")
-        wait(2)
-
         ##------------------------------------------------------
         ## Start nominal contact so stored bundles are forwarded 
         ##------------------------------------------------------        
@@ -319,11 +295,11 @@ def bundle_creation_nominal(self):
         
         status = "P"
         check_expression(f"{received_bundle.pri_block.version} == 7")
-        for rqmnt in ["DTN.6.02030", "DTN.6.02370"]:
+        for rqmnt in ["DTN.6.02030", "DTN.6.02370", "DTN.6.26040"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.pri_block.control_flags} == 4")     
-        for rqmnt in ["DTN.6.02050", "DTN.6.02080", "DTN.6.12510"]:
+        for rqmnt in ["DTN.6.02080", "DTN.6.12510"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.pri_block.crc_type} == {CRCType.CRC16_X25}")     
@@ -338,7 +314,7 @@ def bundle_creation_nominal(self):
         
         check_expression(f"{received_bundle.pri_block.creation_timestamp.time} > {dtn_time_now_ms}")    
         check_expression(f"{received_bundle.pri_block.creation_timestamp.time} < {dtn_time_now_ms+20000}")
-        for rqmnt in ["DTN.6.17010", "DTN.6.02180", "DTN.6.23061"]:
+        for rqmnt in ["DTN.6.02180", "DTN.6.23061"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.pri_block.creation_timestamp.sequence} == 0")
@@ -378,11 +354,11 @@ def bundle_creation_nominal(self):
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[0].control_flags} == {0}")
-        for rqmnt in ["DTN.6.02310", "DTN.6.12560"]:
+        for rqmnt in ["DTN.6.08060", "DTN.6.12560"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[0].crc_type} == {CRCType.CRC16_X25}")
-        for rqmnt in ["DTN.6.02100", "DTN.6.02290", "DTN.6.12541"]:
+        for rqmnt in ["DTN.6.02100", "DTN.6.12541"]:
             TestUtils.set_requirement_status(rqmnt, status)
             
         check_expression(f"{received_bundle.canon_blocks[0].is_crc_valid()}")        
@@ -400,11 +376,11 @@ def bundle_creation_nominal(self):
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[1].control_flags} == {0}")
-        for rqmnt in ["DTN.6.02310", "DTN.6.12560"]:
+        for rqmnt in ["DTN.6.08060", "DTN.6.12560"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[1].crc_type} == {CRCType.CRC16_X25}")
-        for rqmnt in ["DTN.6.02290", "DTN.6.12541"]:
+        for rqmnt in ["DTN.6.12541"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[1].is_crc_valid()}")
@@ -424,11 +400,11 @@ def bundle_creation_nominal(self):
             TestUtils.set_requirement_status(rqmnt, status)
 
         check_expression(f"{received_bundle.canon_blocks[2].control_flags} == {0}")
-        for rqmnt in ["DTN.6.02310", "DTN.6.12560"]:
+        for rqmnt in ["DTN.6.02310", "DTN.6.08060", "DTN.6.12560"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[2].crc_type} == {CRCType.CRC16_X25}")
-        for rqmnt in ["DTN.6.02290", "DTN.6.12541"]:
+        for rqmnt in ["DTN.6.12541"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[2].is_crc_valid()}")
@@ -438,7 +414,7 @@ def bundle_creation_nominal(self):
         check_expression(f"{received_bundle.canon_blocks[2].hop_data.hop_limit} == {exp_new_hop_limit}")
         check_expression(f"{received_bundle.canon_blocks[2].hop_data.hop_count} == {exp_new_hop_count}")
         
-        for rqmnt in ["DTN.6.02334", "DTN.6.06390"]:
+        for rqmnt in ["DTN.6.02334", "DTN.6.02351", "DTN.6.06390"]:
             TestUtils.set_requirement_status(rqmnt, status)
 
         for rqmnt in ["DTN.6.02331", "DTN.6.02332"]:
@@ -449,7 +425,7 @@ def bundle_creation_nominal(self):
         check_expression(f"{received_bundle.canon_blocks[3].blk_num} == {1}")
 
         check_expression(f"{received_bundle.canon_blocks[3].control_flags} == {0}")
-        for rqmnt in ["DTN.6.12560"]:
+        for rqmnt in ["DTN.6.12560", "DTN.6.08060"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         check_expression(f"{received_bundle.canon_blocks[3].crc_type} == {CRCType.CRC16_X25}")
@@ -460,22 +436,22 @@ def bundle_creation_nominal(self):
         for rqmnt in ["DTN.6.26070"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
-        for rqmnt in ["DTN.6.02270", "DTN.6.02020", "DTN.6.02400", "DTN.6.02402", 
+        for rqmnt in ["DTN.6.01005", "DTN.6.02400", "DTN.6.02402", 
                       "DTN.6.02305", "DTN.6.02336"]:
             TestUtils.set_requirement_status(rqmnt, status)
         
         ## CBOR encoding requirements
         for rqmnt in [
-            "DTN.6.26000", 
-            "DTN.6.27000", "DTN.6.27040", "DTN.6.27050", "DTN.6.27060", "DTN.6.27090", 
+            "DTN.6.03171", "DTN.6.03173", "DTN.6.07200", "DTN.6.26000", 
+            "DTN.6.27000", "DTN.6.27040", "DTN.6.27060", "DTN.6.27090", 
             "DTN.6.27100", "DTN.6.27110", "DTN.6.27120", "DTN.6.27130", "DTN.6.27140", 
             "DTN.6.27150", "DTN.6.27160", "DTN.6.27170", "DTN.6.27180", "DTN.6.27190", 
             "DTN.6.27200", "DTN.6.27210", "DTN.6.27230", "DTN.6.27240", "DTN.6.27250", 
             "DTN.6.27260", 
-            "DTN.6.27300", "DTN.6.27310", "DTN.6.27320", "DTN.6.27330", "DTN.6.27340", 
+            "DTN.6.27300", "DTN.6.27310", "DTN.6.27330", "DTN.6.27340", 
             "DTN.6.27350", "DTN.6.27360", "DTN.6.27370", "DTN.6.27380", "DTN.6.27390", 
-            "DTN.6.27400", "DTN.6.27420", "DTN.6.27430", "DTN.6.27440", "DTN.6.27470", 
-            "DTN.6.27480", "DTN.6.27490", 
+            "DTN.6.27400", "DTN.6.27410", "DTN.6.27420", "DTN.6.27430", "DTN.6.27440", 
+            "DTN.6.27470", "DTN.6.27480", "DTN.6.27490", 
             "DTN.6.27500", "DTN.6.27510", "DTN.6.27520", "DTN.6.27530"
             ]:
             TestUtils.set_requirement_status(rqmnt, status)
@@ -487,14 +463,19 @@ def bundle_creation_nominal(self):
         '''
         NOTE:
         At this time this works only if bundles don't get stored
-        With storage bundle expires right away
+        With storage bundle expires right away DTNN-1423
         '''
 
         # Set CFS time INVALID - so creation timestamp is zero
         cmd("DTNFSW-1 CFE_TIME_CMD_SET_STATE with CLOCK_STATE 'INVALID'")
         
         # Load channel table with no extension blocks
+        cmd(f"{target} BPNODE_CMD_STOP_APPLICATION")
+        cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION")
         load_new_table('/cf/chan_no_extblk.tbl')    
+        cmd(f"{target} BPNODE_CMD_ADD_APPLICATION")
+        cmd(f"{target} BPNODE_CMD_START_APPLICATION")
+        wait_check(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_0 == 'STARTED'", 6)
 
         # Send ADU command
         cmd("DTNFSW-1 CFE_SB_CMD_SEND_SB_STATS")
@@ -526,6 +507,58 @@ def bundle_creation_nominal(self):
         # Set CFS time VALID
         cmd("DTNFSW-1 CFE_TIME_CMD_SET_STATE with CLOCK_STATE 'VALID'")
         
+
+        print("-------------------------------------------------------------")
+        print("Verify canonical block length = 5 with no CRC") #27320
+        print("-------------------------------------------------------------")
+        # Load channel table with CRC Type 0 in previous node block
+        cmd(f"{target} BPNODE_CMD_STOP_APPLICATION")
+        cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION")
+        load_new_table('/cf/chan_prev_crc_0.tbl')    
+        cmd(f"{target} BPNODE_CMD_ADD_APPLICATION")
+        cmd(f"{target} BPNODE_CMD_START_APPLICATION")
+        wait_check(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_0 == 'STARTED'", 6)
+
+        # Send ADU command
+        cmd("DTNFSW-1 CFE_SB_CMD_SEND_SB_STATS")
+        
+        # Receive bundle data and verify canonical block has no crc attribute
+        print("Waiting for bundle to be returned...")
+        received_bundle = Bundle.from_bytes(data_receiver.read())
+        print(f"Received bundle: {received_bundle.to_json()}")
+       
+        print("Checking canonical block has no crc attribute ...")
+        #if(hasattr(received_bundle.canon_blocks[0]), 'crc'):
+        if(received_bundle.canon_blocks[0].crc == None):
+            status = "P"
+        else:
+            status = "F"
+        for rqmnt in ["DTN.6.27320"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+
+        print("-------------------------------------------------------------")
+        print("Verify ADU ingest rate telemetry")
+        print("-------------------------------------------------------------")
+        status = "F"
+        for _ in range(30):
+            cmd("DTNFSW-1 CFE_SB_CMD_SEND_SB_STATS")
+            wait(1)
+            if tlm(f"{target} {mib_reports_pkt} BUNDLE_INGESTED_RATE_BUNDLES_PER_SEC") > 0 and \
+               tlm(f"{target} {mib_reports_pkt} BUNDLE_INGESTED_RATE_BITS_PER_SEC") > 0:
+                status = "P"
+                break
+        
+        print("BUNDLE_INGESTED_RATE_BUNDLES_PER_SEC: ",
+            tlm(f"{target} {mib_reports_pkt} BUNDLE_INGESTED_RATE_BUNDLES_PER_SEC"))
+        print("BUNDLE_INGESTED_RATE_BITS_PER_SEC: ",
+            tlm(f"{target} {mib_reports_pkt} BUNDLE_INGESTED_RATE_BITS_PER_SEC"))
+        
+        if status == "F":            
+            print("ERROR - BUNDLE_INGESTED_RATE BUNDLES_PER_SEC/BITS_PER_SEC=0")
+            
+        for rqmnt in ["DTN.6.02690"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+        
         # Disconnect data receiver
         data_receiver.disconnect()
 
@@ -552,11 +585,7 @@ def bundle_creation_nominal(self):
     STOP_APP_EID   = 537
     
     ## Copy needed test tables from COSMOS to DTNFSW
-    prompt("Copy these tables to FSW build/exe/cpu1/cf folder:\n\n" + 
-           " - contact_rx_only.tbl\n" +
-           " - contact_nominal.tbl\n" 
-           " - chan_no_extblk.tbl" 
-          )
+    prompt("Copy build test tables to FSW build/exe/cpu1/cf folder")
     
     cmd("DTNFSW-1 BPNODE_CMD_RESET_ALL_COUNTERS") # assume this works for now
     
@@ -572,14 +601,14 @@ def bundle_creation_nominal(self):
     ##=================================================================
     #1.	Load Storage Configuration table.    
     if tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_SET_MAX_SEQUENCE_NUM") == 100000 and \
-       tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_BUNDLE_SIZE_NO_FRAGMENT") == 8192 and \
-       tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_SET_MAX_PAYLOAD_LENGTH") == 4096 and \
-       tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_SET_MAX_BUNDLE_LENGTH") == 8192:
+       tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_BUNDLE_SIZE_NO_FRAGMENT") == 17000 and \
+       tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_SET_MAX_PAYLOAD_LENGTH") == 16384 and \
+       tlm(f"{target} BPNODE_NODE_MIB_CONFIG_HK PARAM_SET_MAX_BUNDLE_LENGTH") == 17000:
         status = "P"
     else:
         status = "F"
     
-    for rqmnt in ["DTN.6.04630", "DTN.6.13091", "DTN.6.19360", "DTN.6.19390", "DTN.6.19410"]:
+    for rqmnt in ["DTN.6.04630", "DTN.6.19360", "DTN.6.19390"]:
         TestUtils.set_requirement_status(rqmnt, status)
             
     
@@ -612,7 +641,7 @@ def bundle_creation_nominal(self):
         wait
     
     # Set requirement status
-    for rqmnt in ["DTN.6.12440", "DTN.6.12453", "DTN.6.12460"]:
+    for rqmnt in ["DTN.6.01005", "DTN.6.12440", "DTN.6.12453", "DTN.6.12460"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
 
@@ -632,11 +661,25 @@ def bundle_creation_nominal(self):
         status = "F"
 
     # Set default channel configuration requirements status
-    for rqmnt in ["DTN.6.03151", "DTN.6.13051", "DTN.6.19360", "DTN.6.19390", "DTN.6.19410"]:
+    for rqmnt in ["DTN.6.03151", "DTN.6.19360", "DTN.6.19390"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     #************************************************************************
-        
+    '''
+    2/2/26
+    Channel table has now been updated to include CTEB by default.
+    It's updated to not include it for regression testing.
+    '''
+    cmd(f"{target} BPNODE_CMD_STOP_APPLICATION with CHAN_ID 0")
+    cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 0")
+    
+    load_new_table('/cf/chan0_no_cteb.tbl')
+    
+    cmd(f"{target} BPNODE_CMD_ADD_APPLICATION with CHAN_ID 0")
+    cmd(f"{target} BPNODE_CMD_START_APPLICATION with CHAN_ID 0")
+    wait(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_0 == 'STARTED'", 6)
+    
+    
     print("=================================================================")
     print("2. Application 1 test - Channel 0 (Added and Started at startup)")
     print("=================================================================")
@@ -664,7 +707,7 @@ def bundle_creation_nominal(self):
         wait
     
     # Set requirement status
-    for rqmnt in ["DTN.6.12645", "DTN.6.19030", "DTN.6.19210"]:
+    for rqmnt in ["DTN.6.19030", "DTN.6.19210"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     #************************************************************************
@@ -708,10 +751,10 @@ def bundle_creation_nominal(self):
             tlm(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_1") + " - Expected ACTIVE/ADDED")
         status = "F"
         
-        wait
+        wait()
     
     # Set requirement status
-    for rqmnt in ["DTN.6.12440", "DTN.6.12453", "DTN.6.12460", "DTN.6.19210"]:
+    for rqmnt in ["DTN.6.01005", "DTN.6.12440", "DTN.6.12453", "DTN.6.12460", "DTN.6.19210"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     print("Sending Add Application 2 directive again - should be accepted")
@@ -747,8 +790,8 @@ def bundle_creation_nominal(self):
     
     # Set requirement status
     for rqmnt in [
-        "DTN.6.02000", "DTN.6.02402", "DTN.6.05210", "DTN.6.05220", "DTN.6.12642", \
-        "DTN.6.12971", "DTN.6.19020", "DTN.6.19210", "DTN.6.19230"
+        "DTN.6.02402", "DTN.6.05210", "DTN.6.12642", \
+        "DTN.6.19020", "DTN.6.19210", "DTN.6.19230"
         ]:
         TestUtils.set_requirement_status(rqmnt, status)
     
@@ -778,10 +821,10 @@ def bundle_creation_nominal(self):
         print("ERROR - CHAN_STAT_REG_STATE_1 not STOPPED")
         status = "F"
         
-        wait
+        wait()
     
     # Set requirement status *** TBD ***
-    for rqmnt in ["DTN.6.12645", "DTN.6.19030", "DTN.6.19210"]:
+    for rqmnt in ["DTN.6.19030", "DTN.6.19210"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     
@@ -815,7 +858,7 @@ def bundle_creation_nominal(self):
         print("ERROR - CHAN_STAT_STATE_1 not STARTED")
         status = "F"
         
-        wait
+        wait()
         
         rqmnt = "DTN.6.19090"
         TestUtils.set_requirement_status(rqmnt, status)
@@ -911,7 +954,7 @@ def bundle_creation_nominal(self):
         status = "F"        
     
     # Set requirement status 
-    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.12670", "DTN.6.19210"]:
+    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.19210"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     
@@ -937,7 +980,7 @@ def bundle_creation_nominal(self):
         status = "F"        
     
     # Set requirement status 
-    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.12670", "DTN.6.19210"]:
+    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.19210"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     
@@ -972,7 +1015,7 @@ def bundle_creation_nominal(self):
         status = "F"
     
     # Set requirement status 
-    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.12670", "DTN.6.19210"]:
+    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.19210"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     #************************************************************************
@@ -983,13 +1026,13 @@ def bundle_creation_nominal(self):
     
     status = TestUtils.reset_counters("BUNDLE")
 
-    #************************************************************************
-    
+    #************************************************************************    
 
-    '''
+    
     print("=================================================================")
-    print(" Add/Start All Applications directives test")
+    print(" 8. Add/Start All Applications directives test")
     print("=================================================================")
+    
     ##------------------------------------------------------------------
     ## Add all applications
     ##------------------------------------------------------------------
@@ -1005,7 +1048,7 @@ def bundle_creation_nominal(self):
         status = "F"
     
     # Set requirement status 
-    for rqmnt in ["DTN.6.12431", "DTN.6.12440", "DTN.6.12453", "DTN.6.12460", "DTN.6.19000"]:
+    for rqmnt in ["DTN.6.12431", "DTN.6.12440", "DTN.6.12453", "DTN.6.12460"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     print("------------------------------------------------------------------")
@@ -1038,11 +1081,11 @@ def bundle_creation_nominal(self):
         status = "F"
     
     # Set requirement status 
-    for rqmnt in ["DTN.6.12230", "DTN.6.12971", "DTN.6.19040"]:
+    for rqmnt in ["DTN.6.12230", "DTN.6.19040"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
-    '''
     #************************************************************************
+    
 
     ## Print MIB Reports packet
     TestUtils.print_mib_reports_pkt()

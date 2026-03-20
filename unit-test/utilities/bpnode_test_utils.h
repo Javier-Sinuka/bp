@@ -40,7 +40,7 @@
 #include "cfe.h"
 #include "bpnode_eventids.h"
 #include "bpnode_app.h"
-#include "bpnode_utils.h"
+#include "bpnode_task.h"
 #include "bpnode_msgids.h"
 #include "bpnode_msg.h"
 #include "bpnode_tbl.h"

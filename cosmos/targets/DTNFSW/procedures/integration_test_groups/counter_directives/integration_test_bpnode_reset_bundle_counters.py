@@ -11,7 +11,7 @@ class integration_test_bpnode_reset_bundle_counters(Group):
         Nominal test
         """
         # Make a bundle counter non-zero and store the value
-        cmd(f"<%= target_name %> CFE_SB_CMD_SEND_SB_STATS")
+        cmd(f"<%= target_name %> CFE_TIME_CMD_SEND_DIAGNOSTIC")
         wait_check(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK ADU_COUNT_RECEIVED > 0", 10)
 
         # Store the previous counter val, used to calculated expected/next value
@@ -31,7 +31,10 @@ class integration_test_bpnode_reset_bundle_counters(Group):
         - Runs when Group Setup button is pressed
         - Runs before all scripts when Group Start is pressed
         """
-        pass
+        cmd(f"<%= target_name %> BPNODE_CMD_ADD_APPLICATION with CHAN_ID 1")
+        cmd(f"<%= target_name %> BPNODE_CMD_START_APPLICATION with CHAN_ID 1")
+
+        wait_check(f"<%= target_name %> BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_1 == 'STARTED'", 10)
 
     def teardown(self):
         """
@@ -39,6 +42,10 @@ class integration_test_bpnode_reset_bundle_counters(Group):
         - Runs when Group Teardown button is pressed
         - Runs after all scripts when Group Start is pressed
         """
+        cmd(f"<%= target_name %> BPNODE_CMD_STOP_APPLICATION with CHAN_ID 1")
+        cmd(f"<%= target_name %> BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 1")
+        wait_check(f"<%= target_name %> BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_1 == 'REMOVED'", 10)
+
         # Reset counters
         cmd(f"<%= target_name %> BPNODE_CMD_RESET_ALL_COUNTERS")
 

@@ -38,11 +38,17 @@ class DTN_FSW_BD_0001_Startup_Shutdown(Test):
             "DTN.ES.04180":"U",
             "DTN.ES.04190":"U",
             "DTN.ES.04200":"U",
+            "DTN.ES.04240":"U",
             "DTN.6.03161":"U",
             "DTN.6.04640":"U",
             "DTN.6.07180":"U",
+            "DTN.6.09480":"U",
             "DTN.6.12060":"U",
-            "DTN.6.12910":"U",
+            "DTN.6.12820":"I",
+            "DTN.6.12840":"I",
+            "DTN.6.12841":"I",
+            "DTN.6.12845":"I",
+            "DTN.6.12860":"I",
             "DTN.6.12990":"U",
             "DTN.6.13110":"U",
             "DTN.6.13120":"U",
@@ -111,7 +117,7 @@ class DTN_FSW_BD_0001_Startup_Shutdown(Test):
             status = "F"
 
         for rqmnt in [
-            "DTN.5.00940", "DTN.6.12990", "DTN.6.13110", "DTN.6.19370",
+            "DTN.5.00940", "DTN.6.09480", "DTN.6.12990", "DTN.6.13110", "DTN.6.19370",
             "DTN.6.19380", "DTN.6.20100", "DTN.6.21030", "DTN.6.25060"
             ]:
             TestUtils.set_requirement_status(rqmnt, status)
@@ -519,7 +525,7 @@ class DTN_FSW_BD_0001_Startup_Shutdown(Test):
         else:
             status = "F" 
         
-        for rqmnt in ["DTN.6.12910"]:
+        for rqmnt in ["DTN.ES.04240"]:
             TestUtils.set_requirement_status(rqmnt, status)
 
 

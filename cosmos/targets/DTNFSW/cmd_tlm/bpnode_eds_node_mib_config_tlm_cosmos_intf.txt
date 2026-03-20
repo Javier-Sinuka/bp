@@ -5,11 +5,11 @@
    APPEND_ITEM PARAM_SET_MAX_SEQUENCE_NUM                    32 UINT   "Max bundle sequence number allowable"
    APPEND_ITEM PARAM_SET_MAX_PAYLOAD_LENGTH                  32 UINT   "Max payload length for fragmentation"
    APPEND_ITEM PARAM_SET_MAX_BUNDLE_LENGTH                   32 UINT   "Max bundle length for processing"
-   APPEND_ITEM PARAM_SET_NODE_DTN_TIME                       32 UINT   "Time being tracked by the node"
-   APPEND_ITEM PARAM_SET_BEHAVIOR_EVENT_REPORTING            32 UINT   "Inclusive level of events to be generated"
+   APPEND_ITEM PARAM_SUPPORT_CUSTODY                         32 UINT   "Whether or not to support custody"
+      STATE FALSE 0
+      STATE TRUE  1
    APPEND_ITEM PARAM_SET_MAX_LIFETIME                        32 UINT   "Max bundle lifetime for retention of the bundle"
 
-   APPEND_ITEM SPARE                                         32 UINT   "Spare"
    APPEND_ITEM TIME_MONOTONIC_CNT                            64 INT    "Monotonic Time Counter"
    APPEND_ITEM TIME_CF                                       64 INT    "Time Correlation Factor (CF)"
 

@@ -26,8 +26,6 @@ BPNODE_PORT = <%= dtnfsw_get_cla_in_port(target_name, 0) %>
 LOCAL_IP = "0.0.0.0"
 LOCAL_PORT = <%= dtnfsw_get_cla_out_port(target_name, 0) %>
 
-
-
 # Primary Block: 
 #          CRC Type: 1
 #          Flags: 4

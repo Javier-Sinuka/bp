@@ -14,7 +14,7 @@ VERTICAL
   <% $dtnfsw_globals_max_num_mib_sets.times do |src_id| %>
     TABITEM "SrcID <%= src_id %>"
       <% $dtnfsw_globals_num_eid_patterns_per_mib_set.times do |eid_idx| %>
-        LABELVALUE <%= target_name %> BPNODE_SOURCE_MIB_CONFIG_HK SOURCE_<%= src_id %>_EID_<%= eid_idx %>_EidStr
+        LABELVALUE <%= target_name %> BPNODE_SOURCE_MIB_CONFIG_HK SRC_<%= src_id %>_EID_<%= eid_idx %>_EidStr
       <% end %>
       LABELVALUE <%= target_name %> BPNODE_SOURCE_MIB_CONFIG_HK PARAM_SET_MAX_LIFETIME_<%= src_id %>
       LABELVALUE <%= target_name %> BPNODE_SOURCE_MIB_CONFIG_HK PARAM_SET_MAX_BSR_GEN_RATE_<%= src_id %>

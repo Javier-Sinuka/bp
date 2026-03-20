@@ -14,35 +14,24 @@ def adu_delivery_nominal(self):
     # Initialize requirement status
     rqmnt_status = {
         "DTN.6.01000":"U",
-        "DTN.6.01010":"U",
+        "DTN.6.01005":"U", 
         "DTN.6.01030":"U",
-        "DTN.6.01040":"U",
         "DTN.6.01070":"U",
         "DTN.6.03000":"U", 
-        "DTN.6.03010":"U",
         "DTN.6.03060":"U",
+        "DTN.6.03080":"U",
+        "DTN.6.03100":"U",
+        "DTN.6.03130":"U",
         "DTN.6.04180":"U",
-        #"DTN.6.04190":"U",
         "DTN.6.04412":"U",
+        "DTN.6.05010":"U",
         "DTN.6.05140":"U",
-        #"DTN.6.05150":"U",
         "DTN.6.12440":"U",
-        "DTN.6.12450":"U",
-        "DTN.6.12620":"I",
-        "DTN.6.12630":"I",
-        "DTN.6.12642":"U",
-        "DTN.6.12644":"U",
-        "DTN.6.12645":"U",
         "DTN.6.12630":"I",
         "DTN.6.12660":"U",
-        "DTN.6.12670":"U",
-        "DTN.6.12680":"I",
-        "DTN.6.12971":"U",
-        "DTN.6.19000":"U",
-        "DTN.6.19010":"U",
         "DTN.6.19020":"U",
         "DTN.6.19030":"U",
-        #"DTN.6.19040":"U",
+        "DTN.6.19040":"U",
         "DTN.6.19180":"U", 
         "DTN.6.19190":"U",
         "DTN.6.19220":"U",
@@ -50,15 +39,10 @@ def adu_delivery_nominal(self):
         "DTN.6.26010":"U",
 
         #reset requirements
-        "DTN.6.12118":"U", 
         "DTN.6.12120":"U", 
         "DTN.6.12150":"U",
-        "DTN.6.12940":"U", 
-        "DTN.6.12950":"U", 
         "DTN.6.19090":"U", 
-        "DTN.6.20000":"U",
         "DTN.6.20010":"U",
-        "DTN.6.20030":"U",
         "DTN.6.20080":"U",
         "DTN.6.20090":"U",
     }
@@ -80,6 +64,7 @@ def adu_delivery_nominal(self):
     
     mib_counts_pkt = "BPNODE_NODE_MIB_COUNTERS_HK" 
     mib_reports_pkt = "BPNODE_NODE_MIB_REPORTS_HK" 
+    chan_stat_pkt = "BPNODE_CHAN_CON_STAT_HK"
 
     ## Print MIB Reports packet
     TestUtils.print_mib_reports_pkt()
@@ -184,9 +169,7 @@ def adu_delivery_nominal(self):
     status = TestUtils.verify_item(mib_counts_pkt, item_name, exp_val)
     
     # Set requirement status
-    for rqmnt in ["DTN.6.03000", "DTN.6.03010", "DTN.6.03060", 
-                  "DTN.6.12642", "DTN.6.12644", "DTN.6.12971", "DTN.6.19020"
-                 ]:
+    for rqmnt in ["DTN.6.03000", "DTN.6.03060", "DTN.6.19020"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
         
@@ -202,9 +185,9 @@ def adu_delivery_nominal(self):
     
     # Set requirement status
     for rqmnt in [
-        "DTN.6.01000", "DTN.6.01010", "DTN.6.01030", "DTN.6.01040", 
-        "DTN.6.05140", "DTN.6.12440", "DTN.6.12450", "DTN.6.19000", 
-        "DTN.6.19010", "DTN.6.19250",         
+        "DTN.6.01000", "DTN.6.01030", 
+        "DTN.6.05010", "DTN.6.05140", "DTN.6.12440", 
+        "DTN.6.19250",         
         ]:
         TestUtils.set_requirement_status(rqmnt, status)
 
@@ -285,8 +268,7 @@ def adu_delivery_nominal(self):
     status = TestUtils.verify_item(mib_counts_pkt, item_name, exp_val)
     
     # Set requirement status
-    for rqmnt in \
-        ["DTN.6.12642", "DTN.6.12971", "DTN.6.19020"]:
+    for rqmnt in ["DTN.6.19020"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
         
@@ -325,7 +307,7 @@ def adu_delivery_nominal(self):
     status = TestUtils.verify_item(mib_counts_pkt, item_name, exp_val)
     
     # Set requirement status
-    for rqmnt in ["DTN.6.12645", "DTN.6.19030"]:
+    for rqmnt in ["DTN.6.19030"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     #******************************************************************
@@ -345,30 +327,137 @@ def adu_delivery_nominal(self):
     else:
         status = "F"
         
-    for rqmnt in ["DTN.6.01070", "DTN.6.12660", "DTN.6.12670"]:
+    for rqmnt in ["DTN.6.01070", "DTN.6.12660"]:
         TestUtils.set_requirement_status(rqmnt, status)
     
     #******************************************************************
 
+    print("=================================================================")
+    print("  5. SET_REGISTRATION_STATE directive test")
+    print("=================================================================")
+    
+    print("...................................................................")
+    print("Verify directive is accepted in channel ADDED/STARTED/STOPPED state")
+    print("...................................................................")
+    for index in range(3):
+        if index==0:
+            print("ADDED state")
+            cmd(f"{target} BPNODE_CMD_ADD_APPLICATION with CHAN_ID 1")
+            wait_check(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_1 == 'ADDED'", 6)
+        elif index==1:
+            print("STARTED state")
+            cmd(f"{target} BPNODE_CMD_START_APPLICATION with CHAN_ID 1")
+            wait_check(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_1 == 'STARTED'", 6)
+        else:
+            print("STOPPED state")
+            cmd(f"{target} BPNODE_CMD_STOP_APPLICATION with CHAN_ID 1")
+            wait_check(f"{target} {chan_stat_pkt} CHAN_STAT_STATE_1 == 'STOPPED'", 6)
+        
+        status = "P"
+        
+        TestUtils.send_command("BPNODE_CMD_SET_REGISTRATION_STATE with CHAN_ID 1, REG_STATE 'PASSIVE_ABANDON'")    
+        if tlm(f"{target} {chan_stat_pkt} CHAN_STAT_REG_STATE_1") != 'PASSIVE_ABANDON': status = "F"
+
+        TestUtils.send_command("BPNODE_CMD_SET_REGISTRATION_STATE with CHAN_ID 1, REG_STATE 'PASSIVE_DEFER'")    
+        if tlm(f"{target} {chan_stat_pkt} CHAN_STAT_REG_STATE_1") != 'PASSIVE_DEFER': status = "F"
+            
+        TestUtils.send_command("BPNODE_CMD_SET_REGISTRATION_STATE with CHAN_ID 1, REG_STATE 'ACTIVE'")    
+        if tlm(f"{target} {chan_stat_pkt} CHAN_STAT_REG_STATE_1") != 'ACTIVE': status = "F"
+        
+        if status == "F":
+            print("ERROR - CHAN_STAT_REG_STATE_1 not as commanded")
+            
+        # Set requirement status
+        for rqmnt in ["DTN.6.01005", "DTN.6.03080", "DTN.6.03100"]:
+            TestUtils.set_requirement_status(rqmnt, status)
+        
+        
+    print(".......................................................")
+    print(" Verify bundles are abandoned in PASSIVE_ABANDON state")
+    print(".......................................................")
+    cmd(f"{target} BPNODE_CMD_SET_REGISTRATION_STATE with CHAN_ID 1, REG_STATE 'PASSIVE_ABANDON'")
+    
+    num_bundles = 5
+    DTNGenUtils.send_bundles(num_bundles, dest_node, data_sender)
+    wait(5)
+    
+    item_name = "BUNDLE_COUNT_ABANDONED"
+    exp_val = num_bundles
+    status = TestUtils.verify_item(mib_counts_pkt, item_name, exp_val)
+    for rqmnt in ["DTN.6.03130"]:
+        TestUtils.set_requirement_status(rqmnt, status)
+    
+    print(".......................................................")
+    print(" Verify bundles are stored in PASSIVE_DEFER state")
+    print(".......................................................")
+    bundles_stored = tlm(f"{target} {mib_reports_pkt} BUNDLE_COUNT_STORED")
+
+    cmd(f"{target} BPNODE_CMD_SET_REGISTRATION_STATE with CHAN_ID 1, REG_STATE 'PASSIVE_DEFER'")
+    
+    num_bundles = 5
+    DTNGenUtils.send_bundles(num_bundles, dest_node, data_sender)
+    wait(5)
+    
+    item_name = "BUNDLE_COUNT_STORED"
+    exp_val = bundles_stored+num_bundles  
+    status = TestUtils.verify_item(mib_reports_pkt, item_name, exp_val)    
+
+    #************************************************************************
+    
+    print("-----------------------------------------------------------")
+    print("6. Receive ADUs from both Applications")
+    print("-----------------------------------------------------------")    
+    cmd(f"{target} BPNODE_CMD_STOP_APPLICATION with CHAN_ID 0")
+    cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 0")
+    cmd(f"{target} BPNODE_CMD_STOP_APPLICATION with CHAN_ID 1")
+    cmd(f"{target} BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 1")
+    wait(2)
+    cmd(f"{target} BPNODE_CMD_ADD_ALL_APPLICATIONS")
+    cmd(f"{target} BPNODE_CMD_START_ALL_APPLICATIONS")
+    wait_check(f"{target} BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_0 == 'STARTED'", 6)
+    wait_check(f"{target} BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_1 == 'STARTED'", 6)
+
+    # Save initial counts
+    adu_delivered_cnt = tlm(f"{target} {mib_counts_pkt} ADU_COUNT_DELIVERED")
+
+    # Send bundles for channel 1
+    num_bundles = 5
+    DTNGenUtils.send_bundles(num_bundles, dest_node, data_sender)
+    
+    # Send bundles for channel 0
+    dest_service = 42
+    num_bundles = 10
+    DTNGenUtils.generate_bundles(dest_node, dest_service, num_gen_bundles, payload)
+    DTNGenUtils.send_bundles(num_bundles, dest_node, data_sender)
+
+    # Verify ADU_COUNT_DELIVERED
+    if wait(f"{target} {mib_counts_pkt} ADU_COUNT_DELIVERED == {adu_delivered_cnt}+15", 6):
+        print("ADU_COUNT_DELIVERED incremented as expected")
+        status = "P"
+    else:
+        print("ERROR - ADU_COUNT_DELIVERED did not increment as expected")
+        status = "F"
+    
+    # Set requirement status
+    for rqmnt in ["DTN.6.19040"]:
+        TestUtils.set_requirement_status(rqmnt, status)        
+
+    #******************************************************************
+    
     print("===========================================================")
-    print(" 5. Reset Counters Directives")
+    print(" 7. Reset Counters Directives")
     print("===========================================================")
     
     print("-----------------------------------------------------------")
-    print(" 5.1 RESET_COUNTER")
+    print(" 7.1 RESET_COUNTER")
     print("-----------------------------------------------------------")
 
     TestUtils.reset_counter("BUNDLE_COUNT_DELIVERED")
     TestUtils.reset_counter("ADU_COUNT_DELIVERED")
-    '''
+    TestUtils.reset_counter("BUNDLE_COUNT_ABANDONED")
+
     print("-----------------------------------------------------------")
-    print("5.2. RESET_BUNDLE_COUNTERS")
-    print("-----------------------------------------------------------")
-    
-    TestUtils.reset_counters("BUNDLE")
-    '''
-    print("-----------------------------------------------------------")
-    print("5.3. RESET_ALL_COUNTERS")
+    print("7.2. RESET_ALL_COUNTERS")
     print("-----------------------------------------------------------")
     
     TestUtils.reset_counters("ALL")

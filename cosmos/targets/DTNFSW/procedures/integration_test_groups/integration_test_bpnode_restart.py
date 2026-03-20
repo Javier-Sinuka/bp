@@ -14,26 +14,19 @@ class integration_test_bpnode_restart(Group):
         for contact_num in range(<%= $dtnfsw_globals_num_contacts %>):
             wait_check(f'DTNFSW-1 BPNODE_CHAN_CON_STAT_HK CON_STAT_RUN_STATE_{contact_num} == "STARTED"', 10)
 
-        # Verify that channel 0 is started (should have been loaded automatically)
-        wait_check(f"DTNFSW-1 BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_0 == 'STARTED'", 10)
-
-        # Add channel 1 application
-
-        current_valid_cmd_count = tlm(f"DTNFSW-1 BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT")
+        current_valid_cmd_count = tlm(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT")
         expected_valid_cmd_count = current_valid_cmd_count + 1
 
-        cmd(f"DTNFSW-1 BPNODE_CMD_ADD_APPLICATION with CHAN_ID 1")
-        wait_check(f"DTNFSW-1 BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT == {expected_valid_cmd_count}", 10)
-        wait_check(f"DTNFSW-1 BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_1 == 'ADDED'", 10)
+        # Add all applications
+        cmd(f"<%= target_name %> BPNODE_CMD_ADD_ALL_APPLICATIONS")
+        wait_check(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT == {expected_valid_cmd_count}", 10)
 
-        # Start channel 1 application
+        # Start all applications
+        cmd(f"<%= target_name %> BPNODE_CMD_START_ALL_APPLICATIONS")
+        wait_check(f"<%= target_name %> BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT == {expected_valid_cmd_count}", 10)
 
-        current_valid_cmd_count = tlm(f"DTNFSW-1 BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT")
-        expected_valid_cmd_count = current_valid_cmd_count + 1
-
-        cmd(f"DTNFSW-1 BPNODE_CMD_START_APPLICATION with CHAN_ID 1")
-        wait_check(f"DTNFSW-1 BPNODE_NODE_MIB_COUNTERS_HK BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT == {expected_valid_cmd_count}", 10)
-        wait_check(f"DTNFSW-1 BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_1 == 'STARTED'", 10)
+        for chan_id in range(<%= $dtnfsw_globals_num_channels %>): 
+            wait_check(f"<%= target_name %> BPNODE_CHAN_CON_STAT_HK CHAN_STAT_STATE_{chan_id} == 'STARTED'", 10)
 
         # Restart BPNode
 

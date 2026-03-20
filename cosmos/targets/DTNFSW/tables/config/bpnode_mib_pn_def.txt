@@ -4,7 +4,7 @@
   APPEND_PARAMETER PARAM_SET_MAX_SEQUENCE_NUM                    32 UINT   0 0xFFFFFFFF         100000       "Max bundle sequence number allowable"
   APPEND_PARAMETER PARAM_SET_MAX_PAYLOAD_LENGTH                  32 UINT   0 0xFFFFFFFF         100000       "Max payload length for fragmentation"
   APPEND_PARAMETER PARAM_SET_MAX_BUNDLE_LENGTH                   32 UINT   0 0xFFFFFFFF         100000       "Max bundle length for processing"
-  APPEND_PARAMETER PARAM_SET_NODE_DTN_TIME                       32 UINT   0 0xFFFFFFFF         0            "Time being tracked by the node"
-  APPEND_PARAMETER PARAM_SET_BEHAVIOR_EVENT_REPORTING            32 UINT   0 0xFFFFFFFF         10           "Inclusive level of events to be generated"
+  APPEND_PARAMETER PARAM_SUPPORT_CUSTODY                         32 UINT   0 1                  1            "Whether or not to support custody"
+      STATE FALSE 0
+      STATE TRUE  1
   APPEND_PARAMETER PARAM_SET_MAX_LIFETIME                        32 UINT   0 0xFFFFFFFF         0            "Max bundle lifetime for retention of the bundle"
-  APPEND_PARAMETER SPARE                                         32 UINT   0 0                  0            "Spare"

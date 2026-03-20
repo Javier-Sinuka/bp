@@ -17,24 +17,18 @@ def adu_delivery_errors(self):
         "DTN.6.01060":"U", 
         "DTN.6.03151":"U", 
         "DTN.6.12452":"U", 
-        #"DTN.6.12596":"U", 
-        "DTN.6.13051":"U", 
+        "DTN.6.19170":"U", 
         "DTN.6.19180":"U", 
         "DTN.6.19190":"U", 
         "DTN.6.19360":"U", 
         "DTN.6.19390":"U", 
-        "DTN.6.19410":"U", 
 
         #reset requirements
-        "DTN.6.12118":"U", 
         "DTN.6.12120":"U", 
         "DTN.6.12150":"U",
-        "DTN.6.12940":"U", 
-        "DTN.6.12950":"U", 
         "DTN.6.19090":"U", 
-        "DTN.6.20000":"U",
+        "DTN.6.19160":"U", 
         "DTN.6.20010":"U",
-        "DTN.6.20030":"U",
         "DTN.6.20080":"U",
         "DTN.6.20090":"U",
     }
@@ -74,7 +68,7 @@ def adu_delivery_errors(self):
     print(" 1.1 CrcType 0")
     print("...................................................................")
     status = TestUtils.validate_invalid_table('/cf/chan_bad_crc.tbl') 
-    for rqmnt in ["DTN.6.03151", "DTN.6.13051"]:
+    for rqmnt in ["DTN.6.03151"]:
         TestUtils.set_requirement_status(rqmnt, status)
 
     # Verify channels maintain same state after table load failure
@@ -95,7 +89,7 @@ def adu_delivery_errors(self):
     # Local EID: node number set in MIB PN table, service number in channel table
     
     status = TestUtils.validate_invalid_table('/cf/chan_dup_serv.tbl') 
-    for rqmnt in ["DTN.6.01032", "DTN.6.03151", "DTN.6.12452", "DTN.6.13051"]:
+    for rqmnt in ["DTN.6.01032", "DTN.6.03151", "DTN.6.12452"]:
         TestUtils.set_requirement_status(rqmnt, status)
         
     '''
@@ -136,7 +130,27 @@ def adu_delivery_errors(self):
 
 
     print("=================================================================")
-    print("2. Reset Counters - ERROR/BUNDLE")
+    print(" 2. Invalid command errors")
+    print("=================================================================")
+    
+    print(".....................................................................")
+    print(" Verify SET_REGISTRATION_STATE directive is rejected in REMOVED state")
+    print(".....................................................................")
+
+    cmd("DTNFSW-1 BPNODE_CMD_STOP_APPLICATION with CHAN_ID 1")
+    cmd("DTNFSW-1 BPNODE_CMD_REMOVE_APPLICATION with CHAN_ID 1")
+
+    TestUtils.send_command("BPNODE_CMD_SET_REGISTRATION_STATE with CHAN_ID 1, \
+                            REG_STATE 'PASSIVE_ABANDON'", \
+                            TestUtils.INVALID_CMD_TYPE)
+    
+    BPLIB_NC_SET_REGI_STAT_ERR_EID=571
+    status = TestUtils.verify_event("BPNODE", BPLIB_NC_SET_REGI_STAT_ERR_EID, "ERROR")
+    
+    
+   
+    print("=================================================================")
+    print("3. Reset Counters - ERROR/BUNDLE")
     print("=================================================================")
     
     TestUtils.reset_counters("ERROR")

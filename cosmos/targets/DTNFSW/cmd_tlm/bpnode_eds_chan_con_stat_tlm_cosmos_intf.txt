@@ -8,8 +8,8 @@
       STATE STARTED   3
    APPEND_ITEM CHAN_STAT_REG_STATE_<%= chan_id %>         32 UINT "Channel Status: Registration State"
       STATE ACTIVE            0
-      STATE PASSIVEDEFERED    1
-      STATE PASSIVEABANDON    2
+      STATE PASSIVE_DEFER     1
+      STATE PASSIVE_ABANDON   2
    APPEND_ITEM SPARE_<%= chan_id %>                       32 UINT "Channel Status: Spare"
 <% end %>
 <% $dtnfsw_globals_num_contacts.times do |contact_id| %>

@@ -8,7 +8,7 @@
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_START_APP',  1,  4, "Telecommand Message") %>
    APPEND_PARAMETER APPLICATION 160 STRING "" "Name of Application to be started"
    APPEND_PARAMETER APP_ENTRY_POINT 160 STRING "" "Symbolic name of Application's entry point"
-   APPEND_PARAMETER APP_FILE_NAME 512 STRING "" "Full path and filename of Application's executable image"
+   APPEND_PARAMETER APP_FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "Full path and filename of Application's executable image"
 <% if $dtnfsw_globals_mem_size == 64 %>
    APPEND_PARAMETER STACK_SIZE 64 UINT MIN_UINT64 MAX_UINT64 0 "Desired stack size for the new application"
 <% else %>
@@ -25,23 +25,23 @@
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_RELOAD_APP',  1,  7, "Telecommand Message") %>
    APPEND_PARAMETER APPLICATION 160 STRING "" "ASCII text string containing Application Name"
-   APPEND_PARAMETER APP_FILE_NAME 512 STRING "" "Full path and filename of Application's executable image"
+   APPEND_PARAMETER APP_FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "Full path and filename of Application's executable image"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_QUERY_ONE',  1,  8, "Telecommand Message") %>
    APPEND_PARAMETER APPLICATION 160 STRING "" "ASCII text string containing Application Name"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_QUERY_ALL',  1,  9, "Telecommand Message") %>
-   APPEND_PARAMETER FILE_NAME 512 STRING "" "ASCII text string of full path and filename of file"
+   APPEND_PARAMETER FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "ASCII text string of full path and filename of file"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_CLEAR_SYS_LOG',  1,  10, "Telecommand Message") %>
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_WRITE_SYS_LOG',  1,  11, "Telecommand Message") %>
-   APPEND_PARAMETER FILE_NAME 512 STRING "" "ASCII text string of full path and filename of file"
+   APPEND_PARAMETER FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "ASCII text string of full path and filename of file"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_CLEAR_ER_LOG',  1,  12, "Telecommand Message") %>
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_WRITE_ER_LOG',  1,  13, "Telecommand Message") %>
-   APPEND_PARAMETER FILE_NAME 512 STRING "" "ASCII text string of full path and filename of file"
+   APPEND_PARAMETER FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "ASCII text string of full path and filename of file"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_START_PERF_DATA',  1,  14, "Telecommand Message") %>
    APPEND_PARAMETER TRIGGER_MODE 32 UINT 0 2 0 "Desired trigger position (Start, Center, End)"
@@ -50,7 +50,7 @@
       STATE END    2
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_STOP_PERF_DATA',  1,  15, "Telecommand Message") %>
-   APPEND_PARAMETER DATA_FILE_NAME 512 STRING "" "ASCII text string of full path and filename of file Performance Analyzer data is to be written"
+   APPEND_PARAMETER DATA_FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "ASCII text string of full path and filename of file Performance Analyzer data is to be written"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_SET_PERF_FILTER_MASK',  1,  16, "Telecommand Message") %>
    APPEND_PARAMETER FILTER_MASK_NUM 32 UINT 0 4294967295 0 "Index into array of Filter Masks"
@@ -76,10 +76,10 @@
    APPEND_PARAMETER POOL_HANDLE_BASE_TYPE 32 UINT 0 4294967295 0 "Unsigned 32 bit integer"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_DUMP_CDS_REGISTRY',  1,  23, "Telecommand Message") %>
-   APPEND_PARAMETER DUMP_FILENAME 512 STRING "" "ASCII text string of full path and filename of file CDS Registry is to be written"
+   APPEND_PARAMETER DUMP_FILENAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "ASCII text string of full path and filename of file CDS Registry is to be written"
 
 <%= dtnfsw_cmd_hdr(target_name, 'CFE_ES_CMD_QUERY_ALL_TASKS',  1,  24, "Telecommand Message") %>
-   APPEND_PARAMETER FILE_NAME 512 STRING "" "ASCII text string of full path and filename of file"
+   APPEND_PARAMETER FILE_NAME <%= $dtnfsw_globals_cfe_max_path_len %> STRING "" "ASCII text string of full path and filename of file"
 
 
 

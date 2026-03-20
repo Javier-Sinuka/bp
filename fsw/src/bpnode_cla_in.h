@@ -31,21 +31,23 @@
 */
 
 #include "cfe.h"
-#include "iodriver_base.h"
-#include "iodriver_packet_io.h"
 #include "bplib.h"
 #include "bpnode_platform_cfg.h"
+#include "bpnode_task.h"
 
+#ifdef DEFAULT_UDP_CLA
+#include "iodriver_base.h"
+#include "iodriver_packet_io.h"
+#endif /* DEFAULT_UDP_CLA */
 
 /*
 ** Macro Definitions
 */
 
-#define BPNODE_CLA_IN_SEM_BASE_NAME          "BPN_CLA_IN"           /** \brief Initialization semaphore base name */
-#define BPNODE_CLA_IN_BASE_NAME              "BPNODE.CLA_IN"        /** \brief Task base name */
+#define BPNODE_CLA_IN_BASE_NAME              "BPNODE.CLA_RX"        /** \brief Task base name */
 #define BPNODE_CLA_PSP_INPUT_BUFFER_SIZE     (BPLIB_MAX_BUNDLE_LEN) /** \brief IODriver buffer size*/
-#define BPNODE_CLA_IN_SEM_INIT_WAIT_MSEC     (2000u)                /** \brief Wait time for init semaphore take, in milliseconds */
-
+#define BPNODE_CLA_INGRESS_PIPE_DEPTH        (32u)                  /** \brief CLA In SB pipe depth */
+#define BPNODE_CLA_INGRESS_MSG_LIMIT         (32u)                  /** \brief CLA In SB message limit */
 /*
 ** Type Definitions
 */
@@ -55,26 +57,66 @@
 */
 typedef struct
 {
-    CFE_ES_TaskId_t TaskId;
-    osal_id_t       InitSemId;
-    osal_id_t       ExitSemId;
-    uint32          PerfId;
-    uint32          RunStatus;
+    BPNode_TaskData_t TaskData;
 
+    size_t BitsIngressed;
+
+    #ifdef DEFAULT_UDP_CLA
     /* IODriver usock_intf related */
     CFE_PSP_IODriver_Direction_t Dir;
     CFE_PSP_IODriver_Location_t  PspLocation;
+    #endif /* DEFAULT_UDP_CLA */
+
+    /* CFE_SB_ReceiveBuffer related */
+    CFE_SB_PipeId_t IngressPipe;
 
     /* CLA In bundle/packet */
     uint8 PSP_Buffer[BPNODE_CLA_PSP_INPUT_BUFFER_SIZE];
+    void* SB_Buffer;
 
-    size_t RateLimit;
+    bool   ClearPipe;
+    
 } BPNode_ClaInData_t;
-
 
 /*
 ** Exported Functions
 */
+
+/**
+ * \brief     Create all CLA In tasks
+ * \return    Execution status
+ * \retval    CFE_SUCCESS: Successful execution
+ * \retval    CFE errors from CFE_ES_CreateChildTask
+ */
+CFE_Status_t BPNode_ClaInCreateTasks(void);
+
+/**
+ * \brief     Initialize a CLA In task
+ * 
+ *  \par      Description
+ *            Initialize provided CLA In task. This function is called as a function 
+ *            pointer from BPNode_TaskInit
+ * 
+ * \param[in] ContactId (uint32) Index into the various contact info tracking
+ *                                 arrays that corresponds to that contact's info
+ * \return    Execution status
+ * \retval    CFE_SUCCESS: Successful execution
+ * \retval    PSP errors from CFE_PSP_IODriver_FindByName
+ * \retval    PSP errors from CFE_PSP_IODriver_Command
+ */
+CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId);
+
+/**
+ * \brief CLA In Main Task
+ *
+ *  \par Description
+ *       CLA In main task operations. This function is called as a function pointer from
+ *       BPNode_TaskMain
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ */
+void BPNode_ClaIn_TaskMain(uint32 ContactId);
 
 /**
  * \brief Process Bundle Input from CLA
@@ -95,40 +137,14 @@ typedef struct
 int32 BPNode_ClaIn_ProcessBundleInput(uint32 ContId, size_t *BundleSize);
 
 /**
-  * \brief     Create all CLA In tasks
-  * \return    Execution status
-  * \retval    CFE_SUCCESS: Successful execution
-  * \retval    OS errors from OS_BinSemCreate
-  * \retval    OS errors from OS_BinSemTimedWait
-  * \retval    CFE errors from CFE_ES_CreateChildTask
-  */
-CFE_Status_t BPNode_ClaInCreateTasks(void);
-
-/**
-  * \brief     Initialize a CLA In task
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \return    Execution status
-  * \retval    CFE_SUCCESS: Successful execution
-  * \retval    PSP errors from CFE_PSP_IODriver_FindByName
-  * \retval    PSP errors from CFE_PSP_IODriver_Command
-  * \retval    OS errors from OS_BinSemGive
-  */
-CFE_Status_t BPNode_ClaIn_TaskInit(uint32 ContactId);
-
-/**
   * \brief     Set up a CLA In task
-  * \param[in] ContactId (uint32) Index into the various contact info tracking
-  *                                 arrays that corresponds to that contact's info
-  * \param[in] PortNum (int32) If the task is using UDP, this is the port number
-  *                            gathered from the Contacts Configuration
-  * \param[in] IpAddr (char*) If the task is using UDP, this is the IP address
-  *                           gathered from the Contacts Configuration
+  * \param[in] ContactId Index into the various contact info tracking arrays that
+  *                      corresponds to that contact's info
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Successful execution
   * \retval    BPLIB_CLA_IO_ERROR: A I/O driver API call failed operation
   */
-BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId, int32 PortNum, const char* IpAddr);
+BPLib_Status_t BPNode_ClaIn_Setup(uint32 ContactId);
 
 /**
   * \brief     Start up a CLA In task
@@ -160,28 +176,5 @@ BPLib_Status_t BPNode_ClaIn_Stop(uint32 ContactId);
   * \return    void
   */
 void BPNode_ClaIn_Teardown(uint32 ContactId);
-
-/**
- * \brief CLA In Main Task
- *
- *  \par Description
- *       CLA In task main loop. Receive bundles from CLs and pass them to Bundle Interface.
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- */
-void BPNode_ClaIn_AppMain(void);
-
-/** \brief Exit provided CLA In task
- *
- *  \par Description
- *       Exit CLA In task gracefully
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \param[in] ContactId Contacts ID for this task
- */
-void BPNode_ClaIn_TaskExit(uint32 ContactId);
 
 #endif /* BPNODE_CLA_IN_H */

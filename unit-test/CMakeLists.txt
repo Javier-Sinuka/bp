@@ -11,7 +11,7 @@ add_cfe_coverage_stubs("bpnode_internal"
   utilities/bpnode_test_utils.c
   stubs/bpnode_global_stubs.c
   stubs/bpnode_app_stubs.c
-  stubs/bpnode_utils_stubs.c
+  stubs/bpnode_task_stubs.c
   stubs/bpnode_adu_out_stubs.c
   stubs/bpnode_adu_in_stubs.c
   stubs/fwp_timep_stubs.c
@@ -25,6 +25,7 @@ add_cfe_coverage_stubs("bpnode_internal"
   stubs/bpnode_cla_in_stubs.c
   stubs/bpnode_cla_out_stubs.c
   stubs/bpnode_gen_worker_stubs.c
+  stubs/bpnode_maint_stubs.c
   stubs/fwp_clap_stubs.c
   stubs/bpnode_notif_stubs.c
   ../../../psp/fsw/modules/iodriver/ut-stubs/iodriver_base_stubs.c

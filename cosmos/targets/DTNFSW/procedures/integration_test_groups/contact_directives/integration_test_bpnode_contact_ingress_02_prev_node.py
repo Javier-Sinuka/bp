@@ -27,12 +27,6 @@ BPNODE_PORT = <%= dtnfsw_get_cla_in_port(target_name, 0) %>
 LOCAL_IP = "0.0.0.0"
 LOCAL_PORT = <%= dtnfsw_get_cla_out_port(target_name, 0) %>
 
-# EID Configuration
-DEST_NODE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_node %>
-DEST_SERVICE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_service %>
-SRC_NODE_NUM = 300
-SRC_SERVICE_NUM = 1
-
 LOCAL_NODE_EID = EID(
     {
         "uri": 2,
@@ -50,6 +44,12 @@ class integration_test_bpnode_contact_ingress_02(Group):
         """
         Nominal test
         """
+
+        # EID Configuration
+        DEST_NODE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_node %>
+        DEST_SERVICE_NUM = <%= $dtnfsw_globals_contact_0_dest_eid_service %>
+        SRC_NODE_NUM = 300
+        SRC_SERVICE_NUM = 1
 
         # Prompt the user for a payload length, to add a little spice to the test
         # payload_length = ask("Enter a payload length, in bytes (min: 0, max: 3018, exception: 8):")

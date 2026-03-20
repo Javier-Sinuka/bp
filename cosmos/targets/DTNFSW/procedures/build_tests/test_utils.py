@@ -82,10 +82,12 @@ class TestUtils:
     ##  verify_event
     ##=================================================================
     @classmethod
-    def verify_event(cls, app_name, evt_id, evt_type):
+    def verify_event(cls, app_name, evt_id, evt_type, directive=True):
         '''
         Verifies last EVS Event Message received matches expected
-        Sets status of DTN.6.19190 (or DTN.6.19170 for error events)
+        
+        directive   None/True  For directives sets status of DTN.6.19170 for error  
+                               and DTN.6.19190 for other events 
         '''
         
         app   = tlm(f"<%= target_name %> CFE_EVS_LONG_EVENT_MSG PACKET_ID_APP_NAME")
@@ -96,11 +98,6 @@ class TestUtils:
         # Print received event message
         print ("!!! Event: " + app + " " + str(eid) + " " + etype + " " + emsg) 
             
-        if evt_type == "INFO":
-            rqmnt = "DTN.6.19190"
-        else:
-            rqmnt = "DTN.6.19170"
-            
         if app == app_name and eid == evt_id and etype == evt_type:
             print ("!!! Expected Event received")
             status = "P"
@@ -108,9 +105,16 @@ class TestUtils:
             print ("!!! ERROR - Expected Event not received")
             status = "F"
         
-        cls.set_requirement_status(rqmnt, status)
+        if directive:
+            if evt_type == "ERROR":
+                rqmnt = "DTN.6.19170"
+            else:
+                rqmnt = "DTN.6.19190"
+                
+            cls.set_requirement_status(rqmnt, status)
 
         return status
+
 
     ##=================================================================
     ##  verify_item
@@ -229,7 +233,7 @@ class TestUtils:
             print("!!! ERROR - Table validation did not fail as expected")
             status = "F"
 
-        for rqmnt in ["DTN.6.19360", "DTN.6.19390", "DTN.6.19410"]:
+        for rqmnt in ["DTN.6.19360", "DTN.6.19390"]:
             cls.set_requirement_status(rqmnt, status)
             
         return status
@@ -250,26 +254,42 @@ class TestUtils:
         print("***  BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT  '))
         print("***  BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT  '))
         print("***  BUNDLE_COUNT_ABANDONED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_ABANDONED                 '))
+        print("***  BUNDLE_COUNT_ACCEPTED_CUSTODY          :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_ACCEPTED_CUSTODY          '))
+        print("***  BUNDLE_COUNT_CCS_RECEIVED              :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_CCS_RECEIVED              ')) 
+        print("***  BUNDLE_COUNT_CUSTODY_REJECTED          :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_CUSTODY_REJECTED          '))
+        print("***  BUNDLE_COUNT_CUSTODY_REQUEST           :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_CUSTODY_REQUEST           '))
+        print("***  BUNDLE_COUNT_CUSTODY_RE_FORWARDED      :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_CUSTODY_RE_FORWARDED      '))
+        print("***  BUNDLE_COUNT_CUSTODY_TRANSFERRED       :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_CUSTODY_TRANSFERRED       '))
         print("***  BUNDLE_COUNT_DELETED                   :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED                   '))
-        print("***  BUNDLE_COUNT_DELIVERED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELIVERED                 '))
-        print("***  BUNDLE_COUNT_DISCARDED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DISCARDED                 '))
-        print("***  BUNDLE_COUNT_FORWARDED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_FORWARDED                 '))
-        print("***  BUNDLE_COUNT_FORWARDED_FAILED          :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_FORWARDED_FAILED          '))
-        print("***  BUNDLE_COUNT_GENERATED_ACCEPTED        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_GENERATED_ACCEPTED        '))
-        print("***  BUNDLE_COUNT_GENERATED_REJECTED        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_GENERATED_REJECTED        '))
-        print("***  BUNDLE_COUNT_RECEIVED                  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_RECEIVED                  '))
-        print("***  BUNDLE_COUNT_DELETED_BAD_EID           :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_BAD_EID           '))
-        print("***  BUNDLE_COUNT_DELETED_CANCELLED         :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_CANCELLED         '))
         print("***  BUNDLE_COUNT_DELETED_EXPIRED           :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_EXPIRED           '))
-        print("***  BUNDLE_COUNT_DELETED_FORWARD_FAILED    :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_FORWARD_FAILED    '))
         print("***  BUNDLE_COUNT_DELETED_HOP_EXCEEDED      :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_HOP_EXCEEDED      '))
-        print("***  BUNDLE_COUNT_DELETED_INVALID_PAYLOAD   :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_INVALID_PAYLOAD   '))
         print("***  BUNDLE_COUNT_DELETED_NO_STORAGE        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_NO_STORAGE        '))
         print("***  BUNDLE_COUNT_DELETED_TOO_LONG          :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_TOO_LONG          '))
         print("***  BUNDLE_COUNT_DELETED_TRAFFIC_PARED     :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_TRAFFIC_PARED     '))
         print("***  BUNDLE_COUNT_DELETED_UNAUTHORIZED      :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_UNAUTHORIZED      '))
         print("***  BUNDLE_COUNT_DELETED_UNINTELLIGIBLE    :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_UNINTELLIGIBLE    '))
         print("***  BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK '))
+        print("***  BUNDLE_COUNT_DELIVERED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DELIVERED                 '))
+        print("***  BUNDLE_COUNT_DEPLETED                  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DEPLETED                  '))
+        print("***  BUNDLE_COUNT_DISCARDED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_DISCARDED                 '))
+        print("***  BUNDLE_COUNT_FORWARDED                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_FORWARDED                 '))
+        print("***  BUNDLE_COUNT_FORWARDED_FAILED          :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_FORWARDED_FAILED          '))
+        print("***  BUNDLE_COUNT_GENERATED_ACCEPTED        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_GENERATED_ACCEPTED        '))
+        print("***  BUNDLE_COUNT_GENERATED_REJECTED        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_GENERATED_REJECTED        '))
+        print("***  BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL  '))    
+        print("***  BUNDLE_COUNT_GENERATED_REJECTED        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_GENERATED_REJECTED        '))
+        print("***  BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED     :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED     '))
+        print("***  BUNDLE_COUNT_NO_CONTACT                :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_NO_CONTACT                '))
+        print("***  BUNDLE_COUNT_NO_ROUTE                  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_NO_ROUTE                  '))
+        print("***  BUNDLE_COUNT_REASSEMBLED               :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_REASSEMBLED               '))
+        print("***  BUNDLE_COUNT_RECEIVED                  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_RECEIVED                  '))
+        print("***  BUNDLE_COUNT_RECEIVED_ADMIN_RECORD     :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_RECEIVED_ADMIN_RECORD     '))
+        print("***  BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL   :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL   '))
+        print("***  BUNDLE_COUNT_REDUNDANT                 :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_REDUNDANT                 '))
+        print("***  BUNDLE_COUNT_REJECTED_CUSTODY          :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_REJECTED_CUSTODY          '))
+        print("***  BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK      :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK      '))
+        print("***  BUNDLE_COUNT_UNINTELLIGIBLE_EID        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_UNINTELLIGIBLE_EID        '))
+        print("***  BUNDLE_COUNT_UNPROCESSED_BLOCKS        :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_UNPROCESSED_BLOCKS        '))
         print("**************************************************************")
         
 
@@ -284,6 +304,7 @@ class TestUtils:
         print("*************** BPNode Node MIB Reports HK *******************")
         print("**************************************************************")
         print("***  BUNDLE_COUNT_STORED             :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_STORED            '))
+        print("***  BUNDLE_COUNT_IN_CUSTODY         :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_COUNT_IN_CUSTODY        '))
         print("***  BUNDLE_AGENT_AVAILABLE_STORAGE  :  ", tlm(f'<%= target_name %> {pkt} BUNDLE_AGENT_AVAILABLE_STORAGE '))
         print("***  KBYTES_COUNT_STORAGE_AVAILABLE  :  ", tlm(f'<%= target_name %> {pkt} KBYTES_COUNT_STORAGE_AVAILABLE '))
         print("***  NODE_STARTUP_COUNTER            :  ", tlm(f'<%= target_name %> {pkt} NODE_STARTUP_COUNTER           '))
@@ -334,36 +355,46 @@ class TestUtils:
         RESET_ERROR_CNT_EID  = 523
         
         list1 = [
-            "BUNDLE_COUNT_GENERATED_REJECTED",
-            "BUNDLE_COUNT_UNPROCESSED_BLOCKS",
             "BUNDLE_COUNT_ABANDONED",
+            "BUNDLE_COUNT_CUSTODY_REJECTED",
+            "BUNDLE_COUNT_GENERATED_REJECTED",
             "BUNDLE_COUNT_DELETED_UNINTELLIGIBLE",
             "BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK",
             "BUNDLE_COUNT_DELETED_NO_STORAGE",
             "BUNDLE_COUNT_DELETED_UNAUTHORIZED",
             "BUNDLE_COUNT_DELETED_TOO_LONG",
+            "BUNDLE_COUNT_REJECTED_CUSTODY",
+            "BUNDLE_COUNT_UNPROCESSED_BLOCKS",
         ]
         
         list2 = ["BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT"]
         
         list3 = [
-            "BUNDLE_COUNT_FORWARDED",
+            "ADU_COUNT_RECEIVED",
+            "ADU_COUNT_DELIVERED",
+            "BUNDLE_COUNT_ACCEPTED_CUSTODY",
+            "BUNDLE_COUNT_CCS_RECEIVED",
+            "BUNDLE_COUNT_CUSTODY_REJECTED",
+            "BUNDLE_COUNT_CUSTODY_REQUEST",
+            "BUNDLE_COUNT_CUSTODY_RE_FORWARDED",
+            "BUNDLE_COUNT_CUSTODY_TRANSFERRED",
             "BUNDLE_COUNT_DELETED",
+            "BUNDLE_COUNT_DELETED_EXPIRED",
+            "BUNDLE_COUNT_DELETED_HOP_EXCEEDED",
+            "BUNDLE_COUNT_DELETED_TRAFFIC_PARED",
             "BUNDLE_COUNT_DELIVERED",
+            "BUNDLE_COUNT_DEPLETED",
             "BUNDLE_COUNT_DISCARDED",
             "BUNDLE_COUNT_FORWARDED",
             "BUNDLE_COUNT_FORWARDED_FAILED",
             "BUNDLE_COUNT_GENERATED_ACCEPTED",
+            "BUNDLE_COUNT_GENERATED_CCS",
+            "BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL",
             "BUNDLE_COUNT_RECEIVED",
-            "BUNDLE_COUNT_DELETED_BAD_EID",
-            "BUNDLE_COUNT_DELETED_CANCELLED",
-            "BUNDLE_COUNT_DELETED_EXPIRED",
-            "BUNDLE_COUNT_DELETED_FORWARD_FAILED",
-            "BUNDLE_COUNT_DELETED_HOP_EXCEEDED",
-            "BUNDLE_COUNT_DELETED_INVALID_PAYLOAD",
-            "BUNDLE_COUNT_DELETED_TRAFFIC_PARED",
-            "ADU_COUNT_RECEIVED",
-            "ADU_COUNT_DELIVERED",
+            "BUNDLE_COUNT_RECEIVED_ADMIN_RECORD",
+            "BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL",
+            "BUNDLE_COUNT_REDUNDANT",
+            "BUNDLE_COUNT_REJECTED_CUSTODY",
         ]
                 
         all_list = list1+list2+list3
@@ -372,14 +403,14 @@ class TestUtils:
         
         status = "P"
         
-        rqmnt_list = ["DTN.6.12118", "DTN.6.20010"]
+        rqmnt_list = ["DTN.6.20010"]
         
         if option == "ERROR":
             cls.send_command("BPNODE_CMD_RESET_ERROR_COUNTERS")
             cls.verify_event("BPNODE", RESET_ERROR_CNT_EID, "INFO")
             
             counters_list = error_list
-            rqmnt_list += ["DTN.6.12950", "DTN.6.20090"]
+            rqmnt_list += ["DTN.6.20090"]
            
         elif option == "BUNDLE":
             ## Save non-bundle counts for verification later
@@ -390,7 +421,7 @@ class TestUtils:
             cls.verify_event("BPNODE", RESET_BUNDLE_CNT_EID, "INFO")
             
             counters_list = bundle_list
-            rqmnt_list += ["DTN.6.12940", "DTN.6.20080"]
+            rqmnt_list += ["DTN.6.20080"]
             
         elif option == "ALL":
             print("!!! Sending BPNODE_CMD_RESET_ALL_COUNTERS command")
@@ -410,7 +441,7 @@ class TestUtils:
             cls.verify_event("BPNODE", RESET_ALL_CNT_EID, "INFO")
             
             counters_list = all_list
-            rqmnt_list += ["DTN.6.12150", "DTN.6.20030"]
+            rqmnt_list += ["DTN.6.12150"]
 
         else:
             print("ERROR - option not ALL/BUNDLE/ERROR")
@@ -451,7 +482,43 @@ class TestUtils:
         
         status = "P" if wait(f"<%= target_name %> {pkt} {counter} == 0", 10) else "F"
 
-        for rqmnt in ["DTN.6.12118", "DTN.6.12120", "DTN.6.20000", "DTN.6.20010"]:
+        for rqmnt in ["DTN.6.12120", "DTN.6.20010"]:
             cls.set_requirement_status(rqmnt, status)
+
+
+
+    ##=================================================================
+    ##  find_event_in_log
+    ##=================================================================
+    @classmethod
+    def find_event_in_log(cls, app_name, evt_id, evt_type, last_event_time_str):        
+        '''
+        Example: 
+            status = TestUtils.find_event_in_log("BPNODE", 541, "ERROR", "2025-08-26 11:46:45")
+            
+            returns True if event found in log, else False
+        '''
+        
+        last_event_time = datetime.strptime(last_event_time_str, '%Y-%m-%d %H:%M:%S')
+        
+        filename = stash_get('eventlog')
+        f = open(filename, 'r')
+        
+        for line in f:
+            words = (line.strip().split(' '))
+            #print (words)
+            event_time_str = (words[0] + ' ' + words[1])
+            event_time = datetime.strptime(event_time_str, '%Y-%m-%d %H:%M:%S')
+            #print (event_time)
+            if event_time <= last_event_time: 
+                continue
+            else:
+                if words[2] == app_name and int(words[3]) == evt_id and words[4] == evt_type:
+                    print(line.strip())
+                    f.close()
+                    return True
+
+        f.close()
+        return False
 
 ###################################################################
