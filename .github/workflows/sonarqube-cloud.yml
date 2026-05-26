@@ -407,26 +407,37 @@ jobs:
         id: sonar_inputs
         if: always()
         run: |
-          echo "Checking Build Wrapper output..."
+          set -e
 
-          if [ ! -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
+          echo "Checking Build Wrapper output..."
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "BUILD_WRAPPER_OUT_DIR=$BUILD_WRAPPER_OUT_DIR"
+
+          if [ -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
+            SRC_COMPILE_COMMANDS="$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
+          elif [ -s "$GITHUB_WORKSPACE/build/compile_commands.json" ]; then
+            SRC_COMPILE_COMMANDS="$GITHUB_WORKSPACE/build/compile_commands.json"
+          else
             echo "::warning::compile_commands.json was not generated. Skipping SonarQube scan."
             echo "ready=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "compile_commands.json found at:"
-          realpath "$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
+          echo "Source compile_commands.json:"
+          realpath "$SRC_COMPILE_COMMANDS"
+          ls -lh "$SRC_COMPILE_COMMANDS"
 
-          echo "Copying compile_commands.json inside Sonar projectBaseDir..."
-          mkdir -p "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily"
+          echo "Copying compile_commands.json to workspace-level .sonar-cfamily directory..."
+          mkdir -p "$GITHUB_WORKSPACE/.sonar-cfamily"
 
-          cp "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" \
-             "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily/compile_commands.json"
+          cp "$SRC_COMPILE_COMMANDS" \
+             "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
 
           echo "Final Sonar CFamily compile database:"
-          realpath "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily/compile_commands.json"
-          ls -lh "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily/compile_commands.json"
+          realpath "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
+          ls -lh "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
+
+          test -s "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
 
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
@@ -436,7 +447,7 @@ jobs:
         with:
           projectBaseDir: src/bpnode
           args: >
-            --define sonar.cfamily.compile-commands=.sonar-cfamily/compile_commands.json
+            --define sonar.cfamily.compile-commands=${{ github.workspace }}/.sonar-cfamily/compile_commands.json
             --define sonar.testExecutionReportPaths=../../reports/test-execution.xml
             --define sonar.coverageReportPaths=../../reports/coverage-sonarqube.xml
         env:
