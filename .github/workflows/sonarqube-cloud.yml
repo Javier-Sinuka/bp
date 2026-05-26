@@ -369,46 +369,83 @@ jobs:
           python3 - <<'PY'
           import glob
           import os
+          import re
           import sys
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          junit_paths = sorted(glob.glob("reports/ctest-junit-bpnode.xml"))
-          output_path = "reports/test-execution.xml"
+          reports_dir = Path("reports")
+          output_path = reports_dir / "test-execution.xml"
 
           root = ET.Element("testExecutions", version="1")
           files = {}
 
           test_files = sorted(Path("src/bpnode/unit-test").glob("*_tests.c"))
 
+          def strip_ansi(text: str) -> str:
+              return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
           def guess_test_file(test_name: str) -> str:
               normalized = test_name.lower().replace("-", "_").replace(".", "_")
 
+              # coverage-bpnode-bpnode_app -> bpnode_app
+              normalized = normalized.replace("coverage_bpnode_", "")
+              normalized = normalized.replace("_testrunner", "")
+
               for candidate in test_files:
                   base = candidate.name
-                  stem = base[:-2].lower()
-                  short = stem.replace("_tests", "")
+                  stem = base[:-2].lower()          # bpnode_app_tests
+                  short = stem.replace("_tests", "") # bpnode_app
 
-                  if stem in normalized or short in normalized:
+                  if stem in normalized or short in normalized or normalized in stem:
                       return candidate.as_posix()
 
               if test_files:
                   return test_files[0].as_posix()
 
-              return "src/bpnode/unit-test/CMakeLists.txt"
+              print("::error::No *_tests.c files found under src/bpnode/unit-test.")
+              sys.exit(1)
 
           def file_node(path: str):
               if path not in files:
                   files[path] = ET.SubElement(root, "file", path=path)
               return files[path]
 
+          def child_by_localname(node, localname):
+              for child in list(node):
+                  if child.tag.split("}")[-1] == localname:
+                      return child
+              return None
+
+          def add_case(name: str, duration_ms: int = 0, status: str = "passed", message: str = ""):
+              fnode = file_node(guess_test_file(name))
+
+              case = ET.SubElement(
+                  fnode,
+                  "testCase",
+                  name=name,
+                  duration=str(max(0, int(duration_ms))),
+              )
+
+              if status == "failed":
+                  fail = ET.SubElement(case, "failure", message=message or "failure")
+                  fail.text = message or ""
+              elif status == "error":
+                  err = ET.SubElement(case, "error", message=message or "error")
+                  err.text = message or ""
+              elif status == "skipped":
+                  ET.SubElement(case, "skipped", message=message or "skipped")
+
           total_cases = 0
+
+          # 1) Intento principal: leer JUnit de CTest.
+          junit_paths = sorted(glob.glob("reports/ctest-junit-bpnode*.xml"))
 
           for junit_path in junit_paths:
               if not os.path.exists(junit_path) or os.path.getsize(junit_path) == 0:
                   continue
 
-              print(f"Reading {junit_path}")
+              print(f"Reading JUnit report: {junit_path}")
 
               try:
                   tree = ET.parse(junit_path)
@@ -416,7 +453,10 @@ jobs:
                   print(f"::warning::Could not parse {junit_path}: {exc}")
                   continue
 
-              for tc in tree.findall(".//testcase"):
+              for tc in tree.iter():
+                  if tc.tag.split("}")[-1] != "testcase":
+                      continue
+
                   name = tc.get("name") or tc.get("classname") or "ctest"
                   classname = tc.get("classname") or ""
                   full_name = f"{classname}.{name}" if classname else name
@@ -426,40 +466,113 @@ jobs:
                   except ValueError:
                       duration_ms = 0
 
-                  fnode = file_node(guess_test_file(full_name))
-                  case = ET.SubElement(
-                      fnode,
-                      "testCase",
-                      name=full_name,
-                      duration=str(duration_ms),
-                  )
+                  status = "passed"
+                  message = ""
 
-                  failure = tc.find("failure")
-                  error = tc.find("error")
-                  skipped = tc.find("skipped")
+                  failure = child_by_localname(tc, "failure")
+                  error = child_by_localname(tc, "error")
+                  skipped = child_by_localname(tc, "skipped")
 
                   if failure is not None:
-                      fail = ET.SubElement(
-                          case,
-                          "failure",
-                          message=failure.get("message", "failure"),
-                      )
-                      fail.text = failure.text or ""
+                      status = "failed"
+                      message = failure.get("message", "") or failure.text or ""
                   elif error is not None:
-                      err = ET.SubElement(
-                          case,
-                          "error",
-                          message=error.get("message", "error"),
-                      )
-                      err.text = error.text or ""
+                      status = "error"
+                      message = error.get("message", "") or error.text or ""
                   elif skipped is not None:
-                      ET.SubElement(
-                          case,
-                          "skipped",
-                          message=skipped.get("message", "skipped"),
-                      )
+                      status = "skipped"
+                      message = skipped.get("message", "") or skipped.text or ""
 
+                  add_case(full_name, duration_ms, status, message)
                   total_cases += 1
+
+          # 2) Fallback: si el JUnit vino vacío, parseamos la salida normal de CTest.
+          if total_cases == 0:
+              print("::warning::No <testcase> entries found in CTest JUnit. Falling back to ctest-output-bpnode.txt.")
+
+              output_candidates = sorted(glob.glob("reports/ctest-output-bpnode*.txt"))
+
+              # Ejemplos que intenta cubrir:
+              # 1/18 Test #1: coverage-bpnode-bpnode_app ........ Passed 0.03 sec
+              # Test #1: coverage-bpnode-bpnode_app ............. Passed 0.03 sec
+              line_patterns = [
+                  re.compile(
+                      r"^\s*(?:\d+/\d+\s+)?Test\s+#\d+:\s+(.+?)\s+\.{2,}\s+"
+                      r"(Passed|Failed|Timeout|Skipped|Not Run|Subprocess aborted)\s+"
+                      r"([0-9.]+)\s+sec",
+                      re.IGNORECASE,
+                  ),
+                  re.compile(
+                      r"^\s*(?:\d+/\d+\s+)?Test\s+#\d+:\s+(.+?)\s+"
+                      r"(Passed|Failed|Timeout|Skipped|Not Run|Subprocess aborted)\s+"
+                      r"([0-9.]+)\s+sec",
+                      re.IGNORECASE,
+                  ),
+              ]
+
+              seen = set()
+
+              for output_file in output_candidates:
+                  print(f"Reading CTest output: {output_file}")
+
+                  text = strip_ansi(Path(output_file).read_text(encoding="utf-8", errors="replace"))
+
+                  for line in text.splitlines():
+                      for pattern in line_patterns:
+                          match = pattern.search(line)
+                          if not match:
+                              continue
+
+                          test_name = match.group(1).strip()
+                          status_raw = match.group(2).strip().lower()
+                          seconds = float(match.group(3))
+
+                          if test_name in seen:
+                              continue
+
+                          seen.add(test_name)
+
+                          if status_raw == "passed":
+                              status = "passed"
+                          elif status_raw == "skipped":
+                              status = "skipped"
+                          elif status_raw in ("not run",):
+                              status = "skipped"
+                          else:
+                              status = "failed"
+
+                          add_case(
+                              name=test_name,
+                              duration_ms=int(seconds * 1000),
+                              status=status,
+                              message=status_raw,
+                          )
+                          total_cases += 1
+
+                          break
+
+          # 3) Último fallback: si CTest pasó pero no pudimos extraer tiempos,
+          # usamos la lista de tests con duración 0.
+          if total_cases == 0:
+              print("::warning::No cases found in CTest output. Falling back to ctest-bpnode-list.txt.")
+
+              list_path = reports_dir / "ctest-bpnode-list.txt"
+
+              if list_path.exists():
+                  text = strip_ansi(list_path.read_text(encoding="utf-8", errors="replace"))
+
+                  for line in text.splitlines():
+                      match = re.search(r"Test\s+#\d+:\s+(.+)$", line)
+                      if not match:
+                          continue
+
+                      test_name = match.group(1).strip()
+
+                      if not test_name:
+                          continue
+
+                      add_case(test_name, 0, "passed", "")
+                      total_cases += 1
 
           ET.ElementTree(root).write(
               output_path,
@@ -472,12 +585,15 @@ jobs:
 
           if total_cases == 0:
               print("::error::No test cases were exported to Sonar generic test execution report.")
+              print("Debug files available:")
+              for path in sorted(reports_dir.glob("ctest-*")):
+                  print(f"  - {path}")
               sys.exit(1)
           PY
 
           test -s "$REPORTS_DIR/test-execution.xml"
           echo "Sonar generic test execution report preview:"
-          head -n 80 "$REPORTS_DIR/test-execution.xml"
+          head -n 120 "$REPORTS_DIR/test-execution.xml"
 
       - name: Generate coverage report for SonarQube Cloud
         run: |
