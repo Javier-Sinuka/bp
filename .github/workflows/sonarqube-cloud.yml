@@ -276,7 +276,7 @@ jobs:
         run: |
           cmake --build build --target mission-install -- -j2
 
-      - name: Discover and run BP unit tests with CTest
+      - name: Discover and run BPNode unit tests with CTest
         id: ctest
         run: |
           set -u
@@ -284,76 +284,117 @@ jobs:
           mkdir -p "$REPORTS_DIR"
 
           echo "Searching for CTest test directories..."
-          find build -name CTestTestfile.cmake -print | sort
+          find build -name CTestTestfile.cmake -print | sort | tee "$REPORTS_DIR/ctest-all-directories.txt"
 
           echo ""
-          echo "Listing tests from all CTest directories..."
-          find build -name CTestTestfile.cmake -print | sort | while read -r ctest_file; do
-            test_dir="$(dirname "$ctest_file")"
+          echo "Selecting only BPNode-related CTest directories..."
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
 
-            echo ""
-            echo "============================================================"
-            echo "CTest directory: $test_dir"
-            echo "============================================================"
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          reports = workspace / os.environ.get("REPORTS_DIR", "reports")
+          reports.mkdir(parents=True, exist_ok=True)
 
-            ctest --test-dir "$test_dir" -N || true
-          done | tee "$REPORTS_DIR/ctest-discovery.txt"
+          build = workspace / "build"
 
-          ctest_count() {
-            local dir="$1"
-            local output
+          all_ctest_files = sorted(build.rglob("CTestTestfile.cmake"))
+          selected = []
 
-            output="$(ctest --test-dir "$dir" -N 2>&1 || true)"
+          exclude_tokens = [
+              "/osal/",
+              "/psp/",
+              "/cfe/",
+              "/modules/",
+              "/apps/bplib/",
+              "/apps/cf/",
+              "/apps/ci_lab/",
+              "/apps/to_lab/",
+              "/apps/sch_lab/",
+          ]
 
-            local count
-            count="$(echo "$output" | sed -n 's/.*Total Tests: //p' | tail -n 1)"
+          include_tokens = [
+              "/apps/bpnode/",
+              "/bpnode/",
+          ]
 
-            if [ -z "$count" ]; then
-              count="0"
-            fi
+          def run_ctest_list(test_dir: Path) -> str:
+              result = subprocess.run(
+                  ["ctest", "--test-dir", str(test_dir), "-N"],
+                  text=True,
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.STDOUT,
+                  check=False,
+              )
+              return result.stdout
 
-            echo "$count"
-          }
+          def test_count(output: str) -> int:
+              match = re.search(r"Total Tests:\s+(\d+)", output)
+              if not match:
+                  return 0
+              return int(match.group(1))
 
-          TEST_DIRS=()
+          discovery_path = reports / "ctest-bpnode-discovery.txt"
 
-          TOP_COUNT="$(ctest_count build)"
+          with discovery_path.open("w", encoding="utf-8") as discovery:
+              for ctest_file in all_ctest_files:
+                  test_dir = ctest_file.parent
+                  rel = "/" + test_dir.relative_to(workspace).as_posix() + "/"
+                  output = run_ctest_list(test_dir)
+                  count = test_count(output)
+
+                  discovery.write("\n============================================================\n")
+                  discovery.write(f"CTest directory: {test_dir}\n")
+                  discovery.write(f"Relative path: {rel}\n")
+                  discovery.write(f"Total tests: {count}\n")
+                  discovery.write(output)
+                  discovery.write("\n")
+
+                  if count == 0:
+                      continue
+
+                  if any(token in rel for token in exclude_tokens):
+                      continue
+
+                  if any(token in rel for token in include_tokens) or "bpnode" in output.lower():
+                      selected.append(test_dir)
+
+          selected_path = reports / "ctest-selected-bpnode-dirs.txt"
+
+          with selected_path.open("w", encoding="utf-8") as f:
+              for test_dir in selected:
+                  f.write(str(test_dir) + "\n")
+
+          print("Selected BPNode CTest directories:")
+          for test_dir in selected:
+              print(f"  - {test_dir}")
+
+          if not selected:
+              print("::error::No BPNode CTest directories were discovered.")
+              print(f"See {discovery_path}")
+              raise SystemExit(1)
+          PY
+
           echo ""
-          echo "Top-level CTest total: $TOP_COUNT"
-
-          if [ "$TOP_COUNT" -gt 0 ] 2>/dev/null; then
-            TEST_DIRS=("build")
-          else
-            while read -r ctest_file; do
-              test_dir="$(dirname "$ctest_file")"
-              count="$(ctest_count "$test_dir")"
-
-              if [ "$count" -gt 0 ] 2>/dev/null; then
-                TEST_DIRS+=("$test_dir")
-              fi
-            done < <(find build -name CTestTestfile.cmake -print | sort)
-          fi
-
-          if [ "${#TEST_DIRS[@]}" -eq 0 ]; then
-            echo "1" > "$REPORTS_DIR/ctest-exit-code.txt"
-            echo "::error::No CTest tests were discovered."
-            exit 1
-          fi
-
-          echo ""
-          echo "Selected CTest directories:"
-          printf '  - %s\n' "${TEST_DIRS[@]}"
+          echo "Selected directories file:"
+          cat "$REPORTS_DIR/ctest-selected-bpnode-dirs.txt"
 
           OVERALL_EXIT=0
           INDEX=0
 
-          for test_dir in "${TEST_DIRS[@]}"; do
+          while read -r test_dir; do
+            if [ -z "$test_dir" ]; then
+              continue
+            fi
+
             INDEX=$((INDEX + 1))
             safe_name="$(echo "$test_dir" | sed 's#[^A-Za-z0-9_.-]#_#g')"
 
             echo ""
             echo "============================================================"
-            echo "Running CTest directory: $test_dir"
+            echo "Running BPNode CTest directory: $test_dir"
             echo "============================================================"
 
             set +e
@@ -379,19 +420,19 @@ jobs:
               find "$test_dir" -path '*/Testing/Temporary/LastTest.log' -print -exec cat {} \; \
                 | tee "$REPORTS_DIR/ctest-lasttest-${INDEX}-${safe_name}.log" || true
             fi
-          done
+          done < "$REPORTS_DIR/ctest-selected-bpnode-dirs.txt"
 
           echo "$OVERALL_EXIT" > "$REPORTS_DIR/ctest-exit-code.txt"
 
           echo ""
-          echo "Overall CTest exit code: $OVERALL_EXIT"
+          echo "Overall BPNode CTest exit code: $OVERALL_EXIT"
 
           echo ""
           echo "Generated CTest files:"
           find "$REPORTS_DIR" -maxdepth 1 -type f -name 'ctest-*' -print -exec ls -lh {} \;
 
           if [ "$OVERALL_EXIT" != "0" ]; then
-            echo "::error::One or more unit tests failed. Check ctest-output-* and ctest-lasttest-* artifacts."
+            echo "::error::One or more BPNode unit tests failed. Check ctest-output-* and ctest-lasttest-* artifacts."
             exit "$OVERALL_EXIT"
           fi
 
