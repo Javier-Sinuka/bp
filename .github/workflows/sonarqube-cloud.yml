@@ -125,6 +125,9 @@ jobs:
           echo "Available cFE sample_defs files:"
           ls -lah ./cfs-bundle/cfe/cmake/sample_defs
 
+          echo "Available BP buildconfig files:"
+          find ./src/bp/.github/buildconfig -maxdepth 2 -type f -o -type d | sort
+
           # cFE actual usa cfe_perfids.h.
           # Algunas versiones viejas usaban sample_perfids.h.
           if [ -f ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h ]; then
@@ -138,7 +141,7 @@ jobs:
             exit 1
           fi
 
-          # Copiamos configuraciones base disponibles.
+          # Copiamos configuraciones base disponibles de cFE.
           cp -v -t ./bpxfer_defs \
             ./cfs-bundle/cfe/cmake/sample_defs/*osconfig*.cmake \
             ./cfs-bundle/cfe/cmake/sample_defs/*custom*.cmake \
@@ -148,11 +151,19 @@ jobs:
           cp -v -t ./bpxfer_defs \
             ./src/bp/.github/buildconfig/*.{cmake,scr}
 
-          cp -rv -t ./bpxfer_defs \
-            ./src/bp/.github/buildconfig/{tx,rx,tables}
+          # Algunas versiones antiguas del workflow esperaban tx/rx/tables.
+          # En la rama actual de nasa/bp solo existe tables, así que copiamos
+          # únicamente las carpetas que realmente existan.
+          for dir in tx rx tables; do
+            if [ -d "./src/bp/.github/buildconfig/${dir}" ]; then
+              cp -rv "./src/bp/.github/buildconfig/${dir}" "./bpxfer_defs/${dir}"
+            else
+              echo "::notice::Optional buildconfig directory '${dir}' not found; skipping."
+            fi
+          done
 
           echo "Generated bpxfer_defs:"
-          find ./bpxfer_defs -maxdepth 3 -type f | sort
+          find ./bpxfer_defs -maxdepth 4 -type f | sort
 
       - name: Configure cFS/BP with unit tests and coverage flags
         run: |
