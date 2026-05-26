@@ -1,0 +1,264 @@
+name: SonarQube Cloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: sonar-nasa-bp-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUILD_WRAPPER_OUT_DIR: build-wrapper-output
+  REPORTS_DIR: reports
+  CFS_APP_PATH: ${{ github.workspace }}/src
+
+jobs:
+  sonarcloud:
+    name: Static analysis, unit tests and coverage
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout BP source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: src/bp
+
+      - name: Checkout BPLib source
+        uses: actions/checkout@v4
+        with:
+          repository: nasa/bplib
+          ref: main
+          path: src/bplib
+
+      - name: Checkout CF source
+        uses: actions/checkout@v4
+        with:
+          repository: nasa/cf
+          ref: main
+          path: src/cf
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            lcov \
+            python3 \
+            python3-pip
+
+          python3 -m pip install --user gcovr
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install SonarQube Build Wrapper
+        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v8
+
+      - name: Set up cFS bundle
+        uses: ./src/bp/.github/actions/setup-cfs
+        with:
+          bundle-dir: ${{ github.workspace }}/cfs-bundle
+          upstream-repo: nasa/cFS
+          upstream-ref: main
+
+      - name: Set up TinyCBOR
+        uses: ./src/bplib/.github/actions/setup-tinycbor
+        with:
+          staging-dir: ${{ github.workspace }}/tinycbor-staging
+          upstream-repo: intel/tinycbor
+          upstream-ref: v0.6.0
+
+      - name: Import TinyCBOR
+        run: |
+          sudo cp -rv -t / "${{ github.workspace }}/tinycbor-staging"/*
+
+      - name: Prepare cFS mission configuration
+        run: |
+          mkdir -p bpxfer_defs
+
+          cp -v ./cfs-bundle/cfe/cmake/sample_defs/sample_perfids.h \
+            ./bpxfer_defs/cfe_perfids.h
+
+          cp -v -t ./bpxfer_defs \
+            ./cfs-bundle/cfe/cmake/sample_defs/*{osconfig,custom,options}.cmake
+
+          cp -v -t ./bpxfer_defs \
+            ./src/bp/.github/buildconfig/*.{cmake,scr}
+
+          cp -rv -t ./bpxfer_defs \
+            ./src/bp/.github/buildconfig/{tx,rx,tables}
+
+      - name: Configure cFS/BP with unit tests and coverage flags
+        run: |
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DSIMULATION=native \
+            -DENABLE_UNIT_TESTS=true \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_C_FLAGS="--coverage -O0 -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+            -DCMAKE_INSTALL_PREFIX=/exe \
+            -DMISSIONCONFIG=bpxfer \
+            -DMISSION_DEFS="$PWD/bpxfer_defs" \
+            -B build \
+            -S cfs-bundle/cfe
+
+      - name: Build with SonarQube Build Wrapper
+        run: |
+          build-wrapper-linux-x86-64 \
+            --out-dir "$BUILD_WRAPPER_OUT_DIR" \
+            cmake --build build -- -j2
+
+          # Algunas versiones del Build Wrapper generan compile_commands.json.
+          # Si no aparece ahí, usamos el generado por CMake.
+          if [ ! -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
+            cp build/compile_commands.json "$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
+          fi
+
+          test -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
+          ls -lh "$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
+
+      - name: Install mission artifacts
+        run: |
+          cmake --build build --target mission-install -- -j2
+
+      - name: Run BP unit tests with CTest
+        id: ctest
+        continue-on-error: true
+        run: |
+          mkdir -p "$REPORTS_DIR"
+
+          set +e
+          ctest \
+            --test-dir build \
+            --output-on-failure \
+            --output-junit "$REPORTS_DIR/ctest-junit.xml" \
+            -j2 | tee "$REPORTS_DIR/ctest-output.txt"
+
+          CTEST_EXIT=${PIPESTATUS[0]}
+          echo "$CTEST_EXIT" > "$REPORTS_DIR/ctest-exit-code.txt"
+
+          echo "CTest exit code: $CTEST_EXIT"
+          exit 0
+
+      - name: Generate SonarQube generic test execution report
+        if: always()
+        run: |
+          mkdir -p "$REPORTS_DIR"
+
+          python3 - <<'PY'
+          import glob
+          import os
+          import xml.etree.ElementTree as ET
+
+          junit_path = "reports/ctest-junit.xml"
+          output_path = "reports/test-execution.xml"
+
+          root = ET.Element("testExecutions", version="1")
+          files = {}
+
+          def guess_test_file(test_name: str) -> str:
+              candidates = glob.glob("src/bp/unit-test/*_tests.c")
+              normalized = test_name.lower().replace("-", "_")
+              for candidate in candidates:
+                  base = os.path.basename(candidate)
+                  stem = base[:-2].lower()
+                  short = stem.replace("_tests", "")
+                  if stem in normalized or short in normalized:
+                      return f"unit-test/{base}"
+              return "unit-test/CMakeLists.txt"
+
+          def file_node(path: str):
+              if path not in files:
+                  files[path] = ET.SubElement(root, "file", path=path)
+              return files[path]
+
+          if os.path.exists(junit_path) and os.path.getsize(junit_path) > 0:
+              tree = ET.parse(junit_path)
+              for tc in tree.findall(".//testcase"):
+                  name = tc.get("name") or tc.get("classname") or "ctest"
+                  duration_ms = int(float(tc.get("time", "0") or "0") * 1000)
+                  fnode = file_node(guess_test_file(name))
+                  case = ET.SubElement(fnode, "testCase", name=name, duration=str(duration_ms))
+
+                  failure = tc.find("failure")
+                  error = tc.find("error")
+                  skipped = tc.find("skipped")
+
+                  if failure is not None:
+                      fail = ET.SubElement(case, "failure", message=failure.get("message", "failure"))
+                      fail.text = failure.text or ""
+                  elif error is not None:
+                      err = ET.SubElement(case, "error", message=error.get("message", "error"))
+                      err.text = error.text or ""
+                  elif skipped is not None:
+                      ET.SubElement(case, "skipped", message=skipped.get("message", "skipped"))
+
+          ET.ElementTree(root).write(output_path, encoding="utf-8", xml_declaration=True)
+          print(f"Wrote {output_path}")
+          PY
+
+          test -s "$REPORTS_DIR/test-execution.xml"
+          head -n 40 "$REPORTS_DIR/test-execution.xml"
+
+      - name: Generate coverage report for SonarQube Cloud
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p "$REPORTS_DIR"
+
+          if find build -type f \( -name '*.gcda' -o -name '*.gcno' \) | grep -q .; then
+            gcovr \
+              --root "$GITHUB_WORKSPACE/src/bp" \
+              --object-directory "$GITHUB_WORKSPACE/build" \
+              --sonarqube-pretty \
+              --sonarqube "$REPORTS_DIR/coverage-sonarqube.xml" \
+              --filter "$GITHUB_WORKSPACE/src/bp/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bp/unit-test/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bp/docs/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bp/cosmos/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bp/config/.*" \
+              --print-summary
+          else
+            echo 'No gcov coverage files found; creating empty SonarQube coverage report.'
+            cat > "$REPORTS_DIR/coverage-sonarqube.xml" <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <coverage version="1"></coverage>
+          XML
+          fi
+
+          test -s "$REPORTS_DIR/coverage-sonarqube.xml"
+          ls -lh "$REPORTS_DIR/coverage-sonarqube.xml"
+
+      - name: Upload analysis artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nasa-bp-test-and-coverage-reports
+          path: |
+            reports/
+            build-wrapper-output/
+          if-no-files-found: warn
+
+      - name: SonarQube Cloud Scan
+        if: always()
+        uses: SonarSource/sonarqube-scan-action@v8
+        with:
+          projectBaseDir: src/bp
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
