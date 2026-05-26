@@ -118,19 +118,41 @@ jobs:
 
       - name: Prepare cFS mission configuration
         run: |
+          set -e
+
           mkdir -p bpxfer_defs
 
-          cp -v ./cfs-bundle/cfe/cmake/sample_defs/sample_perfids.h \
-            ./bpxfer_defs/cfe_perfids.h
+          echo "Available cFE sample_defs files:"
+          ls -lah ./cfs-bundle/cfe/cmake/sample_defs
 
+          # cFE actual usa cfe_perfids.h.
+          # Algunas versiones viejas usaban sample_perfids.h.
+          if [ -f ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h ]; then
+            cp -v ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h \
+              ./bpxfer_defs/cfe_perfids.h
+          elif [ -f ./cfs-bundle/cfe/cmake/sample_defs/sample_perfids.h ]; then
+            cp -v ./cfs-bundle/cfe/cmake/sample_defs/sample_perfids.h \
+              ./bpxfer_defs/cfe_perfids.h
+          else
+            echo "::error::No perfids header found in cFE sample_defs."
+            exit 1
+          fi
+
+          # Copiamos configuraciones base disponibles.
           cp -v -t ./bpxfer_defs \
-            ./cfs-bundle/cfe/cmake/sample_defs/*{osconfig,custom,options}.cmake
+            ./cfs-bundle/cfe/cmake/sample_defs/*osconfig*.cmake \
+            ./cfs-bundle/cfe/cmake/sample_defs/*custom*.cmake \
+            ./cfs-bundle/cfe/cmake/sample_defs/*options*.cmake
 
+          # Copiamos la configuración propia de BP.
           cp -v -t ./bpxfer_defs \
             ./src/bp/.github/buildconfig/*.{cmake,scr}
 
           cp -rv -t ./bpxfer_defs \
             ./src/bp/.github/buildconfig/{tx,rx,tables}
+
+          echo "Generated bpxfer_defs:"
+          find ./bpxfer_defs -maxdepth 3 -type f | sort
 
       - name: Configure cFS/BP with unit tests and coverage flags
         run: |
