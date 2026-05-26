@@ -97,16 +97,24 @@ jobs:
 
       - name: Build and install TinyCBOR
         run: |
-          cmake \
-            -S tinycbor-source \
-            -B tinycbor-build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_INSTALL_PREFIX=/usr/local
+          echo "TinyCBOR source contents:"
+          ls -lah tinycbor-source
 
-          cmake --build tinycbor-build -- -j2
-          sudo cmake --install tinycbor-build
+          make -C tinycbor-source -j2 \
+            BUILD_SHARED=1 \
+            BUILD_STATIC=1
+
+          sudo make -C tinycbor-source install \
+            prefix=/usr/local \
+            BUILD_SHARED=1 \
+            BUILD_STATIC=1
+
           sudo ldconfig
+
+          echo "Checking TinyCBOR installation:"
+          ls -lah /usr/local/include/tinycbor || true
+          ls -lah /usr/local/lib/libtinycbor* || true
+          pkg-config --modversion tinycbor || true
 
       - name: Prepare cFS mission configuration
         run: |
