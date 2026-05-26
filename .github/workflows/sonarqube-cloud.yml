@@ -55,6 +55,8 @@ jobs:
 
       - name: Install system dependencies
         run: |
+          set -e
+
           sudo apt-get update
 
           sudo apt-get install -y \
@@ -70,6 +72,12 @@ jobs:
 
           python3 -m pip install --user gcovr
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+          echo "Tool versions:"
+          gcc --version
+          cmake --version
+          python3 --version
+          gcovr --version
 
       - name: Install SonarQube Build Wrapper
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v8
@@ -229,8 +237,10 @@ jobs:
             -DSIMULATION=native \
             -DENABLE_UNIT_TESTS=true \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_C_FLAGS="--coverage -O0 -g" \
+            -DCMAKE_C_FLAGS="--coverage -O0 -g -fprofile-abs-path" \
             -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+            -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
+            -DCMAKE_MODULE_LINKER_FLAGS="--coverage" \
             -DCMAKE_INSTALL_PREFIX=/exe \
             -DMISSIONCONFIG=bpxfer \
             -DMISSION_DEFS="$PWD/bpxfer_defs" \
@@ -266,58 +276,154 @@ jobs:
         run: |
           cmake --build build --target mission-install -- -j2
 
-      - name: Run BP unit tests with CTest
+      - name: Discover and run BP unit tests with CTest
         id: ctest
         continue-on-error: true
         run: |
           mkdir -p "$REPORTS_DIR"
 
-          set +e
-          ctest \
-            --test-dir build \
-            --output-on-failure \
-            --output-junit "$REPORTS_DIR/ctest-junit.xml" \
-            -j2 | tee "$REPORTS_DIR/ctest-output.txt"
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
 
-          CTEST_EXIT=${PIPESTATUS[0]}
-          echo "$CTEST_EXIT" > "$REPORTS_DIR/ctest-exit-code.txt"
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          reports = workspace / os.environ.get("REPORTS_DIR", "reports")
+          reports.mkdir(parents=True, exist_ok=True)
 
-          echo "CTest exit code: $CTEST_EXIT"
+          build = workspace / "build"
+
+          def ctest_total(test_dir: Path) -> int:
+              try:
+                  result = subprocess.run(
+                      ["ctest", "--test-dir", str(test_dir), "-N"],
+                      text=True,
+                      stdout=subprocess.PIPE,
+                      stderr=subprocess.STDOUT,
+                      check=False,
+                  )
+              except Exception:
+                  return 0
+
+              match = re.search(r"Total Tests:\s+(\d+)", result.stdout)
+              if match:
+                  return int(match.group(1))
+
+              return 0
+
+          selected_dirs = []
+
+          top_total = ctest_total(build)
+          print(f"Top-level CTest total: {top_total}")
+
+          if top_total > 0:
+              selected_dirs = [build]
+          else:
+              candidates = sorted(
+                  p.parent for p in build.rglob("CTestTestfile.cmake")
+              )
+
+              for candidate in candidates:
+                  total = ctest_total(candidate)
+                  if total > 0:
+                      selected_dirs.append(candidate)
+                      print(f"CTest directory with tests: {candidate} ({total} tests)")
+
+          if not selected_dirs:
+              print("::warning::No CTest tests were discovered.")
+              (reports / "ctest-exit-code.txt").write_text("1\n", encoding="utf-8")
+              raise SystemExit(0)
+
+          overall_exit = 0
+
+          for index, test_dir in enumerate(selected_dirs, start=1):
+              safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(test_dir.relative_to(workspace)))
+              junit_path = reports / f"ctest-junit-{index}-{safe_name}.xml"
+              log_path = reports / f"ctest-output-{index}-{safe_name}.txt"
+
+              cmd = [
+                  "ctest",
+                  "--test-dir",
+                  str(test_dir),
+                  "--output-on-failure",
+                  "--output-junit",
+                  str(junit_path),
+                  "-j2",
+              ]
+
+              print("")
+              print("Running:", " ".join(cmd))
+
+              with log_path.open("w", encoding="utf-8") as log_file:
+                  proc = subprocess.Popen(
+                      cmd,
+                      text=True,
+                      stdout=subprocess.PIPE,
+                      stderr=subprocess.STDOUT,
+                  )
+
+                  assert proc.stdout is not None
+                  for line in proc.stdout:
+                      print(line, end="")
+                      log_file.write(line)
+
+                  proc.wait()
+
+              print(f"CTest exit code for {test_dir}: {proc.returncode}")
+
+              if proc.returncode != 0:
+                  overall_exit = proc.returncode
+
+          (reports / "ctest-exit-code.txt").write_text(
+              f"{overall_exit}\n",
+              encoding="utf-8",
+          )
+
+          print(f"Overall CTest exit code: {overall_exit}")
+          PY
+
+          echo "Generated CTest reports:"
+          find "$REPORTS_DIR" -maxdepth 1 -type f \( -name 'ctest-*.xml' -o -name 'ctest-output*.txt' -o -name 'ctest-exit-code.txt' \) -print -exec ls -lh {} \;
+
           exit 0
 
       - name: Generate SonarQube generic test execution report
         if: always()
         run: |
+          set -e
+
           mkdir -p "$REPORTS_DIR"
 
           python3 - <<'PY'
           import glob
           import os
           import xml.etree.ElementTree as ET
+          from pathlib import Path
 
-          junit_path = "reports/ctest-junit.xml"
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          junit_paths = sorted(glob.glob("reports/ctest-junit-*.xml"))
           output_path = "reports/test-execution.xml"
 
           root = ET.Element("testExecutions", version="1")
           files = {}
 
-          def guess_test_file(test_name: str) -> str:
-              candidates = glob.glob("src/bpnode/unit-test/*_tests.c")
-              normalized = test_name.lower().replace("-", "_")
+          test_files = sorted(Path("src/bpnode/unit-test").glob("*_tests.c"))
 
-              for candidate in candidates:
-                  base = os.path.basename(candidate)
+          def guess_test_file(test_name: str) -> str:
+              normalized = test_name.lower().replace("-", "_").replace(".", "_")
+
+              for candidate in test_files:
+                  base = candidate.name
                   stem = base[:-2].lower()
                   short = stem.replace("_tests", "")
 
                   if stem in normalized or short in normalized:
-                      return f"src/bpnode/unit-test/{base}"
+                      return candidate.as_posix()
 
-              # Fallback: Sonar necesita una ruta indexada como test.
-              # Si no logramos mapear el nombre del testcase, usamos un archivo real.
-              if candidates:
-                  base = os.path.basename(candidates[0])
-                  return f"src/bpnode/unit-test/{base}"
+              # Fallback: Sonar generic execution needs a real test file path.
+              if test_files:
+                  return test_files[0].as_posix()
 
               return "src/bpnode/unit-test/CMakeLists.txt"
 
@@ -326,18 +432,35 @@ jobs:
                   files[path] = ET.SubElement(root, "file", path=path)
               return files[path]
 
-          if os.path.exists(junit_path) and os.path.getsize(junit_path) > 0:
-              tree = ET.parse(junit_path)
+          total_cases = 0
+
+          for junit_path in junit_paths:
+              if not os.path.exists(junit_path) or os.path.getsize(junit_path) == 0:
+                  continue
+
+              print(f"Reading {junit_path}")
+
+              try:
+                  tree = ET.parse(junit_path)
+              except ET.ParseError as exc:
+                  print(f"::warning::Could not parse {junit_path}: {exc}")
+                  continue
 
               for tc in tree.findall(".//testcase"):
                   name = tc.get("name") or tc.get("classname") or "ctest"
-                  duration_ms = int(float(tc.get("time", "0") or "0") * 1000)
+                  classname = tc.get("classname") or ""
+                  full_name = f"{classname}.{name}" if classname else name
 
-                  fnode = file_node(guess_test_file(name))
+                  try:
+                      duration_ms = int(float(tc.get("time", "0") or "0") * 1000)
+                  except ValueError:
+                      duration_ms = 0
+
+                  fnode = file_node(guess_test_file(full_name))
                   case = ET.SubElement(
                       fnode,
                       "testCase",
-                      name=name,
+                      name=full_name,
                       duration=str(duration_ms),
                   )
 
@@ -366,6 +489,8 @@ jobs:
                           message=skipped.get("message", "skipped"),
                       )
 
+                  total_cases += 1
+
           ET.ElementTree(root).write(
               output_path,
               encoding="utf-8",
@@ -373,41 +498,139 @@ jobs:
           )
 
           print(f"Wrote {output_path}")
+          print(f"Generic test cases exported: {total_cases}")
+
+          if total_cases == 0:
+              print("::warning::No test cases were exported to Sonar generic test execution report.")
           PY
 
           test -s "$REPORTS_DIR/test-execution.xml"
-          head -n 40 "$REPORTS_DIR/test-execution.xml"
+          echo "Sonar generic test execution report preview:"
+          head -n 80 "$REPORTS_DIR/test-execution.xml"
 
       - name: Generate coverage report for SonarQube Cloud
         if: always()
-        continue-on-error: true
         run: |
+          set -e
+
           mkdir -p "$REPORTS_DIR"
 
-          if find build -type f -name '*.gcda' | grep -q .; then
-            gcovr \
-              --root "$GITHUB_WORKSPACE" \
-              --object-directory "$GITHUB_WORKSPACE/build" \
-              --sonarqube-pretty \
-              --sonarqube "$REPORTS_DIR/coverage-sonarqube.xml" \
-              --filter "$GITHUB_WORKSPACE/src/bpnode/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bpnode/unit-test/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bpnode/docs/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bpnode/cosmos/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bpnode/config/.*" \
-              --exclude-directories "$GITHUB_WORKSPACE/build/CMakeFiles" \
-              --gcov-ignore-errors=all \
-              --print-summary
-          else
-            echo 'No .gcda files found; unit tests probably did not run. Creating empty SonarQube coverage report.'
-            cat > "$REPORTS_DIR/coverage-sonarqube.xml" <<'XML'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <coverage version="1"></coverage>
-          XML
+          echo "Looking for GCC coverage files..."
+          echo ".gcno files:"
+          find build -type f -name '*.gcno' -print | head -n 80 || true
+
+          echo ".gcda files:"
+          find build -type f -name '*.gcda' -print | head -n 80 || true
+
+          GCDA_COUNT="$(find build -type f -name '*.gcda' | wc -l | tr -d ' ')"
+          echo "GCDA_COUNT=$GCDA_COUNT"
+
+          if [ "$GCDA_COUNT" -eq 0 ]; then
+            echo "::error::No .gcda files were found. Unit tests did not generate runtime coverage data."
+            exit 1
           fi
 
+          gcovr \
+            --root "$GITHUB_WORKSPACE" \
+            --object-directory "$GITHUB_WORKSPACE/build" \
+            --sonarqube-pretty \
+            --sonarqube "$REPORTS_DIR/coverage-sonarqube.xml" \
+            --filter "$GITHUB_WORKSPACE/src/bpnode/fsw/.*" \
+            --filter "$GITHUB_WORKSPACE/src/bpnode/psp_mod/.*" \
+            --exclude "$GITHUB_WORKSPACE/src/bpnode/unit-test/.*" \
+            --exclude "$GITHUB_WORKSPACE/src/bpnode/docs/.*" \
+            --exclude "$GITHUB_WORKSPACE/src/bpnode/cosmos/.*" \
+            --exclude "$GITHUB_WORKSPACE/src/bpnode/config/.*" \
+            --exclude "$GITHUB_WORKSPACE/src/bpnode/.github/.*" \
+            --exclude-directories "$GITHUB_WORKSPACE/build/CMakeFiles" \
+            --gcov-ignore-errors=all \
+            --print-summary
+
           test -s "$REPORTS_DIR/coverage-sonarqube.xml"
+
+          echo "Coverage report generated:"
           ls -lh "$REPORTS_DIR/coverage-sonarqube.xml"
+
+          echo "Coverage report preview:"
+          head -n 80 "$REPORTS_DIR/coverage-sonarqube.xml"
+
+      - name: Validate SonarQube coverage report
+        if: always()
+        run: |
+          set -e
+
+          python3 - <<'PY'
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          report = workspace / os.environ.get("REPORTS_DIR", "reports") / "coverage-sonarqube.xml"
+
+          if not report.exists() or report.stat().st_size == 0:
+              print("::error::Coverage report does not exist or is empty.")
+              sys.exit(1)
+
+          tree = ET.parse(report)
+          root = tree.getroot()
+
+          keep_prefixes = (
+              "src/bpnode/fsw/",
+              "src/bpnode/psp_mod/",
+          )
+
+          total_lines = 0
+          covered_lines = 0
+          files_kept = 0
+          files_removed = 0
+
+          for file_node in list(root.findall("file")):
+              raw_path = file_node.get("path", "")
+
+              path = raw_path
+              p = Path(raw_path)
+
+              if p.is_absolute():
+                  try:
+                      path = p.resolve(strict=False).relative_to(workspace).as_posix()
+                  except ValueError:
+                      path = raw_path
+
+              path = path.replace("\\", "/")
+              file_node.set("path", path)
+
+              if not path.startswith(keep_prefixes):
+                  root.remove(file_node)
+                  files_removed += 1
+                  continue
+
+              files_kept += 1
+
+              for line in file_node.findall("lineToCover"):
+                  total_lines += 1
+                  if line.get("covered") == "true":
+                      covered_lines += 1
+
+          tree.write(report, encoding="utf-8", xml_declaration=True)
+
+          print(f"Coverage files kept: {files_kept}")
+          print(f"Coverage files removed outside BP source scope: {files_removed}")
+          print(f"Coverable lines in Sonar scope: {total_lines}")
+          print(f"Covered lines in Sonar scope: {covered_lines}")
+
+          if total_lines == 0:
+              print("::error::The coverage report contains no coverable lines for src/bpnode/fsw or src/bpnode/psp_mod.")
+              sys.exit(1)
+
+          if covered_lines == 0:
+              print("::error::The coverage report contains 0 covered lines for the Sonar source scope.")
+              print("This would produce 0.0% coverage in SonarQube Cloud, so the workflow stops here.")
+              sys.exit(1)
+          PY
+
+          echo "Validated coverage report preview:"
+          head -n 80 "$REPORTS_DIR/coverage-sonarqube.xml"
 
       - name: Prepare SonarQube CFamily inputs
         id: sonar_inputs
@@ -445,6 +668,7 @@ jobs:
 
           unique_candidates = []
           seen = set()
+
           for candidate in candidate_paths:
               candidate = candidate.resolve()
               if candidate not in seen:
@@ -483,10 +707,12 @@ jobs:
 
           def resolve_directory(entry):
               raw_directory = entry.get("directory")
+
               if not raw_directory:
                   return workspace
 
               directory = Path(raw_directory)
+
               if not directory.is_absolute():
                   directory = workspace / directory
 
@@ -494,10 +720,12 @@ jobs:
 
           def resolve_file(entry):
               raw_file = entry.get("file")
+
               if not raw_file:
                   return None
 
               file_path = Path(raw_file)
+
               if not file_path.is_absolute():
                   file_path = resolve_directory(entry) / file_path
 
@@ -515,6 +743,7 @@ jobs:
 
               for entry in data:
                   file_path = resolve_file(entry)
+
                   if file_path is None:
                       continue
 
@@ -570,10 +799,13 @@ jobs:
 
           deduped = []
           seen_files = set()
+
           for entry in best_entries:
               file_name = entry["file"]
+
               if file_name in seen_files:
                   continue
+
               deduped.append(entry)
               seen_files.add(file_name)
 
@@ -583,10 +815,12 @@ jobs:
               print("This prevents Sonar CFamily from analyzing the BP C files.")
               print("")
               print("First files seen in each candidate DB:")
+
               for candidate, files in debug_files.items():
                   print(f"--- {candidate}")
                   for file_name in files[:80]:
                       print(f"    {file_name}")
+
               sys.exit(1)
 
           output_path = sonar_dir / "compile_commands.json"
@@ -620,6 +854,8 @@ jobs:
             .sonar-cfamily/
             build/compile_commands.json
             build/**/compile_commands.json
+            build/**/*.gcda
+            build/**/*.gcno
           if-no-files-found: warn
 
       - name: SonarQube Cloud Scan
@@ -643,3 +879,19 @@ jobs:
             -Dsonar.coverageReportPaths=reports/coverage-sonarqube.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Fail workflow if BP unit tests failed
+        if: always()
+        run: |
+          if [ -f "$REPORTS_DIR/ctest-exit-code.txt" ]; then
+            CTEST_EXIT="$(cat "$REPORTS_DIR/ctest-exit-code.txt")"
+            echo "CTest exit code was: $CTEST_EXIT"
+
+            if [ "$CTEST_EXIT" != "0" ]; then
+              echo "::error::One or more BP unit tests failed. SonarQube results were already uploaded."
+              exit "$CTEST_EXIT"
+            fi
+          else
+            echo "::error::CTest exit code file not found."
+            exit 1
+          fi
