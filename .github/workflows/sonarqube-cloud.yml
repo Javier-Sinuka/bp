@@ -21,7 +21,7 @@ concurrency:
 env:
   BUILD_WRAPPER_OUT_DIR: build-wrapper-output
   REPORTS_DIR: reports
-  CFS_APP_PATH: ${{ github.workspace }}/src
+  CFS_APP_PATH: "${{ github.workspace }}/src:${{ github.workspace }}/src/bpnode/psp_mod"
 
 jobs:
   sonarcloud:
@@ -128,8 +128,6 @@ jobs:
           echo "Available BP buildconfig files:"
           find ./src/bpnode/.github/buildconfig -maxdepth 2 \( -type f -o -type d \) | sort
 
-          # cFE actual usa cfe_perfids.h.
-          # Algunas versiones antiguas usaban sample_perfids.h.
           if [ -f ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h ]; then
             cp -v ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h \
               ./bpxfer_defs/cfe_perfids.h
@@ -141,19 +139,14 @@ jobs:
             exit 1
           fi
 
-          # Copiamos configuraciones base disponibles de cFE.
           cp -v -t ./bpxfer_defs \
             ./cfs-bundle/cfe/cmake/sample_defs/*osconfig*.cmake \
             ./cfs-bundle/cfe/cmake/sample_defs/*custom*.cmake \
             ./cfs-bundle/cfe/cmake/sample_defs/*options*.cmake
 
-          # Copiamos la configuración propia de BPNode.
           cp -v -t ./bpxfer_defs \
             ./src/bpnode/.github/buildconfig/*.{cmake,scr}
 
-          # Algunas versiones antiguas del workflow esperaban tx/rx/tables.
-          # En la rama actual pueden no existir tx/rx, así que copiamos solo
-          # las carpetas que realmente existan.
           for dir in tx rx tables; do
             if [ -d "./src/bpnode/.github/buildconfig/${dir}" ]; then
               cp -rv "./src/bpnode/.github/buildconfig/${dir}" "./bpxfer_defs/${dir}"
@@ -186,6 +179,16 @@ jobs:
 
           echo "Generated bpxfer_defs:"
           find ./bpxfer_defs -maxdepth 4 -type f | sort
+
+      - name: Verify BP PSP module path
+        run: |
+          echo "CFS_APP_PATH=$CFS_APP_PATH"
+
+          echo "Checking BPNode PSP module:"
+          test -f "$GITHUB_WORKSPACE/src/bpnode/psp_mod/udpsock_intf/CMakeLists.txt"
+
+          echo "Found udpsock_intf:"
+          find "$GITHUB_WORKSPACE/src/bpnode/psp_mod/udpsock_intf" -maxdepth 1 -type f -print
 
       - name: Configure cFS/BP with unit tests and coverage flags
         run: |
@@ -402,5 +405,9 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v8
         with:
           projectBaseDir: src/bpnode
+          args: >
+            --define sonar.cfamily.compile-commands=../../build-wrapper-output/compile_commands.json
+            --define sonar.testExecutionReportPaths=../../reports/test-execution.xml
+            --define sonar.coverageReportPaths=../../reports/coverage-sonarqube.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
