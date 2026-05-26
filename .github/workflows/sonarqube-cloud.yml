@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          path: src/bp
+          path: src/bpnode
 
       - name: Checkout BPLib source
         uses: actions/checkout@v4
@@ -75,7 +75,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v8
 
       - name: Set up cFS bundle
-        uses: ./src/bp/.github/actions/setup-cfs
+        uses: ./src/bpnode/.github/actions/setup-cfs
         with:
           bundle-dir: ${{ github.workspace }}/cfs-bundle
           upstream-repo: nasa/cFS
@@ -126,10 +126,10 @@ jobs:
           ls -lah ./cfs-bundle/cfe/cmake/sample_defs
 
           echo "Available BP buildconfig files:"
-          find ./src/bp/.github/buildconfig -maxdepth 2 -type f -o -type d | sort
+          find ./src/bpnode/.github/buildconfig -maxdepth 2 \( -type f -o -type d \) | sort
 
           # cFE actual usa cfe_perfids.h.
-          # Algunas versiones viejas usaban sample_perfids.h.
+          # Algunas versiones antiguas usaban sample_perfids.h.
           if [ -f ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h ]; then
             cp -v ./cfs-bundle/cfe/cmake/sample_defs/cfe_perfids.h \
               ./bpxfer_defs/cfe_perfids.h
@@ -147,16 +147,16 @@ jobs:
             ./cfs-bundle/cfe/cmake/sample_defs/*custom*.cmake \
             ./cfs-bundle/cfe/cmake/sample_defs/*options*.cmake
 
-          # Copiamos la configuración propia de BP.
+          # Copiamos la configuración propia de BPNode.
           cp -v -t ./bpxfer_defs \
-            ./src/bp/.github/buildconfig/*.{cmake,scr}
+            ./src/bpnode/.github/buildconfig/*.{cmake,scr}
 
           # Algunas versiones antiguas del workflow esperaban tx/rx/tables.
-          # En la rama actual de nasa/bp solo existe tables, así que copiamos
-          # únicamente las carpetas que realmente existan.
+          # En la rama actual pueden no existir tx/rx, así que copiamos solo
+          # las carpetas que realmente existan.
           for dir in tx rx tables; do
-            if [ -d "./src/bp/.github/buildconfig/${dir}" ]; then
-              cp -rv "./src/bp/.github/buildconfig/${dir}" "./bpxfer_defs/${dir}"
+            if [ -d "./src/bpnode/.github/buildconfig/${dir}" ]; then
+              cp -rv "./src/bpnode/.github/buildconfig/${dir}" "./bpxfer_defs/${dir}"
             else
               echo "::notice::Optional buildconfig directory '${dir}' not found; skipping."
             fi
@@ -186,9 +186,11 @@ jobs:
         run: |
           set -o pipefail
 
+          mkdir -p "$REPORTS_DIR"
+
           build-wrapper-linux-x86-64 \
             --out-dir "$BUILD_WRAPPER_OUT_DIR" \
-            cmake --build build -- -j2 | tee "$REPORTS_DIR-build.log"
+            cmake --build build -- -j2 | tee "$REPORTS_DIR/build.log"
 
           BUILD_EXIT=${PIPESTATUS[0]}
           echo "Build exit code: $BUILD_EXIT"
@@ -247,7 +249,7 @@ jobs:
           files = {}
 
           def guess_test_file(test_name: str) -> str:
-              candidates = glob.glob("src/bp/unit-test/*_tests.c")
+              candidates = glob.glob("src/bpnode/unit-test/*_tests.c")
               normalized = test_name.lower().replace("-", "_")
 
               for candidate in candidates:
@@ -325,15 +327,15 @@ jobs:
 
           if find build -type f \( -name '*.gcda' -o -name '*.gcno' \) | grep -q .; then
             gcovr \
-              --root "$GITHUB_WORKSPACE/src/bp" \
+              --root "$GITHUB_WORKSPACE/src/bpnode" \
               --object-directory "$GITHUB_WORKSPACE/build" \
               --sonarqube-pretty \
               --sonarqube "$REPORTS_DIR/coverage-sonarqube.xml" \
-              --filter "$GITHUB_WORKSPACE/src/bp/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bp/unit-test/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bp/docs/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bp/cosmos/.*" \
-              --exclude "$GITHUB_WORKSPACE/src/bp/config/.*" \
+              --filter "$GITHUB_WORKSPACE/src/bpnode/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bpnode/unit-test/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bpnode/docs/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bpnode/cosmos/.*" \
+              --exclude "$GITHUB_WORKSPACE/src/bpnode/config/.*" \
               --print-summary
           else
             echo 'No gcov coverage files found; creating empty SonarQube coverage report.'
@@ -375,6 +377,6 @@ jobs:
         if: ${{ always() && steps.sonar_inputs.outputs.ready == 'true' }}
         uses: SonarSource/sonarqube-scan-action@v8
         with:
-          projectBaseDir: src/bp
+          projectBaseDir: src/bpnode
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
