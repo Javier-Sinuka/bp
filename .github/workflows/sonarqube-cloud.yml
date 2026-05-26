@@ -403,19 +403,32 @@ jobs:
             build-wrapper-output/compile_commands.json
           if-no-files-found: warn
 
-      - name: Check SonarQube CFamily inputs
+      - name: Prepare SonarQube CFamily inputs
         id: sonar_inputs
         if: always()
         run: |
           echo "Checking Build Wrapper output..."
 
-          if [ -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
-            echo "compile_commands.json found."
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
+          if [ ! -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
             echo "::warning::compile_commands.json was not generated. Skipping SonarQube scan."
             echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          echo "compile_commands.json found at:"
+          realpath "$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
+
+          echo "Copying compile_commands.json inside Sonar projectBaseDir..."
+          mkdir -p "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily"
+
+          cp "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" \
+             "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily/compile_commands.json"
+
+          echo "Final Sonar CFamily compile database:"
+          realpath "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily/compile_commands.json"
+          ls -lh "$GITHUB_WORKSPACE/src/bpnode/.sonar-cfamily/compile_commands.json"
+
+          echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: SonarQube Cloud Scan
         if: ${{ always() && steps.sonar_inputs.outputs.ready == 'true' }}
@@ -423,7 +436,7 @@ jobs:
         with:
           projectBaseDir: src/bpnode
           args: >
-            --define sonar.cfamily.compile-commands=../../build-wrapper-output/compile_commands.json
+            --define sonar.cfamily.compile-commands=.sonar-cfamily/compile_commands.json
             --define sonar.testExecutionReportPaths=../../reports/test-execution.xml
             --define sonar.coverageReportPaths=../../reports/coverage-sonarqube.xml
         env:
