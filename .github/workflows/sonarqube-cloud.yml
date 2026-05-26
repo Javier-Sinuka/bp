@@ -97,6 +97,8 @@ jobs:
 
       - name: Build and install TinyCBOR
         run: |
+          set -e
+
           echo "TinyCBOR source contents:"
           ls -lah tinycbor-source
 
@@ -182,6 +184,8 @@ jobs:
 
       - name: Verify BP PSP module path
         run: |
+          set -e
+
           echo "CFS_APP_PATH=$CFS_APP_PATH"
 
           echo "Checking BPNode PSP module:"
@@ -189,7 +193,7 @@ jobs:
 
           echo "Found udpsock_intf:"
           find "$GITHUB_WORKSPACE/src/bpnode/psp_mod/udpsock_intf" -maxdepth 1 -type f -print
-      
+
       - name: Prepare BP unit-test relative PSP path
         run: |
           set -e
@@ -207,8 +211,19 @@ jobs:
           ls -lah "$GITHUB_WORKSPACE/psp"
           ls -lah "$GITHUB_WORKSPACE/psp/fsw/modules/iodriver/ut-stubs/iodriver_base_stubs.c"
 
+      - name: Clean previous build and analysis outputs
+        run: |
+          set -e
+
+          rm -rf build
+          rm -rf "$BUILD_WRAPPER_OUT_DIR"
+          rm -rf "$REPORTS_DIR"
+          rm -rf "$GITHUB_WORKSPACE/.sonar-cfamily"
+
       - name: Configure cFS/BP with unit tests and coverage flags
         run: |
+          set -e
+
           cmake \
             -DCMAKE_BUILD_TYPE=Debug \
             -DSIMULATION=native \
@@ -224,31 +239,27 @@ jobs:
 
       - name: Build with SonarQube Build Wrapper
         id: build
-        continue-on-error: true
         run: |
-          set -o pipefail
+          set -euo pipefail
 
           mkdir -p "$REPORTS_DIR"
+          rm -rf "$BUILD_WRAPPER_OUT_DIR"
 
           build-wrapper-linux-x86-64 \
             --out-dir "$BUILD_WRAPPER_OUT_DIR" \
-            cmake --build build -- -j2 | tee "$REPORTS_DIR/build.log"
+            cmake --build build --clean-first -- -j2 | tee "$REPORTS_DIR/build.log"
 
-          BUILD_EXIT=${PIPESTATUS[0]}
-          echo "Build exit code: $BUILD_EXIT"
+          echo "Build finished successfully."
 
-          if [ -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
-            echo "Build Wrapper compile_commands.json generated."
-          elif [ -s "build/compile_commands.json" ]; then
-            echo "Build Wrapper compile_commands.json not found; copying CMake compile_commands.json."
-            mkdir -p "$BUILD_WRAPPER_OUT_DIR"
-            cp build/compile_commands.json "$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
-          else
-            echo "::warning::No compile_commands.json was generated."
-          fi
+          echo "Compilation databases found:"
+          find "$GITHUB_WORKSPACE/build" "$GITHUB_WORKSPACE/$BUILD_WRAPPER_OUT_DIR" \
+            -type f \
+            -name compile_commands.json \
+            -print \
+            -exec wc -c {} \; || true
 
+          echo "Build Wrapper output:"
           ls -lah "$BUILD_WRAPPER_OUT_DIR" || true
-          exit 0
 
       - name: Install mission artifacts
         continue-on-error: true
@@ -300,9 +311,15 @@ jobs:
                   short = stem.replace("_tests", "")
 
                   if stem in normalized or short in normalized:
-                      return f"unit-test/{base}"
+                      return f"src/bpnode/unit-test/{base}"
 
-              return "unit-test/CMakeLists.txt"
+              # Fallback: Sonar necesita una ruta indexada como test.
+              # Si no logramos mapear el nombre del testcase, usamos un archivo real.
+              if candidates:
+                  base = os.path.basename(candidates[0])
+                  return f"src/bpnode/unit-test/{base}"
+
+              return "src/bpnode/unit-test/CMakeLists.txt"
 
           def file_node(path: str):
               if path not in files:
@@ -369,7 +386,7 @@ jobs:
 
           if find build -type f -name '*.gcda' | grep -q .; then
             gcovr \
-              --root "$GITHUB_WORKSPACE/src/bpnode" \
+              --root "$GITHUB_WORKSPACE" \
               --object-directory "$GITHUB_WORKSPACE/build" \
               --sonarqube-pretty \
               --sonarqube "$REPORTS_DIR/coverage-sonarqube.xml" \
@@ -392,6 +409,206 @@ jobs:
           test -s "$REPORTS_DIR/coverage-sonarqube.xml"
           ls -lh "$REPORTS_DIR/coverage-sonarqube.xml"
 
+      - name: Prepare SonarQube CFamily inputs
+        id: sonar_inputs
+        if: always()
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$GITHUB_WORKSPACE/.sonar-cfamily"
+
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          project_dir = (workspace / "src" / "bpnode").resolve()
+          wrapper_dir = (workspace / os.environ.get("BUILD_WRAPPER_OUT_DIR", "build-wrapper-output")).resolve()
+          sonar_dir = (workspace / ".sonar-cfamily").resolve()
+          sonar_dir.mkdir(parents=True, exist_ok=True)
+
+          print(f"Workspace: {workspace}")
+          print(f"BP project dir: {project_dir}")
+          print(f"Build Wrapper dir: {wrapper_dir}")
+
+          candidate_paths = []
+
+          wrapper_compile_commands = wrapper_dir / "compile_commands.json"
+          if wrapper_compile_commands.exists():
+              candidate_paths.append(wrapper_compile_commands)
+
+          build_dir = workspace / "build"
+          if build_dir.exists():
+              candidate_paths.extend(sorted(build_dir.rglob("compile_commands.json")))
+
+          unique_candidates = []
+          seen = set()
+          for candidate in candidate_paths:
+              candidate = candidate.resolve()
+              if candidate not in seen:
+                  unique_candidates.append(candidate)
+                  seen.add(candidate)
+
+          print("Candidate compile_commands.json files:")
+          for candidate in unique_candidates:
+              print(f"  - {candidate}")
+
+          if not unique_candidates:
+              print("::error::No compile_commands.json files were found.")
+              sys.exit(1)
+
+          source_prefixes = (
+              "fsw/",
+              "psp_mod/",
+          )
+
+          excluded_prefixes = (
+              "docs/",
+              "cosmos/",
+              "config/",
+              ".github/",
+              "unit-test/",
+          )
+
+          c_extensions = (
+              ".c",
+              ".cc",
+              ".cpp",
+              ".cxx",
+              ".c++",
+              ".C",
+          )
+
+          def resolve_directory(entry):
+              raw_directory = entry.get("directory")
+              if not raw_directory:
+                  return workspace
+
+              directory = Path(raw_directory)
+              if not directory.is_absolute():
+                  directory = workspace / directory
+
+              return directory.resolve(strict=False)
+
+          def resolve_file(entry):
+              raw_file = entry.get("file")
+              if not raw_file:
+                  return None
+
+              file_path = Path(raw_file)
+              if not file_path.is_absolute():
+                  file_path = resolve_directory(entry) / file_path
+
+              return file_path.resolve(strict=False)
+
+          def load_entries(db_path):
+              try:
+                  data = json.loads(db_path.read_text(encoding="utf-8"))
+              except Exception as exc:
+                  print(f"::warning::Could not read {db_path}: {exc}")
+                  return [], []
+
+              kept = []
+              all_files = []
+
+              for entry in data:
+                  file_path = resolve_file(entry)
+                  if file_path is None:
+                      continue
+
+                  all_files.append(str(file_path))
+
+                  try:
+                      rel = file_path.relative_to(project_dir)
+                  except ValueError:
+                      continue
+
+                  rel_posix = rel.as_posix()
+
+                  if not rel_posix.endswith(c_extensions):
+                      continue
+
+                  if not rel_posix.startswith(source_prefixes):
+                      continue
+
+                  if rel_posix.startswith(excluded_prefixes):
+                      continue
+
+                  clean_entry = dict(entry)
+                  clean_entry["file"] = str(file_path)
+                  clean_entry["directory"] = str(resolve_directory(entry))
+
+                  kept.append(clean_entry)
+
+              return kept, all_files
+
+          best_candidate = None
+          best_entries = []
+          debug_files = {}
+
+          for candidate in unique_candidates:
+              entries, all_files = load_entries(candidate)
+              debug_files[str(candidate)] = all_files
+
+              print("")
+              print(f"Candidate: {candidate}")
+              print(f"  Total compile units: {len(all_files)}")
+              print(f"  BP source compile units kept: {len(entries)}")
+
+              for entry in entries[:25]:
+                  file_path = Path(entry["file"])
+                  try:
+                      print(f"    + {file_path.relative_to(project_dir).as_posix()}")
+                  except ValueError:
+                      print(f"    + {file_path}")
+
+              if len(entries) > len(best_entries):
+                  best_candidate = candidate
+                  best_entries = entries
+
+          deduped = []
+          seen_files = set()
+          for entry in best_entries:
+              file_name = entry["file"]
+              if file_name in seen_files:
+                  continue
+              deduped.append(entry)
+              seen_files.add(file_name)
+
+          if not deduped:
+              print("")
+              print("::error::No BP source compilation units were found in any compile_commands.json.")
+              print("This prevents Sonar CFamily from analyzing the BP C files.")
+              print("")
+              print("First files seen in each candidate DB:")
+              for candidate, files in debug_files.items():
+                  print(f"--- {candidate}")
+                  for file_name in files[:80]:
+                      print(f"    {file_name}")
+              sys.exit(1)
+
+          output_path = sonar_dir / "compile_commands.json"
+          output_path.write_text(
+              json.dumps(deduped, indent=2),
+              encoding="utf-8",
+          )
+
+          print("")
+          print(f"Selected DB: {best_candidate}")
+          print(f"Wrote Sonar CFamily DB: {output_path}")
+          print(f"BP source compilation units for Sonar: {len(deduped)}")
+          PY
+
+          test -s "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
+
+          echo "Final Sonar compile_commands.json:"
+          ls -lh "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
+          head -n 80 "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
+
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
       - name: Upload analysis artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -400,55 +617,29 @@ jobs:
           path: |
             reports/
             build-wrapper-output/
-            build-wrapper-output/compile_commands.json
+            .sonar-cfamily/
+            build/compile_commands.json
+            build/**/compile_commands.json
           if-no-files-found: warn
-
-      - name: Prepare SonarQube CFamily inputs
-        id: sonar_inputs
-        if: always()
-        run: |
-          set -e
-
-          echo "Checking Build Wrapper output..."
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          echo "BUILD_WRAPPER_OUT_DIR=$BUILD_WRAPPER_OUT_DIR"
-
-          if [ -s "$BUILD_WRAPPER_OUT_DIR/compile_commands.json" ]; then
-            SRC_COMPILE_COMMANDS="$BUILD_WRAPPER_OUT_DIR/compile_commands.json"
-          elif [ -s "$GITHUB_WORKSPACE/build/compile_commands.json" ]; then
-            SRC_COMPILE_COMMANDS="$GITHUB_WORKSPACE/build/compile_commands.json"
-          else
-            echo "::warning::compile_commands.json was not generated. Skipping SonarQube scan."
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Source compile_commands.json:"
-          realpath "$SRC_COMPILE_COMMANDS"
-          ls -lh "$SRC_COMPILE_COMMANDS"
-
-          echo "Copying compile_commands.json to workspace-level .sonar-cfamily directory..."
-          mkdir -p "$GITHUB_WORKSPACE/.sonar-cfamily"
-
-          cp "$SRC_COMPILE_COMMANDS" \
-             "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
-
-          echo "Final Sonar CFamily compile database:"
-          realpath "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
-          ls -lh "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
-
-          test -s "$GITHUB_WORKSPACE/.sonar-cfamily/compile_commands.json"
-
-          echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: SonarQube Cloud Scan
         if: ${{ always() && steps.sonar_inputs.outputs.ready == 'true' }}
         uses: SonarSource/sonarqube-scan-action@v8
         with:
-          projectBaseDir: src/bpnode
+          projectBaseDir: .
           args: >
-            --define sonar.cfamily.compile-commands=${{ github.workspace }}/.sonar-cfamily/compile_commands.json
-            --define sonar.testExecutionReportPaths=../../reports/test-execution.xml
-            --define sonar.coverageReportPaths=../../reports/coverage-sonarqube.xml
+            -Dsonar.projectKey=Javier-Sinuka_bp
+            -Dsonar.organization=javier-sinuka
+            -Dsonar.projectName=nasa-bp
+            -Dsonar.projectVersion=1.0
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.sources=src/bpnode/fsw,src/bpnode/psp_mod
+            -Dsonar.tests=src/bpnode/unit-test
+            -Dsonar.test.inclusions=src/bpnode/unit-test/**/*.c
+            -Dsonar.exclusions=src/bpnode/docs/**,src/bpnode/cosmos/**,src/bpnode/config/**,src/bpnode/.github/**,**/*.md,**/*.txt,**/build-wrapper-dump.json
+            -Dsonar.coverage.exclusions=src/bpnode/unit-test/**,**/stubs/**,**/utilities/**,src/bpnode/docs/**,src/bpnode/cosmos/**,src/bpnode/config/**,src/bpnode/dtn_defs/**,src/bpnode/eds/**
+            -Dsonar.cfamily.compile-commands=${{ github.workspace }}/.sonar-cfamily/compile_commands.json
+            -Dsonar.testExecutionReportPaths=reports/test-execution.xml
+            -Dsonar.coverageReportPaths=reports/coverage-sonarqube.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
