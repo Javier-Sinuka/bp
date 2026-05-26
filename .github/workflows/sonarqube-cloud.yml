@@ -341,7 +341,7 @@ jobs:
           test -s "$REPORTS_DIR/test-execution.xml"
           head -n 40 "$REPORTS_DIR/test-execution.xml"
 
-            - name: Generate coverage report for SonarQube Cloud
+      - name: Generate coverage report for SonarQube Cloud
         if: always()
         continue-on-error: true
         run: |
