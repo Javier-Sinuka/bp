@@ -360,7 +360,7 @@ jobs:
             exit "$CTEST_EXIT"
           fi
 
-            - name: Generate SonarQube generic test execution report
+      - name: Generate SonarQube generic test execution report
         run: |
           set -e
 
