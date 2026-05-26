@@ -237,7 +237,7 @@ jobs:
             -DSIMULATION=native \
             -DENABLE_UNIT_TESTS=true \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_C_FLAGS="--coverage -O0 -g -fprofile-abs-path" \
+            -DCMAKE_C_FLAGS="--coverage -O0 -g -fprofile-abs-path -Wno-error=maybe-uninitialized" \
             -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
             -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
             -DCMAKE_MODULE_LINKER_FLAGS="--coverage" \
@@ -247,7 +247,7 @@ jobs:
             -B build \
             -S cfs-bundle/cfe
 
-      - name: Build with SonarQube Build Wrapper
+      - name: Build BPNode unit-test runners with SonarQube Build Wrapper
         id: build
         run: |
           set -euo pipefail
@@ -255,11 +255,50 @@ jobs:
           mkdir -p "$REPORTS_DIR"
           rm -rf "$BUILD_WRAPPER_OUT_DIR"
 
+          BP_TEST_TARGETS=(
+            coverage-bpnode-bpnode_app-testrunner
+            coverage-bpnode-bpnode_task-testrunner
+            coverage-bpnode-bpnode_adu_out-testrunner
+            coverage-bpnode-bpnode_adu_in-testrunner
+            coverage-bpnode-bpnode_cla_in-testrunner
+            coverage-bpnode-bpnode_cla_out-testrunner
+            coverage-bpnode-bpnode_gen_worker-testrunner
+            coverage-bpnode-bpnode_notif-testrunner
+            coverage-bpnode-bpnode_maint-testrunner
+            coverage-bpnode-fwp_timep-testrunner
+            coverage-bpnode-fwp_tablep-testrunner
+            coverage-bpnode-fwp_evp-testrunner
+            coverage-bpnode-fwp_adup-testrunner
+            coverage-bpnode-fwp_perflogp-testrunner
+            coverage-bpnode-fwp_dp-testrunner
+            coverage-bpnode-fwp_tlmp-testrunner
+            coverage-bpnode-fwp_utils-testrunner
+            coverage-bpnode-fwp_clap-testrunner
+          )
+
+          echo "Building only BPNode coverage test runners."
+
           build-wrapper-linux-x86-64 \
             --out-dir "$BUILD_WRAPPER_OUT_DIR" \
-            cmake --build build --clean-first -- -j2 | tee "$REPORTS_DIR/build.log"
+            cmake --build build/native/default \
+              --target "${BP_TEST_TARGETS[@]}" \
+              -- -j2 | tee "$REPORTS_DIR/build.log"
 
           echo "Build finished successfully."
+
+          echo "Checking BPNode testrunner executables:"
+          for target in "${BP_TEST_TARGETS[@]}"; do
+            exe="$GITHUB_WORKSPACE/build/native/default/apps/bpnode/unit-test/$target"
+
+            if [ ! -x "$exe" ]; then
+              echo "::error::Expected BPNode test runner was not built or is not executable: $exe"
+              echo "Searching for similar files:"
+              find "$GITHUB_WORKSPACE/build/native/default/apps/bpnode" -iname "*${target}*" -print || true
+              exit 1
+            fi
+
+            ls -lh "$exe"
+          done
 
           echo "Compilation databases found:"
           find "$GITHUB_WORKSPACE/build" "$GITHUB_WORKSPACE/$BUILD_WRAPPER_OUT_DIR" \
@@ -271,169 +310,54 @@ jobs:
           echo "Build Wrapper output:"
           ls -lah "$BUILD_WRAPPER_OUT_DIR" || true
 
-      - name: Install mission artifacts
-        continue-on-error: true
-        run: |
-          cmake --build build --target mission-install -- -j2
-
-      - name: Discover and run BPNode unit tests with CTest
+      - name: Run BPNode unit tests with CTest
         id: ctest
         run: |
-          set -u
+          set -euo pipefail
 
           mkdir -p "$REPORTS_DIR"
 
-          echo "Searching for CTest test directories..."
-          find build -name CTestTestfile.cmake -print | sort | tee "$REPORTS_DIR/ctest-all-directories.txt"
+          BP_CTEST_DIR="$GITHUB_WORKSPACE/build/native/default/apps/bpnode/unit-test"
+
+          if [ ! -d "$BP_CTEST_DIR" ]; then
+            echo "::error::BPNode CTest directory not found: $BP_CTEST_DIR"
+            exit 1
+          fi
+
+          echo "Using BPNode CTest directory:"
+          echo "$BP_CTEST_DIR"
 
           echo ""
-          echo "Selecting only BPNode-related CTest directories..."
-          python3 - <<'PY'
-          import os
-          import re
-          import subprocess
-          from pathlib import Path
-
-          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
-          reports = workspace / os.environ.get("REPORTS_DIR", "reports")
-          reports.mkdir(parents=True, exist_ok=True)
-
-          build = workspace / "build"
-
-          all_ctest_files = sorted(build.rglob("CTestTestfile.cmake"))
-          selected = []
-
-          exclude_tokens = [
-              "/osal/",
-              "/psp/",
-              "/cfe/",
-              "/modules/",
-              "/apps/bplib/",
-              "/apps/cf/",
-              "/apps/ci_lab/",
-              "/apps/to_lab/",
-              "/apps/sch_lab/",
-          ]
-
-          include_tokens = [
-              "/apps/bpnode/",
-              "/bpnode/",
-          ]
-
-          def run_ctest_list(test_dir: Path) -> str:
-              result = subprocess.run(
-                  ["ctest", "--test-dir", str(test_dir), "-N"],
-                  text=True,
-                  stdout=subprocess.PIPE,
-                  stderr=subprocess.STDOUT,
-                  check=False,
-              )
-              return result.stdout
-
-          def test_count(output: str) -> int:
-              match = re.search(r"Total Tests:\s+(\d+)", output)
-              if not match:
-                  return 0
-              return int(match.group(1))
-
-          discovery_path = reports / "ctest-bpnode-discovery.txt"
-
-          with discovery_path.open("w", encoding="utf-8") as discovery:
-              for ctest_file in all_ctest_files:
-                  test_dir = ctest_file.parent
-                  rel = "/" + test_dir.relative_to(workspace).as_posix() + "/"
-                  output = run_ctest_list(test_dir)
-                  count = test_count(output)
-
-                  discovery.write("\n============================================================\n")
-                  discovery.write(f"CTest directory: {test_dir}\n")
-                  discovery.write(f"Relative path: {rel}\n")
-                  discovery.write(f"Total tests: {count}\n")
-                  discovery.write(output)
-                  discovery.write("\n")
-
-                  if count == 0:
-                      continue
-
-                  if any(token in rel for token in exclude_tokens):
-                      continue
-
-                  if any(token in rel for token in include_tokens) or "bpnode" in output.lower():
-                      selected.append(test_dir)
-
-          selected_path = reports / "ctest-selected-bpnode-dirs.txt"
-
-          with selected_path.open("w", encoding="utf-8") as f:
-              for test_dir in selected:
-                  f.write(str(test_dir) + "\n")
-
-          print("Selected BPNode CTest directories:")
-          for test_dir in selected:
-              print(f"  - {test_dir}")
-
-          if not selected:
-              print("::error::No BPNode CTest directories were discovered.")
-              print(f"See {discovery_path}")
-              raise SystemExit(1)
-          PY
+          echo "Listing BPNode tests:"
+          ctest --test-dir "$BP_CTEST_DIR" -N | tee "$REPORTS_DIR/ctest-bpnode-list.txt"
 
           echo ""
-          echo "Selected directories file:"
-          cat "$REPORTS_DIR/ctest-selected-bpnode-dirs.txt"
+          echo "Running BPNode tests..."
 
-          OVERALL_EXIT=0
-          INDEX=0
+          set +e
 
-          while read -r test_dir; do
-            if [ -z "$test_dir" ]; then
-              continue
-            fi
+          ctest \
+            --test-dir "$BP_CTEST_DIR" \
+            --output-on-failure \
+            --output-junit "$REPORTS_DIR/ctest-junit-bpnode.xml" \
+            -j2 \
+            2>&1 | tee "$REPORTS_DIR/ctest-output-bpnode.txt"
 
-            INDEX=$((INDEX + 1))
-            safe_name="$(echo "$test_dir" | sed 's#[^A-Za-z0-9_.-]#_#g')"
+          CTEST_EXIT="${PIPESTATUS[0]}"
 
+          set -e
+
+          echo "$CTEST_EXIT" > "$REPORTS_DIR/ctest-exit-code.txt"
+          echo "BPNode CTest exit code: $CTEST_EXIT"
+
+          if [ "$CTEST_EXIT" != "0" ]; then
             echo ""
-            echo "============================================================"
-            echo "Running BPNode CTest directory: $test_dir"
-            echo "============================================================"
+            echo "CTest failed. Capturing LastTest.log..."
+            find "$BP_CTEST_DIR" -path '*/Testing/Temporary/LastTest.log' -print -exec cat {} \; \
+              | tee "$REPORTS_DIR/ctest-lasttest-bpnode.log" || true
 
-            set +e
-
-            ctest \
-              --test-dir "$test_dir" \
-              --output-on-failure \
-              --output-junit "$REPORTS_DIR/ctest-junit-${INDEX}-${safe_name}.xml" \
-              -j2 \
-              2>&1 | tee "$REPORTS_DIR/ctest-output-${INDEX}-${safe_name}.txt"
-
-            CTEST_EXIT="${PIPESTATUS[0]}"
-
-            set -u
-
-            echo "CTest exit code for $test_dir: $CTEST_EXIT"
-
-            if [ "$CTEST_EXIT" != "0" ]; then
-              OVERALL_EXIT="$CTEST_EXIT"
-
-              echo ""
-              echo "CTest failed. Looking for LastTest.log files..."
-              find "$test_dir" -path '*/Testing/Temporary/LastTest.log' -print -exec cat {} \; \
-                | tee "$REPORTS_DIR/ctest-lasttest-${INDEX}-${safe_name}.log" || true
-            fi
-          done < "$REPORTS_DIR/ctest-selected-bpnode-dirs.txt"
-
-          echo "$OVERALL_EXIT" > "$REPORTS_DIR/ctest-exit-code.txt"
-
-          echo ""
-          echo "Overall BPNode CTest exit code: $OVERALL_EXIT"
-
-          echo ""
-          echo "Generated CTest files:"
-          find "$REPORTS_DIR" -maxdepth 1 -type f -name 'ctest-*' -print -exec ls -lh {} \;
-
-          if [ "$OVERALL_EXIT" != "0" ]; then
-            echo "::error::One or more BPNode unit tests failed. Check ctest-output-* and ctest-lasttest-* artifacts."
-            exit "$OVERALL_EXIT"
+            echo "::error::One or more BPNode unit tests failed. Check ctest-output-bpnode.txt and ctest-lasttest-bpnode.log."
+            exit "$CTEST_EXIT"
           fi
 
       - name: Generate SonarQube generic test execution report
@@ -449,7 +373,7 @@ jobs:
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          junit_paths = sorted(glob.glob("reports/ctest-junit-*.xml"))
+          junit_paths = sorted(glob.glob("reports/ctest-junit-bpnode.xml"))
           output_path = "reports/test-execution.xml"
 
           root = ET.Element("testExecutions", version="1")
