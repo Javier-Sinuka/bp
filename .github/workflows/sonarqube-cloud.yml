@@ -278,118 +278,124 @@ jobs:
 
       - name: Discover and run BP unit tests with CTest
         id: ctest
-        continue-on-error: true
         run: |
+          set -u
+
           mkdir -p "$REPORTS_DIR"
 
-          python3 - <<'PY'
-          import os
-          import re
-          import subprocess
-          from pathlib import Path
+          echo "Searching for CTest test directories..."
+          find build -name CTestTestfile.cmake -print | sort
 
-          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
-          reports = workspace / os.environ.get("REPORTS_DIR", "reports")
-          reports.mkdir(parents=True, exist_ok=True)
+          echo ""
+          echo "Listing tests from all CTest directories..."
+          find build -name CTestTestfile.cmake -print | sort | while read -r ctest_file; do
+            test_dir="$(dirname "$ctest_file")"
 
-          build = workspace / "build"
+            echo ""
+            echo "============================================================"
+            echo "CTest directory: $test_dir"
+            echo "============================================================"
 
-          def ctest_total(test_dir: Path) -> int:
-              try:
-                  result = subprocess.run(
-                      ["ctest", "--test-dir", str(test_dir), "-N"],
-                      text=True,
-                      stdout=subprocess.PIPE,
-                      stderr=subprocess.STDOUT,
-                      check=False,
-                  )
-              except Exception:
-                  return 0
+            ctest --test-dir "$test_dir" -N || true
+          done | tee "$REPORTS_DIR/ctest-discovery.txt"
 
-              match = re.search(r"Total Tests:\s+(\d+)", result.stdout)
-              if match:
-                  return int(match.group(1))
+          ctest_count() {
+            local dir="$1"
+            local output
 
-              return 0
+            output="$(ctest --test-dir "$dir" -N 2>&1 || true)"
 
-          selected_dirs = []
+            local count
+            count="$(echo "$output" | sed -n 's/.*Total Tests: //p' | tail -n 1)"
 
-          top_total = ctest_total(build)
-          print(f"Top-level CTest total: {top_total}")
+            if [ -z "$count" ]; then
+              count="0"
+            fi
 
-          if top_total > 0:
-              selected_dirs = [build]
-          else:
-              candidates = sorted(
-                  p.parent for p in build.rglob("CTestTestfile.cmake")
-              )
+            echo "$count"
+          }
 
-              for candidate in candidates:
-                  total = ctest_total(candidate)
-                  if total > 0:
-                      selected_dirs.append(candidate)
-                      print(f"CTest directory with tests: {candidate} ({total} tests)")
+          TEST_DIRS=()
 
-          if not selected_dirs:
-              print("::warning::No CTest tests were discovered.")
-              (reports / "ctest-exit-code.txt").write_text("1\n", encoding="utf-8")
-              raise SystemExit(0)
+          TOP_COUNT="$(ctest_count build)"
+          echo ""
+          echo "Top-level CTest total: $TOP_COUNT"
 
-          overall_exit = 0
+          if [ "$TOP_COUNT" -gt 0 ] 2>/dev/null; then
+            TEST_DIRS=("build")
+          else
+            while read -r ctest_file; do
+              test_dir="$(dirname "$ctest_file")"
+              count="$(ctest_count "$test_dir")"
 
-          for index, test_dir in enumerate(selected_dirs, start=1):
-              safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(test_dir.relative_to(workspace)))
-              junit_path = reports / f"ctest-junit-{index}-{safe_name}.xml"
-              log_path = reports / f"ctest-output-{index}-{safe_name}.txt"
+              if [ "$count" -gt 0 ] 2>/dev/null; then
+                TEST_DIRS+=("$test_dir")
+              fi
+            done < <(find build -name CTestTestfile.cmake -print | sort)
+          fi
 
-              cmd = [
-                  "ctest",
-                  "--test-dir",
-                  str(test_dir),
-                  "--output-on-failure",
-                  "--output-junit",
-                  str(junit_path),
-                  "-j2",
-              ]
+          if [ "${#TEST_DIRS[@]}" -eq 0 ]; then
+            echo "1" > "$REPORTS_DIR/ctest-exit-code.txt"
+            echo "::error::No CTest tests were discovered."
+            exit 1
+          fi
 
-              print("")
-              print("Running:", " ".join(cmd))
+          echo ""
+          echo "Selected CTest directories:"
+          printf '  - %s\n' "${TEST_DIRS[@]}"
 
-              with log_path.open("w", encoding="utf-8") as log_file:
-                  proc = subprocess.Popen(
-                      cmd,
-                      text=True,
-                      stdout=subprocess.PIPE,
-                      stderr=subprocess.STDOUT,
-                  )
+          OVERALL_EXIT=0
+          INDEX=0
 
-                  assert proc.stdout is not None
-                  for line in proc.stdout:
-                      print(line, end="")
-                      log_file.write(line)
+          for test_dir in "${TEST_DIRS[@]}"; do
+            INDEX=$((INDEX + 1))
+            safe_name="$(echo "$test_dir" | sed 's#[^A-Za-z0-9_.-]#_#g')"
 
-                  proc.wait()
+            echo ""
+            echo "============================================================"
+            echo "Running CTest directory: $test_dir"
+            echo "============================================================"
 
-              print(f"CTest exit code for {test_dir}: {proc.returncode}")
+            set +e
 
-              if proc.returncode != 0:
-                  overall_exit = proc.returncode
+            ctest \
+              --test-dir "$test_dir" \
+              --output-on-failure \
+              --output-junit "$REPORTS_DIR/ctest-junit-${INDEX}-${safe_name}.xml" \
+              -j2 \
+              2>&1 | tee "$REPORTS_DIR/ctest-output-${INDEX}-${safe_name}.txt"
 
-          (reports / "ctest-exit-code.txt").write_text(
-              f"{overall_exit}\n",
-              encoding="utf-8",
-          )
+            CTEST_EXIT="${PIPESTATUS[0]}"
 
-          print(f"Overall CTest exit code: {overall_exit}")
-          PY
+            set -u
 
-          echo "Generated CTest reports:"
-          find "$REPORTS_DIR" -maxdepth 1 -type f \( -name 'ctest-*.xml' -o -name 'ctest-output*.txt' -o -name 'ctest-exit-code.txt' \) -print -exec ls -lh {} \;
+            echo "CTest exit code for $test_dir: $CTEST_EXIT"
 
-          exit 0
+            if [ "$CTEST_EXIT" != "0" ]; then
+              OVERALL_EXIT="$CTEST_EXIT"
+
+              echo ""
+              echo "CTest failed. Looking for LastTest.log files..."
+              find "$test_dir" -path '*/Testing/Temporary/LastTest.log' -print -exec cat {} \; \
+                | tee "$REPORTS_DIR/ctest-lasttest-${INDEX}-${safe_name}.log" || true
+            fi
+          done
+
+          echo "$OVERALL_EXIT" > "$REPORTS_DIR/ctest-exit-code.txt"
+
+          echo ""
+          echo "Overall CTest exit code: $OVERALL_EXIT"
+
+          echo ""
+          echo "Generated CTest files:"
+          find "$REPORTS_DIR" -maxdepth 1 -type f -name 'ctest-*' -print -exec ls -lh {} \;
+
+          if [ "$OVERALL_EXIT" != "0" ]; then
+            echo "::error::One or more unit tests failed. Check ctest-output-* and ctest-lasttest-* artifacts."
+            exit "$OVERALL_EXIT"
+          fi
 
       - name: Generate SonarQube generic test execution report
-        if: always()
         run: |
           set -e
 
@@ -398,10 +404,10 @@ jobs:
           python3 - <<'PY'
           import glob
           import os
+          import sys
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
           junit_paths = sorted(glob.glob("reports/ctest-junit-*.xml"))
           output_path = "reports/test-execution.xml"
 
@@ -421,7 +427,6 @@ jobs:
                   if stem in normalized or short in normalized:
                       return candidate.as_posix()
 
-              # Fallback: Sonar generic execution needs a real test file path.
               if test_files:
                   return test_files[0].as_posix()
 
@@ -501,7 +506,8 @@ jobs:
           print(f"Generic test cases exported: {total_cases}")
 
           if total_cases == 0:
-              print("::warning::No test cases were exported to Sonar generic test execution report.")
+              print("::error::No test cases were exported to Sonar generic test execution report.")
+              sys.exit(1)
           PY
 
           test -s "$REPORTS_DIR/test-execution.xml"
@@ -509,7 +515,6 @@ jobs:
           head -n 80 "$REPORTS_DIR/test-execution.xml"
 
       - name: Generate coverage report for SonarQube Cloud
-        if: always()
         run: |
           set -e
 
@@ -555,7 +560,6 @@ jobs:
           head -n 80 "$REPORTS_DIR/coverage-sonarqube.xml"
 
       - name: Validate SonarQube coverage report
-        if: always()
         run: |
           set -e
 
@@ -634,7 +638,6 @@ jobs:
 
       - name: Prepare SonarQube CFamily inputs
         id: sonar_inputs
-        if: always()
         run: |
           set -euo pipefail
 
@@ -859,7 +862,7 @@ jobs:
           if-no-files-found: warn
 
       - name: SonarQube Cloud Scan
-        if: ${{ always() && steps.sonar_inputs.outputs.ready == 'true' }}
+        if: ${{ steps.sonar_inputs.outputs.ready == 'true' }}
         uses: SonarSource/sonarqube-scan-action@v8
         with:
           projectBaseDir: .
@@ -879,19 +882,3 @@ jobs:
             -Dsonar.coverageReportPaths=reports/coverage-sonarqube.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Fail workflow if BP unit tests failed
-        if: always()
-        run: |
-          if [ -f "$REPORTS_DIR/ctest-exit-code.txt" ]; then
-            CTEST_EXIT="$(cat "$REPORTS_DIR/ctest-exit-code.txt")"
-            echo "CTest exit code was: $CTEST_EXIT"
-
-            if [ "$CTEST_EXIT" != "0" ]; then
-              echo "::error::One or more BP unit tests failed. SonarQube results were already uploaded."
-              exit "$CTEST_EXIT"
-            fi
-          else
-            echo "::error::CTest exit code file not found."
-            exit 1
-          fi
