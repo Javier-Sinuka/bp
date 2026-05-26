@@ -341,13 +341,13 @@ jobs:
           test -s "$REPORTS_DIR/test-execution.xml"
           head -n 40 "$REPORTS_DIR/test-execution.xml"
 
-      - name: Generate coverage report for SonarQube Cloud
+            - name: Generate coverage report for SonarQube Cloud
         if: always()
         continue-on-error: true
         run: |
           mkdir -p "$REPORTS_DIR"
 
-          if find build -type f \( -name '*.gcda' -o -name '*.gcno' \) | grep -q .; then
+          if find build -type f -name '*.gcda' | grep -q .; then
             gcovr \
               --root "$GITHUB_WORKSPACE/src/bpnode" \
               --object-directory "$GITHUB_WORKSPACE/build" \
@@ -358,9 +358,11 @@ jobs:
               --exclude "$GITHUB_WORKSPACE/src/bpnode/docs/.*" \
               --exclude "$GITHUB_WORKSPACE/src/bpnode/cosmos/.*" \
               --exclude "$GITHUB_WORKSPACE/src/bpnode/config/.*" \
+              --exclude-directories "$GITHUB_WORKSPACE/build/CMakeFiles" \
+              --gcov-ignore-errors=all \
               --print-summary
           else
-            echo 'No gcov coverage files found; creating empty SonarQube coverage report.'
+            echo 'No .gcda files found; unit tests probably did not run. Creating empty SonarQube coverage report.'
             cat > "$REPORTS_DIR/coverage-sonarqube.xml" <<'XML'
           <?xml version="1.0" encoding="UTF-8"?>
           <coverage version="1"></coverage>
