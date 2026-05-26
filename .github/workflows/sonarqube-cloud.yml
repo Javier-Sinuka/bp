@@ -162,6 +162,28 @@ jobs:
             fi
           done
 
+          echo "Patching bpxfer_defs/targets.cmake for current cFE target names..."
+
+          cat >> ./bpxfer_defs/targets.cmake <<'EOF'
+
+          # ------------------------------------------------------------------
+          # CI compatibility patch:
+          # targets.cmake declares MISSION_CPUNAMES as "tx rx", so modern cFE
+          # expects tx_PROCESSORID and rx_PROCESSORID, not cpu1_PROCESSORID.
+          # ------------------------------------------------------------------
+
+          set(tx_PROCESSORID 1)
+          set(tx_PSP_MODULELIST ${GLOBAL_PSP_MODULELIST})
+          set(tx_PLATFORM default)
+
+          set(rx_PROCESSORID 2)
+          set(rx_PSP_MODULELIST ${GLOBAL_PSP_MODULELIST})
+          set(rx_PLATFORM default)
+          EOF
+
+          echo "Final targets.cmake:"
+          cat ./bpxfer_defs/targets.cmake
+
           echo "Generated bpxfer_defs:"
           find ./bpxfer_defs -maxdepth 4 -type f | sort
 
