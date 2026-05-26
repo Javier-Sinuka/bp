@@ -189,6 +189,23 @@ jobs:
 
           echo "Found udpsock_intf:"
           find "$GITHUB_WORKSPACE/src/bpnode/psp_mod/udpsock_intf" -maxdepth 1 -type f -print
+      
+      - name: Prepare BP unit-test relative PSP path
+        run: |
+          set -e
+
+          echo "Creating compatibility symlink expected by BP unit-test/CMakeLists.txt"
+          echo "BP unit tests expect: $GITHUB_WORKSPACE/psp"
+          echo "Actual cFS PSP path:  $GITHUB_WORKSPACE/cfs-bundle/psp"
+
+          rm -rf "$GITHUB_WORKSPACE/psp"
+          ln -s "$GITHUB_WORKSPACE/cfs-bundle/psp" "$GITHUB_WORKSPACE/psp"
+
+          echo "Checking required iodriver unit-test stub:"
+          test -f "$GITHUB_WORKSPACE/psp/fsw/modules/iodriver/ut-stubs/iodriver_base_stubs.c"
+
+          ls -lah "$GITHUB_WORKSPACE/psp"
+          ls -lah "$GITHUB_WORKSPACE/psp/fsw/modules/iodriver/ut-stubs/iodriver_base_stubs.c"
 
       - name: Configure cFS/BP with unit tests and coverage flags
         run: |
